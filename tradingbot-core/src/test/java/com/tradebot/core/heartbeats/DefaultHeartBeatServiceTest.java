@@ -2,6 +2,7 @@
 package com.tradebot.core.heartbeats;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,9 +29,9 @@ public class DefaultHeartBeatServiceTest {
 	}
 
 	@Test
-	public void heartBeatTest() throws Exception {
+	public void heartBeatTest() {
 
-		DefaultHeartBeatService service = new DefaultHeartBeatService(Lists.newArrayList(heartBeatStreamingService), 1L);
+		DefaultHeartBeatService service = new DefaultHeartBeatService(Lists.newArrayList(heartBeatStreamingService), 1L, 1L);
 		service.init();
 
 		EventBus eventBus = new EventBus();
@@ -40,10 +41,10 @@ public class DefaultHeartBeatServiceTest {
 		DateTime now = DateTime.now();
 
 		heartBeatCallBack.onHeartBeat(new HeartBeatPayLoad<>(now.minusMinutes(2), TESTSTREAM));
-		verify(heartBeatStreamingService, times(1)).startHeartBeatStreaming();
+		verify(heartBeatStreamingService, atLeastOnce()).startHeartBeatStreaming();
 		heartBeatCallBack.onHeartBeat(new HeartBeatPayLoad<>(DateTime.now(), TESTSTREAM));
 
 		service.stop();
-		assertThat(service.isAlive()).isFalse();
+		assertThat(service.isAlive()).isTrue();
 	}
 }

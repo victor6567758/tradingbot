@@ -1,11 +1,12 @@
 package com.tradebot.core.instrument;
 
 import com.google.common.base.Preconditions;
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 public class InstrumentService<T> {
@@ -14,12 +15,11 @@ public class InstrumentService<T> {
 
     public InstrumentService(InstrumentDataProvider<T> instrumentDataProvider) {
         Preconditions.checkNotNull(instrumentDataProvider);
-        Collection<TradeableInstrument<T>> instruments = instrumentDataProvider.getInstruments();
-        Map<String, TradeableInstrument<T>> tradeableInstrumentMap = new TreeMap<>();
-        for (TradeableInstrument<T> instrument : instruments) {
-            tradeableInstrumentMap.put(instrument.getInstrument(), instrument);
-        }
-        instrumentMap = Collections.unmodifiableMap(tradeableInstrumentMap);
+
+        instrumentMap = ImmutableMap.<String, TradeableInstrument<T>>builder().putAll(
+            instrumentDataProvider.getInstruments().stream()
+                .collect(Collectors.toMap(TradeableInstrument::getInstrument,
+                    instrument -> instrument))).build();
     }
 
     public Collection<TradeableInstrument<T>> getInstruments() {
@@ -27,26 +27,21 @@ public class InstrumentService<T> {
     }
 
     public Collection<TradeableInstrument<T>> getAllPairsWithCurrency(String currency) {
-        Collection<TradeableInstrument<T>> allPairs = new ArrayList<>(instrumentMap.size());
         if (StringUtils.isEmpty(currency)) {
             return Collections.emptyList();
         }
-        for (Map.Entry<String, TradeableInstrument<T>> entry : instrumentMap.entrySet()) {
-            if (entry.getKey().contains(currency)) {
-                allPairs.add(entry.getValue());
-            }
-        }
-        return allPairs;
+
+        return instrumentMap.entrySet().stream()
+            .filter(entry -> entry.getKey().contains(currency))
+            .map(Entry::getValue)
+            .collect(Collectors.toList());
     }
 
     public Double getPipForInstrument(TradeableInstrument<T> instrument) {
         Preconditions.checkNotNull(instrument);
-        TradeableInstrument<T> tradeableInstrument = instrumentMap.get(instrument.getInstrument());
 
-        if (tradeableInstrument != null) {
-            return tradeableInstrument.getPip();
-        } else {
-            return 1.0;
-        }
+        TradeableInstrument<T> tradeableInstrument = instrumentMap.get(instrument.getInstrument());
+        return tradeableInstrument != null ? tradeableInstrument.getPip() : 1.0;
+
     }
 }

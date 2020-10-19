@@ -1,12 +1,12 @@
 package com.tradebot.core.marketdata.historic;
 
+import com.tradebot.core.instrument.TradeableInstrument;
 import lombok.Getter;
 import org.joda.time.DateTime;
 
-import com.tradebot.core.instrument.TradeableInstrument;
-
 @Getter
 public class CandleStick<T> {
+
     /*All prices are average of bid and ask ,i.e (bid+ask)/2*/
     private final double openPrice;
     private final double highPrice;
@@ -18,8 +18,9 @@ public class CandleStick<T> {
     private final String toStr;
     private final int hash;
 
-    public CandleStick(double openPrice, double highPrice, double lowPrice, double closePrice, DateTime eventDate,
-            TradeableInstrument<T> instrument, CandleStickGranularity candleGranularity) {
+    public CandleStick(double openPrice, double highPrice, double lowPrice, double closePrice,
+        DateTime eventDate,
+        TradeableInstrument<T> instrument, CandleStickGranularity candleGranularity) {
         this.openPrice = openPrice;
         this.highPrice = highPrice;
         this.lowPrice = lowPrice;
@@ -29,8 +30,14 @@ public class CandleStick<T> {
         this.candleGranularity = candleGranularity;
         this.hash = calcHash();
         this.toStr = String.format(
-                "Open=%2.5f, high=%2.5f, low=%2.5f,close=%2.5f,date=%s, instrument=%s, granularity=%s", openPrice,
-                highPrice, lowPrice, closePrice, eventDate, instrument, candleGranularity.name());
+            "Open=%2.5f, high=%2.5f, low=%2.5f,close=%2.5f,date=%s, instrument=%s, granularity=%s",
+            openPrice,
+            highPrice,
+            lowPrice,
+            closePrice,
+            eventDate,
+            instrument,
+            candleGranularity.name());
     }
 
     private int calcHash() {

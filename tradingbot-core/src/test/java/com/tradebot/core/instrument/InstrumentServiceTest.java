@@ -18,41 +18,45 @@ import com.tradebot.core.TradingTestConstants;
 
 public class InstrumentServiceTest {
 
-	private final double nonjpypip = 0.0001;
-	private final double jpypip = 0.01;
+	private final double NON_JPY_PIP = 0.0001;
+	private final double JPY_PIP = 0.01;
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testAll() {
-		@SuppressWarnings("unchecked")
 		InstrumentDataProvider<String> instrumentDataProvider = mock(InstrumentDataProvider.class);
-
 		Collection<TradeableInstrument<String>> instruments = createInstruments();
+
 		when(instrumentDataProvider.getInstruments()).thenReturn(instruments);
-		InstrumentService<String> service = new InstrumentService<String>(instrumentDataProvider);
+		InstrumentService<String> service = new InstrumentService<>(instrumentDataProvider);
 		Collection<TradeableInstrument<String>> usdpairs = service.getAllPairsWithCurrency("USD");
 		assertEquals(4, usdpairs.size());
-		TradeableInstrument<String> usdjpy = new TradeableInstrument<String>("USD_JPY");
+
+		TradeableInstrument<String> usdjpy = new TradeableInstrument<>("USD_JPY");
 		assertTrue(usdpairs.contains(usdjpy));
+
 		Collection<TradeableInstrument<String>> jpypairs = service.getAllPairsWithCurrency("JPY");
 		assertEquals(2, jpypairs.size());
-		jpypairs.contains(usdjpy);
+		assertThat(jpypairs).contains(usdjpy);
+
 		Collection<TradeableInstrument<String>> xaupairs = service.getAllPairsWithCurrency("XAU");
 		assertTrue(xaupairs.isEmpty());
+
 		Collection<TradeableInstrument<String>> nullpairs = service.getAllPairsWithCurrency(null);
 		assertTrue(nullpairs.isEmpty());
-		assertEquals(nonjpypip, service.getPipForInstrument(new TradeableInstrument<String>("GBP_CHF")),
+		assertEquals(NON_JPY_PIP, service.getPipForInstrument(new TradeableInstrument<>("GBP_CHF")),
 				TradingTestConstants.PRECISION);
-		assertEquals(jpypip, service.getPipForInstrument(usdjpy), TradingTestConstants.PRECISION);
-		assertEquals(1.0, service.getPipForInstrument(new TradeableInstrument<String>("XAU_EUR")),
+		assertEquals(JPY_PIP, service.getPipForInstrument(usdjpy), TradingTestConstants.PRECISION);
+		assertEquals(1.0, service.getPipForInstrument(new TradeableInstrument<>("XAU_EUR")),
 				TradingTestConstants.PRECISION);
 	}
 
 	@Test
 	public void equalityTest() {
-		TradeableInstrument<Long> usdjpy1 = new TradeableInstrument<Long>("USD_JPY", 10001L, "USDJPY currency pair");
-		TradeableInstrument<Long> usdjpy2 = new TradeableInstrument<Long>("USD_JPY", 10002L, "USDJPY currency pair");
-		TradeableInstrument<Long> usdjpy3 = new TradeableInstrument<Long>("USD_JPY", 10001L, "USDJPY currency pair");
-		TradeableInstrument<Long> usdchf1 = new TradeableInstrument<Long>("USD_CHF", 10003L, "USDCHF currency pair");
+		TradeableInstrument<Long> usdjpy1 = new TradeableInstrument<>("USD_JPY", 10001L, "USDJPY currency pair");
+		TradeableInstrument<Long> usdjpy2 = new TradeableInstrument<>("USD_JPY", 10002L, "USDJPY currency pair");
+		TradeableInstrument<Long> usdjpy3 = new TradeableInstrument<>("USD_JPY", 10001L, "USDJPY currency pair");
+		TradeableInstrument<Long> usdchf1 = new TradeableInstrument<>("USD_CHF", 10003L, "USDCHF currency pair");
 
 		assertThat(usdjpy1).isEqualTo(usdjpy3);
 		assertThat(usdjpy1).isNotEqualTo(usdjpy2);
@@ -62,17 +66,17 @@ public class InstrumentServiceTest {
 	private Collection<TradeableInstrument<String>> createInstruments() {
 		Collection<TradeableInstrument<String>> instruments = Lists.newArrayList();
 
-		instruments.add(new TradeableInstrument<String>("GBP_USD", nonjpypip, mock(InstrumentPairInterestRate.class),
+		instruments.add(new TradeableInstrument<>("GBP_USD", NON_JPY_PIP, mock(InstrumentPairInterestRate.class),
 				StringUtils.EMPTY));
-		instruments.add(new TradeableInstrument<String>("GBP_CHF", nonjpypip, mock(InstrumentPairInterestRate.class),
+		instruments.add(new TradeableInstrument<>("GBP_CHF", NON_JPY_PIP, mock(InstrumentPairInterestRate.class),
 				StringUtils.EMPTY));
-		instruments.add(new TradeableInstrument<String>("EUR_USD", nonjpypip, mock(InstrumentPairInterestRate.class),
+		instruments.add(new TradeableInstrument<>("EUR_USD", NON_JPY_PIP, mock(InstrumentPairInterestRate.class),
 				StringUtils.EMPTY));
-		instruments.add(new TradeableInstrument<String>("NZD_USD", nonjpypip, mock(InstrumentPairInterestRate.class),
+		instruments.add(new TradeableInstrument<>("NZD_USD", NON_JPY_PIP, mock(InstrumentPairInterestRate.class),
 				StringUtils.EMPTY));
-		instruments.add(new TradeableInstrument<String>("USD_JPY", jpypip, mock(InstrumentPairInterestRate.class),
+		instruments.add(new TradeableInstrument<>("USD_JPY", JPY_PIP, mock(InstrumentPairInterestRate.class),
 				StringUtils.EMPTY));
-		instruments.add(new TradeableInstrument<String>("AUD_JPY", jpypip, mock(InstrumentPairInterestRate.class),
+		instruments.add(new TradeableInstrument<>("AUD_JPY", JPY_PIP, mock(InstrumentPairInterestRate.class),
 				StringUtils.EMPTY));
 		return instruments;
 	}

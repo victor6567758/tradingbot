@@ -12,7 +12,7 @@ public class TradeableInstrument<T> {
     private final T instrumentId;
     private final double pip;
     private final int hash;
-    private InstrumentPairInterestRate instrumentPairInterestRate;
+    private final InstrumentPairInterestRate instrumentPairInterestRate;
 
     public TradeableInstrument(String instrument) {
         this(instrument, null);
@@ -22,23 +22,35 @@ public class TradeableInstrument<T> {
         this(instrument, null, description);
     }
 
-    public TradeableInstrument(String instrument, T instrumentId, String description) {
+    public TradeableInstrument(
+        String instrument,
+        T instrumentId,
+        String description) {
         this(instrument, instrumentId, 0, null, description);
     }
 
-    public TradeableInstrument(final String instrument, final double pip,
-            InstrumentPairInterestRate instrumentPairInterestRate, String description) {
+    public TradeableInstrument(
+        String instrument,
+        double pip,
+        InstrumentPairInterestRate instrumentPairInterestRate,
+        String description) {
         this(instrument, null, pip, instrumentPairInterestRate, description);
-
     }
 
-    public TradeableInstrument(final String instrument, T instrumentId, final double pip,
-            InstrumentPairInterestRate instrumentPairInterestRate) {
+    public TradeableInstrument(
+        String instrument,
+        T instrumentId,
+        double pip,
+        InstrumentPairInterestRate instrumentPairInterestRate) {
         this(instrument, instrumentId, pip, instrumentPairInterestRate, null);
     }
 
-    public TradeableInstrument(final String instrument, T instrumentId, final double pip,
-            InstrumentPairInterestRate instrumentPairInterestRate, String description) {
+    public TradeableInstrument(
+        String instrument,
+        T instrumentId,
+        double pip,
+        InstrumentPairInterestRate instrumentPairInterestRate,
+        String description) {
         this.instrument = instrument;
         this.pip = pip;
         this.instrumentPairInterestRate = instrumentPairInterestRate;
