@@ -37,6 +37,11 @@
     </dependency>
 
     <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
+    <dependency>
       <artifactId>lombok</artifactId>
       <groupId>org.projectlombok</groupId>
       <scope>provided</scope>
@@ -45,6 +50,11 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
 
     <dependency>
@@ -60,6 +70,30 @@
     <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>javax.annotation-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <artifactId>hamcrest-all</artifactId>
+      <groupId>org.hamcrest</groupId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <artifactId>junit</artifactId>
+      <groupId>junit</groupId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
