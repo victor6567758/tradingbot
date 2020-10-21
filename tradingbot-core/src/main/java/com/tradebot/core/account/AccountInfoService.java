@@ -10,6 +10,7 @@ import com.tradebot.core.utils.TradingUtils;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AccountInfoService<K, N> {
@@ -32,11 +33,11 @@ public class AccountInfoService<K, N> {
     }
 
     public Collection<Account<K>> getAllAccounts() {
-        return this.accountDataProvider.getLatestAccountInfo();
+        return accountDataProvider.getLatestAccountInfo();
     }
 
     public Account<K> getAccountInfo(K accountId) {
-        return this.accountDataProvider.getLatestAccountInfo(accountId);
+        return accountDataProvider.getLatestAccountInfo(accountId);
     }
 
     public Collection<K> findAccountsToTrade() {
@@ -46,6 +47,15 @@ public class AccountInfoService<K, N> {
                     account.getAmountAvailableRatio() >= baseTradingConfig.getMinReserveRatio()
                         && account.getNetAssetValue() >= baseTradingConfig.getMinAmountRequired()
             ).map(Account::getAccountId).collect(Collectors.toList());
+    }
+
+    public Optional<K> findAccountToTrade() {
+        return getAllAccounts().stream()
+            .sorted(Comparator.comparingDouble(Account::getMarginAvailable)).filter(
+                account ->
+                    account.getAmountAvailableRatio() >= baseTradingConfig.getMinReserveRatio()
+                        && account.getNetAssetValue() >= baseTradingConfig.getMinAmountRequired()
+            ).map(Account::getAccountId).findFirst();
     }
 
     /*

@@ -8,4 +8,6 @@ import com.tradebot.core.instrument.TradeableInstrument;
 public interface CurrentPriceInfoProvider<T> {
 
     Map<TradeableInstrument<T>, Price<T>> getCurrentPricesForInstruments(Collection<TradeableInstrument<T>> instruments);
+
+    Price<T> getCurrentPricesForInstrument(TradeableInstrument<T> instrument);
 }

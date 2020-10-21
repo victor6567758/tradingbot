@@ -18,7 +18,6 @@ public class MarketEventHandlerImpl<T> implements MarketEventCallback<T> {
     public void onMarketEvent(TradeableInstrument<T> instrument, double bid, double ask, DateTime eventDate) {
         MarketDataPayLoad<T> payload = new MarketDataPayLoad<>(bid, ask, instrument, eventDate);
         eventBus.post(payload);
-
     }
 
 }

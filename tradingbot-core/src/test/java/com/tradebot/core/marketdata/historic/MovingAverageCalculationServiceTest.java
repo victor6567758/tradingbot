@@ -61,8 +61,10 @@ public class MovingAverageCalculationServiceTest {
             historicMarketDataProvider.getCandleSticks(gbpchf, CandleStickGranularity.S5, from, to))
             .thenReturn(
                 candleSticks);
+
         double wma = service.calculateWMA(gbpchf, from, to, CandleStickGranularity.S5);
         double sma = service.calculateSMA(gbpchf, from, to, CandleStickGranularity.S5);
+
         assertTrue(sma > wma);/* as the price has been descending in our time frame*/
         assertEquals(1.42938, round(wma), TradingTestConstants.PRECISION);
         assertEquals(1.42959, round(sma), TradingTestConstants.PRECISION);
@@ -71,11 +73,6 @@ public class MovingAverageCalculationServiceTest {
                 CandleStickGranularity.S5);
         assertEquals(sma, smaWmaPair.left, TradingTestConstants.PRECISION);
         assertEquals(wma, smaWmaPair.right, TradingTestConstants.PRECISION);
-    }
-
-    private double round(double v) {
-        final double instrumentPrecision = 100000.00;
-        return Math.round((v * instrumentPrecision)) / instrumentPrecision;
     }
 
     private List<CandleStick<String>> createGbpChfCandleSticks() {
@@ -98,5 +95,10 @@ public class MovingAverageCalculationServiceTest {
             when(candle.getClosePrice()).thenReturn(closingPrice);
         }
         return candleSticks;
+    }
+
+    private static double round(double v) {
+        final double instrumentPrecision = 100000.00;
+        return Math.round((v * instrumentPrecision)) / instrumentPrecision;
     }
 }

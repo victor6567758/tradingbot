@@ -1,6 +1,7 @@
 
 package com.tradebot.core.marketdata;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
@@ -23,28 +24,30 @@ public class MarketEventHandlerImplTest {
 		@Subscribe
 		@AllowConcurrentEvents
 		public void processPayLoad(MarketDataPayLoad<String> payload) {
-			assertEquals(gbpusd, payload.getInstrument().getInstrument());
-			assertEquals(bid, payload.getBidPrice(), TradingTestConstants.PRECISION);
-			assertEquals(ask, payload.getAskPrice(), TradingTestConstants.PRECISION);
+			assertEquals(GBPUSD, payload.getInstrument().getInstrument());
+			assertEquals(BID, payload.getBidPrice(), TradingTestConstants.PRECISION);
+			assertEquals(ASK, payload.getAskPrice(), TradingTestConstants.PRECISION);
 			done.countDown();
 		}
 	}
 
-	private final double bid = 1.55;
-	private final double ask = 1.5502;
-	private final String gbpusd = "GBP_USD";
-	private final int numSubscribers = 2;
-	private final CountDownLatch done = new CountDownLatch(numSubscribers);
+	private static final double BID = 1.55;
+	private static final double ASK = 1.5502;
+	private static final String GBPUSD = "GBP_USD";
+	private static final int NUM_SUBSCRIBERS = 2;
+
+	private final CountDownLatch done = new CountDownLatch(NUM_SUBSCRIBERS);
 
 	@Test
 	public void testRideEventBus() throws Exception {
-		EventBus evtBus = new AsyncEventBus(Executors.newFixedThreadPool(numSubscribers));
-		for (int i = 1; i <= numSubscribers; i++) {
+		EventBus evtBus = new AsyncEventBus(Executors.newFixedThreadPool(NUM_SUBSCRIBERS));
+		for (int i = 1; i <= NUM_SUBSCRIBERS; i++) {
 			evtBus.register(new MarketDataSubscriber());
 		}
 		MarketEventCallback<String> callback = new MarketEventHandlerImpl<>(evtBus);
-		callback.onMarketEvent(new TradeableInstrument<String>(gbpusd), bid, ask, DateTime.now());
+		callback.onMarketEvent(new TradeableInstrument<>(GBPUSD), BID, ASK, DateTime.now());
 		done.await();
+		assertThat(done.getCount()).isZero();
 	}
 
 

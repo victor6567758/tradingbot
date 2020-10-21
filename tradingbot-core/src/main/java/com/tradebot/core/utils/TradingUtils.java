@@ -13,7 +13,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.joda.time.DateTime;
 
@@ -49,7 +48,6 @@ public class TradingUtils {
         switch (signal) {
             case LONG:
                 return askPrice + tickSize * pipsDesired;
-
             case SHORT:
                 return bidPrice - tickSize * pipsDesired;
             default:
@@ -62,6 +60,7 @@ public class TradingUtils {
         if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_OK
             || response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED)
             && entity != null) {
+
             InputStream stream = entity.getContent();
             String line;
             try (Reader reader = new InputStreamReader(stream);
@@ -100,17 +99,6 @@ public class TradingUtils {
             }
         }
         return sign;
-    }
-
-    public static void closeSilently(CloseableHttpClient httpClient) {
-        if (httpClient == null) {
-            return;
-        }
-        try {
-            httpClient.close();
-        } catch (IOException e) {
-            log.error("Exception on stream closure", e);
-        }
     }
 
     public static String getResponse(HttpResponse response) throws IOException {

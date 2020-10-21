@@ -26,8 +26,10 @@ public class TradeInfoServiceTest {
 		TradeInfoService<Long, String, Long> service = createService();
 		int jpyCt = service.findNetPositionCountForCurrency("JPY");
 		assertEquals(0, jpyCt);
+
 		int nzdCt = service.findNetPositionCountForCurrency("NZD");
 		assertEquals(1, nzdCt);
+
 		int audCt = service.findNetPositionCountForCurrency("AUD");
 		assertEquals(-1, audCt);
 	}
@@ -43,7 +45,7 @@ public class TradeInfoServiceTest {
 	public void allTradesForAccountAndInstrumentTest() {
 		TradeInfoService<Long, String, Long> service = createService();
 		Collection<Trade<Long, String, Long>> trades = service.getTradesForAccountAndInstrument(
-				TradingTestConstants.ACCOUNT_ID_1, new TradeableInstrument<String>("USD_JPY"));
+				TradingTestConstants.ACCOUNT_ID_1, new TradeableInstrument<>("USD_JPY"));
 		assertFalse(trades.isEmpty());
 		trades = service.getTradesForAccountAndInstrument(TradingTestConstants.ACCOUNT_ID_1,
 				new TradeableInstrument<String>("USD_CHF"));
@@ -77,9 +79,9 @@ public class TradeInfoServiceTest {
 	public void accountsForInstrumentsTest() {
 		TradeInfoService<Long, String, Long> service = createService();
 		Collection<Long> accountIds = service
-				.findAllAccountsWithInstrumentTrades(new TradeableInstrument<String>("EUR_USD"));
+				.findAllAccountsWithInstrumentTrades(new TradeableInstrument<>("EUR_USD"));
 		assertEquals(2, accountIds.size());
-		accountIds = service.findAllAccountsWithInstrumentTrades(new TradeableInstrument<String>("EUR_JPY"));
+		accountIds = service.findAllAccountsWithInstrumentTrades(new TradeableInstrument<>("EUR_JPY"));
 		assertEquals(1, accountIds.size());
 	}
 
@@ -87,7 +89,7 @@ public class TradeInfoServiceTest {
 	private TradeInfoService<Long, String, Long> createService() {
 		TradeManagementProvider<Long, String, Long> tradeManagementProvider = mock(TradeManagementProvider.class);
 		AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-		TradeInfoService<Long, String, Long> service = new TradeInfoService<Long, String, Long>(tradeManagementProvider,
+		TradeInfoService<Long, String, Long> service = new TradeInfoService<>(tradeManagementProvider,
 				accountDataProvider);
 		service.init();
 		Account<Long> account1 = mock(Account.class);
@@ -106,13 +108,13 @@ public class TradeInfoServiceTest {
 	private Collection<Trade<Long, String, Long>> createSampleTrades1() {
 		Collection<Trade<Long, String, Long>> trades = Lists.newArrayList();
 		trades.add(
-				new Trade<Long, String, Long>(2001L, 10, TradingSignal.LONG, new TradeableInstrument<String>("GBP_USD"),
+				new Trade<>(2001L, 10, TradingSignal.LONG, new TradeableInstrument<>("GBP_USD"),
 						DateTime.now(), 0.0, 1.5365, 0.0, TradingTestConstants.ACCOUNT_ID_1));
 		trades.add(
-				new Trade<Long, String, Long>(2003L, 10, TradingSignal.LONG, new TradeableInstrument<String>("USD_JPY"),
+				new Trade<>(2003L, 10, TradingSignal.LONG, new TradeableInstrument<>("USD_JPY"),
 						DateTime.now(), 0.0, 120.15, 0.0, TradingTestConstants.ACCOUNT_ID_1));
-		trades.add(new Trade<Long, String, Long>(2005L, 10, TradingSignal.SHORT,
-				new TradeableInstrument<String>("EUR_USD"), DateTime.now(), 0.0, 1.2429, 0.0,
+		trades.add(new Trade<>(2005L, 10, TradingSignal.SHORT,
+				new TradeableInstrument<>("EUR_USD"), DateTime.now(), 0.0, 1.2429, 0.0,
 				TradingTestConstants.ACCOUNT_ID_1));
 		return trades;
 	}
@@ -120,17 +122,17 @@ public class TradeInfoServiceTest {
 	private Collection<Trade<Long, String, Long>> createSampleTrades2() {
 		Collection<Trade<Long, String, Long>> trades = Lists.newArrayList();
 
-		trades.add(new Trade<Long, String, Long>(2002L, 10, TradingSignal.SHORT,
-				new TradeableInstrument<String>("EUR_JPY"), DateTime.now(), 0.0, 135.55, 0.0,
+		trades.add(new Trade<>(2002L, 10, TradingSignal.SHORT,
+				new TradeableInstrument<>("EUR_JPY"), DateTime.now(), 0.0, 135.55, 0.0,
 				TradingTestConstants.ACCOUNT_ID_2));
-		trades.add(new Trade<Long, String, Long>(2004L, 10, TradingSignal.SHORT,
-				new TradeableInstrument<String>("GBP_NZD"), DateTime.now(), 0.0, 2.39, 0.0,
+		trades.add(new Trade<>(2004L, 10, TradingSignal.SHORT,
+				new TradeableInstrument<>("GBP_NZD"), DateTime.now(), 0.0, 2.39, 0.0,
 				TradingTestConstants.ACCOUNT_ID_2));
-		trades.add(new Trade<Long, String, Long>(2006L, 10, TradingSignal.SHORT,
-				new TradeableInstrument<String>("AUD_USD"), DateTime.now(), 0.0, 0.8123, 0.0,
+		trades.add(new Trade<>(2006L, 10, TradingSignal.SHORT,
+				new TradeableInstrument<>("AUD_USD"), DateTime.now(), 0.0, 0.8123, 0.0,
 				TradingTestConstants.ACCOUNT_ID_2));
 		trades.add(
-				new Trade<Long, String, Long>(2007L, 10, TradingSignal.LONG, new TradeableInstrument<String>("EUR_USD"),
+				new Trade<>(2007L, 10, TradingSignal.LONG, new TradeableInstrument<>("EUR_USD"),
 						DateTime.now(), 0.0, 1.2515, 0.0, TradingTestConstants.ACCOUNT_ID_2));
 		return trades;
 	}

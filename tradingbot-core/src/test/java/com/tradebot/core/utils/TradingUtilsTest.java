@@ -41,12 +41,16 @@ public class TradingUtilsTest {
 	public void calculateTakeProfitPriceTest() {
 		double tpPrice = TradingUtils.calculateTakeProfitPrice(0.0001, TradingSignal.LONG, 1.11351, 1.11364, 45);
 		assertEquals(1.11814, tpPrice, TradingTestConstants.PRECISION);
+
 		tpPrice = TradingUtils.calculateTakeProfitPrice(0.01, TradingSignal.LONG, 121.456, 121.504, 20);
 		assertEquals(121.704, tpPrice, TradingTestConstants.PRECISION);
+
 		tpPrice = TradingUtils.calculateTakeProfitPrice(0.0001, TradingSignal.SHORT, 0.95112, 0.95136, 12);
 		assertEquals(0.94992, tpPrice, TradingTestConstants.PRECISION);
+
 		tpPrice = TradingUtils.calculateTakeProfitPrice(0.01, TradingSignal.SHORT, 135.895, 135.9, 123);
 		assertEquals(134.665, tpPrice, TradingTestConstants.PRECISION);
+
 		tpPrice = TradingUtils.calculateTakeProfitPrice(0.01, TradingSignal.NONE, 135.895, 135.9, 123);
 		assertEquals(0.0, tpPrice, TradingTestConstants.PRECISION);
 	}
@@ -55,8 +59,10 @@ public class TradingUtilsTest {
 	public void executingRequestMsgTest() {
 		HttpRequest req = mock(HttpRequest.class);
 		RequestLine reqLine = mock(RequestLine.class);
+
 		when(req.getRequestLine()).thenReturn(reqLine);
 		when(reqLine.toString()).thenReturn("http://foo.bar");
+
 		assertEquals("Executing request : http://foo.bar", TradingUtils.executingRequestMsg(req));
 	}
 

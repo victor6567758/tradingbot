@@ -31,10 +31,10 @@ public class PreOrderValidationServiceTest<M, N, K> {
 	public void priceInSafeZoneTest() {
 		MovingAverageCalculationService<N> movingAvgCalcService = mock(MovingAverageCalculationService.class);
 		BaseTradingConfig baseTradingCfg = mock(BaseTradingConfig.class);
-		PreOrderValidationService<M, N, K> service = new PreOrderValidationService<M, N, K>(null, movingAvgCalcService,
+		PreOrderValidationService<M, N, K> service = new PreOrderValidationService<>(null, movingAvgCalcService,
 				baseTradingCfg, null);
 		when(baseTradingCfg.getMax10yrWmaOffset()).thenReturn(0.1);
-		TradeableInstrument<N> eurusd = new TradeableInstrument<N>("EUR_USD");
+		TradeableInstrument<N> eurusd = new TradeableInstrument<>("EUR_USD");
 		when(
 				movingAvgCalcService.calculateWMA(eq(eurusd), eq(PreOrderValidationService.FIVE_YRS_IN_MTHS),
 						eq(CandleStickGranularity.M))).thenReturn(1.22);
@@ -49,18 +49,22 @@ public class PreOrderValidationServiceTest<M, N, K> {
 	public void instrumentNotAlreadyTradedTest() {
 		TradeInfoService<M, N, Long> tradeInfoService = mock(TradeInfoService.class);
 		OrderInfoService<M, N, Long> orderInfoService = mock(OrderInfoService.class);
-		PreOrderValidationService<M, N, Long> service = new PreOrderValidationService<M, N, Long>(tradeInfoService,
+		PreOrderValidationService<M, N, Long> service = new PreOrderValidationService<>(tradeInfoService,
 				null, null, orderInfoService);
+
 		Collection<Long> accountIds = Lists.newArrayList();
 		accountIds.add(TradingTestConstants.ACCOUNT_ID_1);
 		accountIds.add(TradingTestConstants.ACCOUNT_ID_2);
-		TradeableInstrument<N> gbpusd = new TradeableInstrument<N>("GBP_USD");
-		TradeableInstrument<N> nzdjpy = new TradeableInstrument<N>("NZD_JPY");
-		TradeableInstrument<N> audchf = new TradeableInstrument<N>("AUD_CHF");
+
+		TradeableInstrument<N> gbpusd = new TradeableInstrument<>("GBP_USD");
+		TradeableInstrument<N> nzdjpy = new TradeableInstrument<>("NZD_JPY");
+		TradeableInstrument<N> audchf = new TradeableInstrument<>("AUD_CHF");
 		when(tradeInfoService.findAllAccountsWithInstrumentTrades(gbpusd)).thenReturn(accountIds);
 		assertFalse(service.checkInstrumentNotAlreadyTraded(gbpusd));
+
 		Collection<Long> emptyCollectionIds = Collections.emptyList();
 		when(tradeInfoService.findAllAccountsWithInstrumentTrades(nzdjpy)).thenReturn(emptyCollectionIds);
+
 		Collection<Order<N, M>> pendingOrders = Lists.newArrayList();
 		when(orderInfoService.pendingOrdersForInstrument(nzdjpy)).thenReturn(pendingOrders);
 		pendingOrders.add(mock(Order.class));
@@ -78,21 +82,22 @@ public class PreOrderValidationServiceTest<M, N, K> {
 		final String NZD = "NZD";
 		final String CAD = "CAD";
 		final String CHF = "CHF";
+
 		TradeInfoService<M, N, Long> tradeInfoService = mock(TradeInfoService.class);
 		OrderInfoService<M, N, Long> orderInfoService = mock(OrderInfoService.class);
 		BaseTradingConfig baseTradingCfg = mock(BaseTradingConfig.class);
-		PreOrderValidationService<M, N, Long> service = new PreOrderValidationService<M, N, Long>(tradeInfoService,
+		PreOrderValidationService<M, N, Long> service = new PreOrderValidationService<>(tradeInfoService,
 				null, baseTradingCfg, orderInfoService);
-		TradeableInstrument<N> audnzd = new TradeableInstrument<N>(AUD + TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE
-				+ NZD);
+		TradeableInstrument<N> audnzd = new TradeableInstrument<>(
+			AUD + TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE + NZD);
 		when(baseTradingCfg.getMaxAllowedNetContracts()).thenReturn(4);
 		when(tradeInfoService.findNetPositionCountForCurrency(AUD)).thenReturn(4);
 		when(tradeInfoService.findNetPositionCountForCurrency(NZD)).thenReturn(3);
 		when(orderInfoService.findNetPositionCountForCurrency(AUD)).thenReturn(-1);
 		when(orderInfoService.findNetPositionCountForCurrency(NZD)).thenReturn(1);
 		assertFalse(service.checkLimitsForCcy(audnzd, TradingSignal.SHORT));
-		TradeableInstrument<N> cadchf = new TradeableInstrument<N>(CAD + TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE
-				+ CHF);
+		TradeableInstrument<N> cadchf = new TradeableInstrument<>(
+			CAD + TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE + CHF);
 		when(tradeInfoService.findNetPositionCountForCurrency(CAD)).thenReturn(5);
 		when(tradeInfoService.findNetPositionCountForCurrency(CHF)).thenReturn(1);
 		when(orderInfoService.findNetPositionCountForCurrency(CAD)).thenReturn(1);
