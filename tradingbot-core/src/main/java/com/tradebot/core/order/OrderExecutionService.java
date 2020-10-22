@@ -9,6 +9,7 @@ import com.tradebot.core.marketdata.Price;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderExecutionService<M, N, K> {
 
-    private static final long SHUTDOWN_WAIT_TIME = 1000L;
+    private static final long SHUTDOWN_WAIT_TIME = 5000L;
 
     private final AccountInfoService<K, N> accountInfoService;
     private final OrderManagementProvider<M, N, K> orderManagementProvider;
@@ -52,8 +53,8 @@ public class OrderExecutionService<M, N, K> {
         }
     }
 
-    public void submit(TradingDecision<N> decision) {
-        executorService.submit(() -> processTradingDecision(decision));
+    public Future<Boolean> submit(TradingDecision<N> decision) {
+        return executorService.submit(() -> processTradingDecision(decision), true);
     }
 
     private void processTradingDecision(TradingDecision<N> decision) {

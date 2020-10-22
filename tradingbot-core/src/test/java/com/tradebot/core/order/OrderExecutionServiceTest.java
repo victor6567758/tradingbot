@@ -1,6 +1,7 @@
 
 package com.tradebot.core.order;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -29,7 +32,7 @@ public class OrderExecutionServiceTest<N> {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void placeOrderTest() {
+    public void placeOrderTest() throws ExecutionException, InterruptedException {
         AccountInfoService<Long, N> accountInfoService = mock(AccountInfoService.class);
         OrderManagementProvider<Long, N, Long> orderManagementProvider = mock(
             OrderManagementProvider.class);
@@ -76,11 +79,12 @@ public class OrderExecutionServiceTest<N> {
             .thenReturn(Optional.of(TradingTestConstants.ACCOUNT_ID_1));
         when(baseTradingConfig.getMaxAllowedQuantity()).thenReturn(100);
 
-        service.submit(tradingDecision1);
-        service.submit(tradingDecision2);
+        Future<Boolean> futureTask1 = service.submit(tradingDecision1);
+        Future<Boolean> futureTask2 = service.submit(tradingDecision2);
 
-        /*this is a dummy trading decision payload, after whose consumption we know that our test case is tested*/
-        service.submit(new TradingDecision<>(gbpaud, TradingSignal.NONE));
+        assertThat(futureTask1.get()).isTrue();
+        assertThat(futureTask2.get()).isTrue();
+
         verify(orderManagementProvider, times(2))
             .placeOrder(any(Order.class), eq(TradingTestConstants.ACCOUNT_ID_1));
 
