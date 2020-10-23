@@ -22,6 +22,15 @@
       <artifactId>spring-boot-starter</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.trading-bot</groupId>
@@ -142,69 +151,41 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <fork>true</fork>
+          <mainClass>com.tradebot.app.TradeBotApp</mainClass>
+        </configuration>
         <executions>
           <execution>
-            <id>copy-dependencies</id>
-            <phase>prepare-package</phase>
             <goals>
-              <goal>copy-dependencies</goal>
+              <goal>repackage</goal>
             </goals>
-            <configuration>
-              <outputDirectory>
-                ${project.build.directory}/libs
-              </outputDirectory>
-            </configuration>
           </execution>
         </executions>
       </plugin>
-
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <classpathPrefix>libs/</classpathPrefix>
-              <mainClass>
-                com.tradebot.app.TradeBotApp
-              </mainClass>
+              <mainClass>com.tradebot.app.TradeBotApp</mainClass>
             </manifest>
           </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
         </configuration>
+        <executions>
+          <execution>
+            <id>assemble-all</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
-
-
-      <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-assembly-plugin</artifactId>
-      <executions>
-        <execution>
-          <phase>package</phase>
-          <goals>
-            <goal>single</goal>
-          </goals>
-          <configuration>
-            <archive>
-              <manifest>
-                <mainClass>
-                  com.tradebot.app.TradeBotApp
-                </mainClass>
-              </manifest>
-            </archive>
-            <descriptorRefs>
-              <descriptorRef>jar-with-dependencies</descriptorRef>
-            </descriptorRefs>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
 
     </plugins>
   </build>

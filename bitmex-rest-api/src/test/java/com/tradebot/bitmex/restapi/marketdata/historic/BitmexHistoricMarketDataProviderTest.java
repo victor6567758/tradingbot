@@ -6,7 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -51,7 +51,7 @@ public class BitmexHistoricMarketDataProviderTest {
         BitmexHistoricMarketDataProvider spy = spy(service);
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        OandaTestUtils.mockHttpInteraction("src/test/resources/candlesCountM.txt", mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction("src/test/resources/candlesCountM.txt", mockHttpClient);
         final int count = 2;
         List<CandleStick<String>> candles = spy.getCandleSticks(new TradeableInstrument<>("GBP_USD"),
                 CandleStickGranularity.M, count);
@@ -77,7 +77,7 @@ public class BitmexHistoricMarketDataProviderTest {
         BitmexHistoricMarketDataProvider spy = spy(service);
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        OandaTestUtils.mockHttpInteraction("src/test/resources/candlesFromToS5.txt", mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction("src/test/resources/candlesFromToS5.txt", mockHttpClient);
         List<CandleStick<String>> candles = spy.getCandleSticks(new TradeableInstrument<>("GBP_CHF"),
                 CandleStickGranularity.S5, from, to);
         assertEquals(58, candles.size());

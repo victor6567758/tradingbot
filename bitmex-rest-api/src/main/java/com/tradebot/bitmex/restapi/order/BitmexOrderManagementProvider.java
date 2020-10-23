@@ -210,7 +210,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<Lo
     @Override
     public Collection<Order<String, Long>> pendingOrdersForInstrument(
         TradeableInstrument<String> instrument) {
-        Collection<Account<Long>> accounts = this.accountDataProvider.getLatestAccountInfo();
+        Collection<Account<Long>> accounts = this.accountDataProvider.getLatestAccountsInfo();
         Collection<Order<String, Long>> allOrders = Lists.newArrayList();
         for (Account<Long> account : accounts) {
             allOrders.addAll(this.pendingOrdersForAccount(account.getAccountId(), instrument));

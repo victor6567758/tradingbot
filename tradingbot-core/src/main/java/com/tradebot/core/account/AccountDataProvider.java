@@ -7,5 +7,5 @@ public interface AccountDataProvider<T> {
 
     Account<T> getLatestAccountInfo(T accountId);
 
-    Collection<Account<T>> getLatestAccountInfo();
+    Collection<Account<T>> getLatestAccountsInfo();
 }

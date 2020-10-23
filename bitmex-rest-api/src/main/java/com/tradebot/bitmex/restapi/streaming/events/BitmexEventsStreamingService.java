@@ -60,7 +60,7 @@ public class BitmexEventsStreamingService extends BitmexStreamingService impleme
 
     @Override
     protected String getStreamingUrl() {
-        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountInfo();
+        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
         return this.url + BitmexConstants.EVENTS_RESOURCE + "?accountIds=" + accountsAsCsvString(
             accounts);
     }

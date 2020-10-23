@@ -12,9 +12,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 
-public class OandaTestUtils {
+public class BitmexTestUtils {
 
-    private OandaTestUtils() {
+    private BitmexTestUtils() {
 
     }
 

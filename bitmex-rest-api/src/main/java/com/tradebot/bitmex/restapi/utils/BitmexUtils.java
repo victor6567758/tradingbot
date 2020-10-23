@@ -2,6 +2,7 @@ package com.tradebot.bitmex.restapi.utils;
 
 import com.google.common.base.Preconditions;
 import com.tradebot.bitmex.restapi.BitmexConstants;
+import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.AccountEventPayLoad;
 import com.tradebot.bitmex.restapi.events.AccountEvents;
 import com.tradebot.bitmex.restapi.events.OrderEventPayLoad;
@@ -14,9 +15,12 @@ import com.tradebot.core.events.Event;
 import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.order.OrderType;
 import com.tradebot.core.utils.TradingUtils;
+import java.io.InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.message.BasicHeader;
 import org.json.simple.JSONObject;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 
 public class BitmexUtils {
@@ -24,18 +28,26 @@ public class BitmexUtils {
     private BitmexUtils() {
     }
 
+    public static BitmexAccountConfiguration readBitmexCredentials() {
+        Yaml yaml = new Yaml(new Constructor(BitmexAccountConfiguration.class));
+        InputStream inputStream = BitmexAccountConfiguration.class.getClassLoader()
+            .getResourceAsStream("bitmex-account.yml");
+        return yaml.load(inputStream);
+    }
 
-    public static Event toBitmexTransactionType(String transactionType) {
-        Preconditions.checkNotNull(transactionType);
-        Event evt = findAppropriateType(AccountEvents.values(), transactionType);
-        if (evt == null) {
-            evt = findAppropriateType(OrderEvents.values(), transactionType);
-            if (evt == null) {
-                evt = findAppropriateType(TradeEvents.values(), transactionType);
+    public static Event findByLabel(Event[] events, String label) {
+        Preconditions.checkNotNull(label);
+        Preconditions.checkNotNull(events);
+
+        for (Event value : events) {
+            if (value.label().equals(label)) {
+                return value;
             }
         }
-        return evt;
+        throw new IllegalArgumentException("Cannot find a value by label");
     }
+
+    // -----------------
 
     public static EventPayLoad<JSONObject> toBitmexEventPayLoad(String transactionType,
         JSONObject payLoad) {
@@ -67,7 +79,7 @@ public class BitmexUtils {
         return TradingUtils.splitCcyPair(instrument, BitmexConstants.CCY_PAIR_SEP);
     }
 
-    public static String toИшеьучCcy(String baseCcy, String quoteCcy) {
+    public static String toBitmexCcy(String baseCcy, String quoteCcy) {
         final int expectedLen = 3;
         if (!StringUtils.isEmpty(baseCcy) && !StringUtils.isEmpty(quoteCcy)
             && baseCcy.length() == expectedLen

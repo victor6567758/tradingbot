@@ -96,7 +96,7 @@ public class TradeInfoServiceTest {
 		Account<Long> account2 = mock(Account.class);
 		when(account1.getAccountId()).thenReturn(TradingTestConstants.ACCOUNT_ID_1);
 		when(account2.getAccountId()).thenReturn(TradingTestConstants.ACCOUNT_ID_2);
-		when(accountDataProvider.getLatestAccountInfo()).thenReturn(Lists.newArrayList(account1, account2));
+		when(accountDataProvider.getLatestAccountsInfo()).thenReturn(Lists.newArrayList(account1, account2));
 		when(tradeManagementProvider.getTradesForAccount(TradingTestConstants.ACCOUNT_ID_1))
 				.thenReturn(createSampleTrades1());
 		when(tradeManagementProvider.getTradesForAccount(TradingTestConstants.ACCOUNT_ID_2))

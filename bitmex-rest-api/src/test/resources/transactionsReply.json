@@ -1,0 +1,34 @@
+[
+  {
+    "transactID": "00000000-0000-0000-0000-000000000000",
+    "account": 237543,
+    "currency": "XBt",
+    "transactType": "RealisedPNL",
+    "amount": -10,
+    "fee": 0,
+    "transactStatus": "Completed",
+    "address": "XBTUSD",
+    "tx": "",
+    "text": "",
+    "transactTime": "2020-10-24T12:00:00.000Z",
+    "walletBalance": 999990,
+    "marginBalance": null,
+    "timestamp": "2020-10-24T12:00:00.000Z"
+  },
+  {
+    "transactID": "ec5d009a-f504-244b-5ca4-a3681c863ec5",
+    "account": 237543,
+    "currency": "XBt",
+    "transactType": "Transfer",
+    "amount": 1000000,
+    "fee": null,
+    "transactStatus": "Completed",
+    "address": "0",
+    "tx": "bf18c5e8-4a23-ef69-ec49-556671ab9f04",
+    "text": "Signup bonus",
+    "transactTime": "2019-08-18T20:58:11.156Z",
+    "walletBalance": 1000000,
+    "marginBalance": null,
+    "timestamp": "2019-08-18T20:58:11.156Z"
+  }
+]

@@ -51,6 +51,7 @@
     <logging-interceptor.version>2.7.5</logging-interceptor.version>
     <gson-fire.version>1.8.4</gson-fire.version>
     <spring.boot.version>2.3.4.RELEASE</spring.boot.version>
+    <snakeyaml.version>1.27</snakeyaml.version>
 
   </properties>
 
@@ -78,6 +79,12 @@
         <groupId>javax.servlet</groupId>
         <scope>provided</scope>
         <version>${javax.servlet.api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
       </dependency>
 
       <dependency>

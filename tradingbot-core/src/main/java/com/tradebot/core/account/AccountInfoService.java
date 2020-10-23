@@ -33,7 +33,7 @@ public class AccountInfoService<K, N> {
     }
 
     public Collection<Account<K>> getAllAccounts() {
-        return accountDataProvider.getLatestAccountInfo();
+        return accountDataProvider.getLatestAccountsInfo();
     }
 
     public Account<K> getAccountInfo(K accountId) {

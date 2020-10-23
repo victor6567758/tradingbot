@@ -7,7 +7,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.core.instrument.TradeableInstrument;
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,7 +28,7 @@ public class BitmexInstrumentDataProviderServiceTest {
         BitmexInstrumentDataProviderService spy = spy(service);
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        OandaTestUtils.mockHttpInteraction("src/test/resources/instruments.txt", mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction("src/test/resources/instruments.txt", mockHttpClient);
         Collection<TradeableInstrument<String>> allInstruments = spy.getInstruments();
         assertEquals(2, allInstruments.size());
         Iterator<TradeableInstrument<String>> itr = allInstruments.iterator();

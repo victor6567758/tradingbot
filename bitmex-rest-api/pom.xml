@@ -34,6 +34,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
     </dependency>
@@ -173,7 +178,7 @@
               <generateApiDocumentation>false</generateApiDocumentation>
               <generateModelDocumentation>false</generateModelDocumentation>
               <configOptions>
-                <dateLibrary>java11</dateLibrary>
+                <dateLibrary>joda</dateLibrary>
                 <sourceFolder>restclient</sourceFolder>
               </configOptions>
             </configuration>

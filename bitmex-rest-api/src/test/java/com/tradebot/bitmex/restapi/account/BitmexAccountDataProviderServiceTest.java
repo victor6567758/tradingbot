@@ -1,63 +1,62 @@
 package com.tradebot.bitmex.restapi.account;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.google.common.io.Resources;
+import com.google.gson.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.generated.api.UserApi;
+import com.tradebot.bitmex.restapi.generated.model.Wallet;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.core.account.Account;
-import org.apache.http.impl.client.CloseableHttpClient;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import org.junit.Before;
 import org.junit.Test;
 
 
 public class BitmexAccountDataProviderServiceTest {
 
-    private BitmexAccountDataProviderService createSpyAndCommonStuff(String fname,
-        BitmexAccountDataProviderService service) throws Exception {
-        BitmexAccountDataProviderService spy = spy(service);
+    private final JSON json = new JSON();
+    private final UserApi userApi = mock(UserApi.class);
+    private final BitmexAccountDataProviderService bitmexAccountDataProviderService = new BitmexAccountDataProviderService();
 
-        CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
-        when(spy.getHttpClient()).thenReturn(mockHttpClient);
+    private Wallet wallet;
 
-        OandaTestUtils.mockHttpInteraction(fname, mockHttpClient);
+    @Before
+    public void init() throws ApiException, IOException {
+        BitmexAccountDataProviderService bitmexAccountDataProviderServiceSpy = spy(bitmexAccountDataProviderService);
 
-        return spy;
-    }
+        wallet = json.deserialize(Resources.toString(Resources.getResource("walletReply.json"), StandardCharsets.UTF_8),
+            new TypeToken<Wallet>() {}.getType());
 
-    // TODO: this test logs "java.io.IOException: Stream Closed" because of same
-    // FileInputStream reread once closed
-    @Test
-    public void allAccountsTest() throws Exception {
-        final BitmexAccountDataProviderService service = new BitmexAccountDataProviderService(
-            BitmexTestConstants.url, BitmexTestConstants.userName, BitmexTestConstants.accessToken);
-        assertEquals("https://api-fxtrade.oanda.com/v1/accounts?username=testTrader",
-            service.getAllAccountsUrl());
-        BitmexAccountDataProviderService spy = createSpyAndCommonStuff(
-            "src/test/resources/accountsAll.txt", service);
-        spy.getLatestAccountInfo();
-        verify(spy, times(1)).getSingleAccountUrl(1898212L);
-        verify(spy, times(1)).getSingleAccountUrl(2093221L);
+        when(userApi.userGetWallet(eq(wallet.getCurrency()))).thenReturn(wallet);
+        doReturn(userApi).when(bitmexAccountDataProviderServiceSpy).getUserApi();
+
     }
 
     @Test
-    public void accountIdTest() throws Exception {
-        final BitmexAccountDataProviderService service = new BitmexAccountDataProviderService(
-            BitmexTestConstants.url, BitmexTestConstants.userName, BitmexTestConstants.accessToken);
-        assertEquals("https://api-fxtrade.oanda.com/v1/accounts/123456",
-            service.getSingleAccountUrl(
-                BitmexTestConstants.accountId));
+    public void testGetLatestAccountInfo() {
+        Account<Long> account = bitmexAccountDataProviderService.getLatestAccountInfo(wallet.getAccount().longValue());
 
-        BitmexAccountDataProviderService spy = createSpyAndCommonStuff(
-            "src/test/resources/account123456.txt", service);
-        Account<Long> accInfo = spy.getLatestAccountInfo(BitmexTestConstants.accountId);
-        assertNotNull(accInfo);
-        assertEquals("CHF", accInfo.getCurrency());
-        assertEquals(0.05, accInfo.getMarginRate(), BitmexTestConstants.precision);
-        assertEquals(-897.1, accInfo.getUnrealisedPnl(), BitmexTestConstants.precision);
+        assertThat(account.getAccountId()).isEqualTo(wallet.getAccount().longValue());
+        assertThat(account.getCurrency()).isEqualTo(wallet.getCurrency());
     }
+
+    @Test
+    public void getLatestAccountsInfo() {
+        Collection<Account<Long>> accounts = bitmexAccountDataProviderService.getLatestAccountsInfo();
+        assertThat(accounts).hasSize(1);
+        assertThat(accounts.iterator().next().getAccountId()).isEqualTo(wallet.getAccount().longValue());
+        assertThat(accounts.iterator().next().getCurrency()).isEqualTo(wallet.getCurrency());
+    }
+
+
 }

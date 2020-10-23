@@ -10,5 +10,22 @@ public enum AccountEvents implements Event {
     SET_MARGIN_RATE,
     TRANSFER_FUNDS,
     DAILY_INTEREST,
-    FEE;
+    FEE,
+    NONE;
+
+    public final String label;
+
+    AccountEvents(String label) {
+        this.label = label;
+    }
+
+    AccountEvents() {
+        this.label = null;
+    }
+
+
+    @Override
+    public String label() {
+        return label;
+    }
 }

@@ -54,7 +54,7 @@ public class TradeInfoService<M, N, K> {
         lock.writeLock().lock();
         try {
             tradesCache.clear();
-            for (Account<K> account : accountDataProvider.getLatestAccountInfo()) {
+            for (Account<K> account : accountDataProvider.getLatestAccountsInfo()) {
                 tradesCache.put(account.getAccountId(), getTradesPerInstrumentForAccount(
                     account.getAccountId()));
             }

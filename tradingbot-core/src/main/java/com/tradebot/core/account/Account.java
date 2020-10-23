@@ -21,14 +21,27 @@ public class Account<T> {
     private final double marginRate;
     private final int hash;
 
-    public Account(final double totalBalance, double marginAvailable, String currency, T accountId,
+    public Account(
+        double totalBalance,
+        double marginAvailable,
+        String currency,
+        T accountId,
         double marginRate) {
+
         this(totalBalance, 0, 0, 0, marginAvailable, 0, currency, accountId, marginRate);
     }
 
-    public Account(final double totalBalance, double unrealisedPnl, double realisedPnl,
+    public Account(
+        double totalBalance,
+        double unrealisedPnl,
+        double realisedPnl,
         double marginUsed,
-        double marginAvailable, long openTrades, String currency, T accountId, double marginRate) {
+        double marginAvailable,
+        long openTrades,
+        String currency,
+        T accountId,
+        double marginRate) {
+
         this.totalBalance = totalBalance;
         this.unrealisedPnl = unrealisedPnl;
         this.realisedPnl = realisedPnl;

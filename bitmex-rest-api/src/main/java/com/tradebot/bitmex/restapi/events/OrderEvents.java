@@ -10,6 +10,25 @@ public enum OrderEvents implements Event {
     MARKET_IF_TOUCHED_ORDER_CREATE,
     ORDER_UPDATE,
     ORDER_CANCEL,
-    ORDER_FILLED;
+    ORDER_FILLED,
+    NONE;
+
+    public final String label;
+
+    OrderEvents(String label) {
+        this.label = label;
+    }
+
+    OrderEvents() {
+        this.label = null;
+    }
+
+
+    @Override
+    public String label() {
+        return label;
+    }
+
 
 }
+

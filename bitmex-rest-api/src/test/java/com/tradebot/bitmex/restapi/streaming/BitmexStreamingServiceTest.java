@@ -11,7 +11,7 @@ import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.bitmex.restapi.events.OrderEventPayLoad;
 import com.tradebot.bitmex.restapi.events.TradeEventPayLoad;
 import com.tradebot.bitmex.restapi.streaming.events.BitmexEventsStreamingService;
@@ -62,7 +62,7 @@ public class BitmexStreamingServiceTest {
         @SuppressWarnings("unchecked")
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
         Collection<Account<Long>> mockAccounts = getMockAccounts();
-        when(accountDataProvider.getLatestAccountInfo()).thenReturn(mockAccounts);
+        when(accountDataProvider.getLatestAccountsInfo()).thenReturn(mockAccounts);
         EventBus eventBus = new EventBus();
         eventBus.register(this);
         HeartBeatCallback<DateTime> heartBeatCallback = new HeartBeatCallbackImpl<>(eventBus);
@@ -100,7 +100,7 @@ public class BitmexStreamingServiceTest {
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
         when(spy.isStreaming()).thenReturn(service.isStreaming());
-        OandaTestUtils.mockHttpInteraction(fname, mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction(fname, mockHttpClient);
         spy.startStreaming();
         do {
             Thread.sleep(2L);

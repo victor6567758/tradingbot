@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.position.Position;
@@ -63,7 +63,7 @@ public class BitmexPositionManagementProviderTest {
         BitmexPositionManagementProvider spy = spy(service);
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        OandaTestUtils.mockHttpInteraction(fname, mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction(fname, mockHttpClient);
         return spy;
     }
 

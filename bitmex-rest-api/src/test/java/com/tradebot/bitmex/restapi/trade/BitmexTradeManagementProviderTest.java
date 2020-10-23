@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.trade.Trade;
 import java.util.Collection;
@@ -83,7 +83,7 @@ public class BitmexTradeManagementProviderTest {
         BitmexTradeManagementProvider spy = Mockito.spy(service);
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        OandaTestUtils.mockHttpInteraction(fname, mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction(fname, mockHttpClient);
         return spy;
     }
 

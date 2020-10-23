@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
@@ -33,7 +33,7 @@ public class BitmexOrderManagementProviderTest {
 
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
         Account<Long> account = mock(Account.class);
-        when(accountDataProvider.getLatestAccountInfo()).thenReturn(Lists.newArrayList(account));
+        when(accountDataProvider.getLatestAccountsInfo()).thenReturn(Lists.newArrayList(account));
         when(account.getAccountId()).thenReturn(BitmexTestConstants.accountId);
         BitmexOrderManagementProvider service = new BitmexOrderManagementProvider(
             BitmexTestConstants.url,
@@ -179,7 +179,7 @@ public class BitmexOrderManagementProviderTest {
         BitmexOrderManagementProvider spy = Mockito.spy(service);
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        OandaTestUtils.mockHttpInteraction(fname, mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction(fname, mockHttpClient);
         return spy;
     }
 }

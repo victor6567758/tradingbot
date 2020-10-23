@@ -7,7 +7,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.OandaTestUtils;
+import com.tradebot.bitmex.restapi.BitmexTestUtils;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.utils.TradingUtils;
@@ -41,7 +41,7 @@ public class BitmexCurrentPriceInfoProviderTest {
         CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
         when(spy.getHttpClient()).thenReturn(mockHttpClient);
 
-        OandaTestUtils.mockHttpInteraction("src/test/resources/currentPrices.txt", mockHttpClient);
+        BitmexTestUtils.mockHttpInteraction("src/test/resources/currentPrices.txt", mockHttpClient);
 
         Map<TradeableInstrument<String>, Price<String>> prices = spy.getCurrentPricesForInstruments(instruments);
         assertEquals(instruments.size(), prices.size());

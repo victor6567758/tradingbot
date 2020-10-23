@@ -25,9 +25,18 @@ public class Transaction<M, N, T> {
     @Setter
     private M linkedTransactionId;
 
-    public Transaction(M transactionId, Event transactionType, N accountId, String instrument,
+    public Transaction(
+        M transactionId,
+        Event transactionType,
+        N accountId,
+        String instrument,
         Long units,
-        TradingSignal side, DateTime transactionTime, Double price, Double interest, Double pnl) {
+        TradingSignal side,
+        DateTime transactionTime,
+        Double price,
+        Double interest,
+        Double pnl) {
+
         super();
         this.transactionId = transactionId;
         this.transactionType = transactionType;
