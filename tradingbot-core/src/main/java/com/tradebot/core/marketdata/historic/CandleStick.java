@@ -18,9 +18,14 @@ public class CandleStick<T> {
     private final String toStr;
     private final int hash;
 
-    public CandleStick(double openPrice, double highPrice, double lowPrice, double closePrice,
+    public CandleStick(
+        double openPrice,
+        double highPrice,
+        double lowPrice,
+        double closePrice,
         DateTime eventDate,
-        TradeableInstrument<T> instrument, CandleStickGranularity candleGranularity) {
+        TradeableInstrument<T> instrument,
+        CandleStickGranularity candleGranularity) {
         this.openPrice = openPrice;
         this.highPrice = highPrice;
         this.lowPrice = lowPrice;

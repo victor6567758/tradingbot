@@ -50,8 +50,9 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
     }
 
     private List<Transaction> getAllTransaction() throws ApiException {
-        return userApi.userGetWalletHistory(
-            bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency(), 100.0, 0.0);
+        return getUserApi().userGetWalletHistory(
+            bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency(),
+            (double) bitmexAccountConfiguration.getBitmex().getApi().getTransactionsDepth(), 0.0);
     }
 
     private static com.tradebot.core.account.transaction.Transaction<String, Long, String> mapToTransaction(Transaction transaction) {

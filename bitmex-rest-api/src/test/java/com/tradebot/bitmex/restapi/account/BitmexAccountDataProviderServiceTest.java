@@ -26,13 +26,13 @@ public class BitmexAccountDataProviderServiceTest {
 
     private final JSON json = new JSON();
     private final UserApi userApi = mock(UserApi.class);
-    private final BitmexAccountDataProviderService bitmexAccountDataProviderService = new BitmexAccountDataProviderService();
+    private BitmexAccountDataProviderService bitmexAccountDataProviderServiceSpy;
 
     private Wallet wallet;
 
     @Before
     public void init() throws ApiException, IOException {
-        BitmexAccountDataProviderService bitmexAccountDataProviderServiceSpy = spy(bitmexAccountDataProviderService);
+        bitmexAccountDataProviderServiceSpy = spy(new BitmexAccountDataProviderService());
 
         wallet = json.deserialize(Resources.toString(Resources.getResource("walletReply.json"), StandardCharsets.UTF_8),
             new TypeToken<Wallet>() {}.getType());
@@ -44,7 +44,7 @@ public class BitmexAccountDataProviderServiceTest {
 
     @Test
     public void testGetLatestAccountInfo() {
-        Account<Long> account = bitmexAccountDataProviderService.getLatestAccountInfo(wallet.getAccount().longValue());
+        Account<Long> account = bitmexAccountDataProviderServiceSpy.getLatestAccountInfo(wallet.getAccount().longValue());
 
         assertThat(account.getAccountId()).isEqualTo(wallet.getAccount().longValue());
         assertThat(account.getCurrency()).isEqualTo(wallet.getCurrency());
@@ -52,7 +52,7 @@ public class BitmexAccountDataProviderServiceTest {
 
     @Test
     public void getLatestAccountsInfo() {
-        Collection<Account<Long>> accounts = bitmexAccountDataProviderService.getLatestAccountsInfo();
+        Collection<Account<Long>> accounts = bitmexAccountDataProviderServiceSpy.getLatestAccountsInfo();
         assertThat(accounts).hasSize(1);
         assertThat(accounts.iterator().next().getAccountId()).isEqualTo(wallet.getAccount().longValue());
         assertThat(accounts.iterator().next().getCurrency()).isEqualTo(wallet.getCurrency());

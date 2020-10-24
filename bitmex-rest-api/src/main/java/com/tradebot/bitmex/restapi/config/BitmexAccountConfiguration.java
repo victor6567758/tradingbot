@@ -17,6 +17,8 @@ public class BitmexAccountConfiguration {
         private String secret;
         private String email;
         private String mainCurrency;
+        private int transactionsDepth;
+        private int historyDepth;
     }
 
     private Bitmex bitmex;

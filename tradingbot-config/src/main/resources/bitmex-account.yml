@@ -4,3 +4,5 @@ bitmex:
     secret: B4lgqyejhFtADfSsQ7bQB1retMPSFHMQ_1SArrY0ZqX_vqvK
     email: victorofff@gmail.com
     mainCurrency: XBt
+    transactionsDepth: 100
+    historyDepth: 100

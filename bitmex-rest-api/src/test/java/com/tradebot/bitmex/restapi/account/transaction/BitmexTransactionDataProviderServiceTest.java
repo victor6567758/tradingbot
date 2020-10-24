@@ -27,13 +27,13 @@ public class BitmexTransactionDataProviderServiceTest {
 
     private final JSON json = new JSON();
     private final UserApi userApi = mock(UserApi.class);
-    private BitmexTransactionDataProviderService bitmexTransactionDataProviderService = new BitmexTransactionDataProviderService();
+    private BitmexTransactionDataProviderService bitmexTransactionDataProviderServiceSpy;
     private List<Transaction> transactions;
 
     @Before
     public void init() throws ApiException, IOException {
 
-        BitmexTransactionDataProviderService bitmexTransactionDataProviderServiceSpy = spy(bitmexTransactionDataProviderService);
+        bitmexTransactionDataProviderServiceSpy = spy(new BitmexTransactionDataProviderService());
 
         transactions = json.deserialize(Resources.toString(Resources.getResource("transactionsReply.json"), StandardCharsets.UTF_8),
             new TypeToken<List<Transaction>>() {
@@ -49,7 +49,7 @@ public class BitmexTransactionDataProviderServiceTest {
         assertThat(transactions.iterator().hasNext()).isTrue();
         Transaction transaction = transactions.iterator().next();
 
-        com.tradebot.core.account.transaction.Transaction<String, Long, String> transactionFound = bitmexTransactionDataProviderService
+        com.tradebot.core.account.transaction.Transaction<String, Long, String> transactionFound = bitmexTransactionDataProviderServiceSpy
             .getTransaction(transaction.getTransactID(), transaction.getAccount().longValue());
 
         assertThat(transactionFound.getAccountId()).isEqualTo(transaction.getAccount().longValue());
@@ -63,11 +63,9 @@ public class BitmexTransactionDataProviderServiceTest {
         Transaction transaction = transactions.iterator().next();
 
         Collection<com.tradebot.core.account.transaction.Transaction<String, Long, String>> transactionsFound =
-            bitmexTransactionDataProviderService.getTransactionsGreaterThanId(
+            bitmexTransactionDataProviderServiceSpy.getTransactionsGreaterThanId(
                 "", transaction.getAccount().longValue());
         assertThat(transactionsFound).hasSize(2);
-
-
 
     }
 

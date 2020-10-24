@@ -47,6 +47,7 @@ public class BitmexUtils {
         throw new IllegalArgumentException("Cannot find a value by label");
     }
 
+
     // -----------------
 
     public static EventPayLoad<JSONObject> toBitmexEventPayLoad(String transactionType,

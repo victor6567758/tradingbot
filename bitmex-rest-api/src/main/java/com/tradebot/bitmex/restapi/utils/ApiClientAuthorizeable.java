@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ApiClientAuthorizeable extends ApiClient {
 
@@ -73,13 +75,17 @@ public class ApiClientAuthorizeable extends ApiClient {
             reqBody = serialize(body, contentType);
         }
 
-        Request request = null;
+        Request request;
 
         if (progressRequestListener != null && reqBody != null) {
             ProgressRequestBody progressRequestBody = new ProgressRequestBody(reqBody, progressRequestListener);
             request = reqBuilder.method(method, progressRequestBody).build();
         } else {
             request = reqBuilder.method(method, reqBody).build();
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Request: [{}], [{}]", request.toString(), request.body());
         }
 
         return request;
