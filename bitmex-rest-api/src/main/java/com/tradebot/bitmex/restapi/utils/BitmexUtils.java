@@ -13,6 +13,7 @@ import com.tradebot.core.TradingConstants;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.events.Event;
 import com.tradebot.core.events.EventPayLoad;
+import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.order.OrderType;
 import com.tradebot.core.utils.TradingUtils;
 import java.io.InputStream;
@@ -45,6 +46,10 @@ public class BitmexUtils {
             }
         }
         throw new IllegalArgumentException("Cannot find a value by label");
+    }
+
+    public static String getSymbol(TradeableInstrument<String> instrument) {
+        return StringUtils.substring(instrument.getInstrument(), 0, 3);
     }
 
 

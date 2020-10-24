@@ -1,6 +1,6 @@
 package com.tradebot.bitmex.restapi.marketdata.historic;
 
-import static com.tradebot.bitmex.restapi.marketdata.historic.BitmexHistoricMarketDataProvider.getSymbol;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -15,6 +15,7 @@ import com.tradebot.bitmex.restapi.generated.api.TradeApi;
 import com.tradebot.bitmex.restapi.generated.model.TradeBin;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
+import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -24,8 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import org.assertj.core.data.Offset;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.ISODateTimeFormat;
@@ -36,8 +35,8 @@ import org.junit.Test;
 public class BitmexHistoricMarketDataProviderTest {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-                .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
-                .toFormatter();
+        .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
+        .toFormatter();
 
     private static final TradeableInstrument<String> INSTRUMENT = new TradeableInstrument<>("XBTUSD");
     private static final BigDecimal HISTORY_DEPTH = BigDecimal.valueOf(100L);
@@ -69,7 +68,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1m"),
             eq(true),
-            eq(getSymbol(INSTRUMENT)),
+            eq(BitmexUtils.getSymbol(INSTRUMENT)),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -82,7 +81,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1d"),
             eq(true),
-            eq(getSymbol(INSTRUMENT)),
+            eq(BitmexUtils.getSymbol(INSTRUMENT)),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -95,7 +94,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1d"),
             eq(true),
-            eq(getSymbol(INSTRUMENT)),
+            eq(BitmexUtils.getSymbol(INSTRUMENT)),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),

@@ -1,67 +1,92 @@
 package com.tradebot.bitmex.restapi.marketdata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.BitmexTestUtils;
+import com.google.common.io.Resources;
+import com.google.gson.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.generated.api.QuoteApi;
+import com.tradebot.bitmex.restapi.generated.model.Quote;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.JSON;
+import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.Price;
-import com.tradebot.core.utils.TradingUtils;
-import java.util.Collection;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.joda.time.DateTime;
+import org.assertj.core.data.Offset;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
+import org.joda.time.format.ISODateTimeFormat;
+import org.junit.Before;
 import org.junit.Test;
-
-import com.google.common.collect.Lists;
 
 
 public class BitmexCurrentPriceInfoProviderTest {
 
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+        .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
+        .toFormatter();
+
+    private static final TradeableInstrument<String> INSTRUMENT = new TradeableInstrument<>("XBTUSD");
+    private final JSON json = new JSON();
+    private final QuoteApi quoteApi = mock(QuoteApi.class);
+
+    private BitmexCurrentPriceInfoProvider bitmexCurrentPriceInfoProviderSpy;
+    private List<Quote> quotes;
+
+    @Before
+    public void init() throws ApiException, IOException {
+
+        bitmexCurrentPriceInfoProviderSpy = spy(new BitmexCurrentPriceInfoProvider());
+
+        quotes = json.deserialize(Resources.toString(Resources.getResource("currentPrice.json"), StandardCharsets.UTF_8),
+            new TypeToken<List<Quote>>() {
+            }.getType());
+
+        when(quoteApi.quoteGet(
+            eq(BitmexUtils.getSymbol(INSTRUMENT)),
+            isNull(),
+            isNull(),
+            eq(BigDecimal.ONE),
+            isNull(),
+            eq(true),
+            isNull(),
+            isNull())
+        ).thenReturn(quotes);
+
+        doReturn(quoteApi).when(bitmexCurrentPriceInfoProviderSpy).getQuoteApi();
+    }
+
     @Test
-    public void currentPricesTest() throws Exception {
-        BitmexCurrentPriceInfoProvider service = new BitmexCurrentPriceInfoProvider(
-            BitmexTestConstants.url,
-                BitmexTestConstants.accessToken);
+    public void getCurrentPricesForInstrument() {
+        Price<String> price = bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstrument(INSTRUMENT);
+        assertThat(price.getInstrument().getInstrument()).isEqualTo(price.getInstrument().getInstrument());
+        assertThat(price.getAskPrice()).isCloseTo(quotes.get(0).getAskPrice(), Offset.offset(0.0001));
+        assertThat(price.getBidPrice()).isCloseTo(quotes.get(0).getBidPrice(), Offset.offset(0.0001));
+        assertThat(price.getPricePoint()).isEqualTo(DATE_TIME_FORMATTER.parseDateTime("2020-10-24T16:57:00.615Z"));
+    }
 
-        BitmexCurrentPriceInfoProvider spy = spy(service);
+    @Test
+    public void getCurrentPricesForInstruments() {
+        Map<TradeableInstrument<String>, Price<String>> prices =
+            bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstruments(Collections.singletonList(INSTRUMENT));
+        assertThat(prices).hasSize(1);
 
-        TradeableInstrument<String> gbpusd = new TradeableInstrument<>("GBP_USD");
-        TradeableInstrument<String> gbpchf = new TradeableInstrument<>("GBP_CHF");
-        TradeableInstrument<String> gbpnzd = new TradeableInstrument<>("GBP_NZD");
-
-        @SuppressWarnings("unchecked")
-        Collection<TradeableInstrument<String>> instruments = Lists.newArrayList(gbpusd, gbpchf, gbpnzd);
-
-        CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
-        when(spy.getHttpClient()).thenReturn(mockHttpClient);
-
-        BitmexTestUtils.mockHttpInteraction("src/test/resources/currentPrices.txt", mockHttpClient);
-
-        Map<TradeableInstrument<String>, Price<String>> prices = spy.getCurrentPricesForInstruments(instruments);
-        assertEquals(instruments.size(), prices.size());
-        assertTrue(prices.containsKey(gbpusd));
-        assertTrue(prices.containsKey(gbpchf));
-        assertTrue(prices.containsKey(gbpnzd));
-
-        Price<String> gbpusdPrice = prices.get(gbpusd);
-        assertEquals(new DateTime(TradingUtils.toMillisFromNanos(1442216738184236L)), gbpusdPrice.getPricePoint());
-        assertEquals(1.54682, gbpusdPrice.getBidPrice(), BitmexTestConstants.precision);
-        assertEquals(1.547, gbpusdPrice.getAskPrice(), BitmexTestConstants.precision);
-
-        Price<String> gbpchfPrice = prices.get(gbpchf);
-        assertEquals(new DateTime(TradingUtils.toMillisFromNanos(1442216737600312L)), gbpchfPrice.getPricePoint());
-        assertEquals(1.50008, gbpchfPrice.getBidPrice(), BitmexTestConstants.precision);
-        assertEquals(1.50058, gbpchfPrice.getAskPrice(), BitmexTestConstants.precision);
-
-        Price<String> gbpnzdPrice = prices.get(gbpnzd);
-        assertEquals(new DateTime(TradingUtils.toMillisFromNanos(1442216738184363L)), gbpnzdPrice.getPricePoint());
-        assertEquals(2.44355, gbpnzdPrice.getBidPrice(), BitmexTestConstants.precision);
-        assertEquals(2.44473, gbpnzdPrice.getAskPrice(), BitmexTestConstants.precision);
+        Price<String> price = prices.get(INSTRUMENT);
+        assertThat(price).isNotNull();
+        assertThat(price.getInstrument().getInstrument()).isEqualTo(price.getInstrument().getInstrument());
+        assertThat(price.getAskPrice()).isCloseTo(quotes.get(0).getAskPrice(), Offset.offset(0.0001));
+        assertThat(price.getBidPrice()).isCloseTo(quotes.get(0).getBidPrice(), Offset.offset(0.0001));
+        assertThat(price.getPricePoint()).isEqualTo(DATE_TIME_FORMATTER.parseDateTime("2020-10-24T16:57:00.615Z"));
     }
 }

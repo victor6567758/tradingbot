@@ -16,7 +16,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 @Slf4j
@@ -40,7 +39,7 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
         DateTime to) {
 
         return getTradeApi().tradeGetBucketed(
-            BitMexGranularity.toBitmexGranularity(granularity), true, getSymbol(instrument), null, null,
+            BitMexGranularity.toBitmexGranularity(granularity), true, BitmexUtils.getSymbol(instrument), null, null,
             BigDecimal.valueOf(bitmexAccountConfiguration.getBitmex().getApi().getHistoryDepth()),
             null, true, from, to).stream().map(
             bucket -> toCandleStick(bucket, granularity)).collect(Collectors.toList());
@@ -57,7 +56,7 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
         return getTradeApi().tradeGetBucketed(
             BitMexGranularity.toBitmexGranularity(granularity),
             true,
-            getSymbol(instrument),
+            BitmexUtils.getSymbol(instrument),
             null,
             null,
             BigDecimal.valueOf(bitmexAccountConfiguration.getBitmex().getApi().getHistoryDepth()),
@@ -79,10 +78,6 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
             new TradeableInstrument<>(tradeBin.getSymbol()),
             granularity
         );
-    }
-
-    /*package*/ static String getSymbol(TradeableInstrument<String> instrument) {
-        return StringUtils.substring(instrument.getInstrument(), 0, 3);
     }
 
 

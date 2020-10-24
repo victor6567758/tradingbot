@@ -1,11 +1,13 @@
 package com.tradebot.app;
 
 
-import com.tradebot.bitmex.restapi.marketdata.historic.BitmexHistoricMarketDataProvider;
+import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
+import com.tradebot.bitmex.restapi.position.BitmexPositionManagementProvider;
+import com.tradebot.core.account.Account;
+import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.instrument.TradeableInstrument;
-import com.tradebot.core.marketdata.historic.CandleStick;
-import com.tradebot.core.marketdata.historic.CandleStickGranularity;
-import java.util.List;
+import com.tradebot.core.position.Position;
+import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -34,8 +36,8 @@ public class TradeBotApp implements CommandLineRunner {
     public void run(String... args) {
         log.info("EXECUTING : command line runner");
 
-//        AccountDataProvider accountDataProvider = new BitmexAccountDataProviderService();
-//        Collection<Account> accounts = accountDataProvider.getLatestAccountsInfo();
+        AccountDataProvider<Long> accountDataProvider = new BitmexAccountDataProviderService();
+        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
 //
 //        BitmexTransactionDataProviderService bitmexTransactionDataProviderService = new BitmexTransactionDataProviderService();
 //        Transaction transaction = bitmexTransactionDataProviderService
@@ -44,6 +46,17 @@ public class TradeBotApp implements CommandLineRunner {
 //        BitmexHistoricMarketDataProvider bitmexHistoricMarketDataProvider = new BitmexHistoricMarketDataProvider();
 //        List<CandleStick<String>> data = bitmexHistoricMarketDataProvider.getCandleSticks(new TradeableInstrument<>("XBTUSD"),
 //            CandleStickGranularity.M1, 100);
+
+//        BitmexCurrentPriceInfoProvider bitmexCurrentPriceInfoProvider = new BitmexCurrentPriceInfoProvider();
+//        Price<String> price =  bitmexCurrentPriceInfoProvider.getCurrentPricesForInstrument(new TradeableInstrument<>("XBTUSD"));
+//        int t = 0;
+
+        BitmexPositionManagementProvider bitmexPositionManagementProvider = new BitmexPositionManagementProvider();
+        Position<String> posXbtUsd = bitmexPositionManagementProvider.getPositionForInstrument(accounts.iterator().next().getAccountId(),
+            new TradeableInstrument<>("XBTUSD"));
+
+        Collection<Position<String>> allPositions =
+            bitmexPositionManagementProvider.getPositionsForAccount(accounts.iterator().next().getAccountId());
 
         int t = 0;
 
