@@ -52,6 +52,7 @@
     <gson-fire.version>1.8.4</gson-fire.version>
     <spring.boot.version>2.3.4.RELEASE</spring.boot.version>
     <snakeyaml.version>1.27</snakeyaml.version>
+    <jetty.websoket.client.version>9.4.33.v20201020</jetty.websoket.client.version>
 
   </properties>
 
@@ -79,6 +80,12 @@
         <groupId>javax.servlet</groupId>
         <scope>provided</scope>
         <version>${javax.servlet.api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-client</artifactId>
+        <version>${jetty.websoket.client.version}</version>
       </dependency>
 
       <dependency>

@@ -19,6 +19,7 @@ public class BitmexAccountConfiguration {
         private String mainCurrency;
         private int transactionsDepth;
         private int historyDepth;
+        private String webSocketUrl;
     }
 
     private Bitmex bitmex;

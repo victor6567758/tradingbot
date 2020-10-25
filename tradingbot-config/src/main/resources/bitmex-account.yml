@@ -6,3 +6,4 @@ bitmex:
     mainCurrency: XBt
     transactionsDepth: 100
     historyDepth: 100
+    webSocketUrl: wss://testnet.bitmex.com/realtime
