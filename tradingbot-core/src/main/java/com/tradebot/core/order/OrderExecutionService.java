@@ -6,11 +6,11 @@ import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.AccountInfoService;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
+import com.tradebot.core.utils.CommonUtils;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,16 +41,7 @@ public class OrderExecutionService<M, N, K> {
 
     @PreDestroy
     public void shutdown() {
-        executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(SHUTDOWN_WAIT_TIME, TimeUnit.MILLISECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException interruptedException) {
-            executorService.shutdownNow();
-            log.warn("Could not shutdown executor service in graceful manner",
-                interruptedException);
-        }
+        CommonUtils.commonExecutorServiceShutdown(executorService, SHUTDOWN_WAIT_TIME);
     }
 
     public Future<Boolean> submit(TradingDecision<N> decision) {

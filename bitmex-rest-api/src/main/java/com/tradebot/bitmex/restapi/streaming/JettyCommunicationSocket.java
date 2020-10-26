@@ -1,5 +1,7 @@
 package com.tradebot.bitmex.restapi.streaming;
 
+import com.tradebot.core.utils.CommonUtils;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,7 +27,11 @@ public class JettyCommunicationSocket {
     private static final long PING_DELAY = 10_000;
     private static final long COMMAND_DELAY = 2_000;
     private static final long MAX_PONG_TIME_SECONDS = 20_000;
+    private static final long CONNECT_WAIT = 2_000;
+    private static final long TERMINATION_WAIT = 2_000;
+
     private static final String PING_COMMAND = "ping";
+
 
     private final Consumer<String> messageHandler;
     private final Consumer<String> reconnectHandler;
@@ -33,6 +39,7 @@ public class JettyCommunicationSocket {
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private final AtomicLong lastPongTime = new AtomicLong(-1L);
     private final AtomicBoolean stopped = new AtomicBoolean(false);
+    private final CountDownLatch connectLatch = new CountDownLatch(1);
 
 
     private Session session;
@@ -41,11 +48,13 @@ public class JettyCommunicationSocket {
     public void onConnect(Session session) {
         this.session = session;
         startPingingProcess();
+
+        connectLatch.countDown();
     }
 
     @OnWebSocketClose
     public void onClose(int statusCode, String reason) {
-        log.error("Connection close with code: {}, reason: {}", statusCode, reason);
+        log.error("Connection closeed with code: {}, reason: {}", statusCode, reason);
         if (!stopped.get()) {
             reconnectHandler.accept("Socket disconnection");
         } else {
@@ -68,6 +77,15 @@ public class JettyCommunicationSocket {
         messageHandler.accept(message);
     }
 
+    public void waitConnected() {
+        try {
+            connectLatch.await(CONNECT_WAIT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new IllegalArgumentException(interruptedException);
+        }
+    }
+
     public void subscribe(String message) {
         if (log.isDebugEnabled()) {
             log.debug("Sending command to websocket: " + message);
@@ -83,6 +101,7 @@ public class JettyCommunicationSocket {
 
     public void stop() {
         stopped.set(true);
+        CommonUtils.commonExecutorServiceShutdown(executorService, TERMINATION_WAIT);
     }
 
 

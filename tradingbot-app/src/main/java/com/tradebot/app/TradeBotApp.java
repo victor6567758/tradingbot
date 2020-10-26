@@ -88,8 +88,12 @@ public class TradeBotApp implements CommandLineRunner {
         );
         BaseBitmexMarketDataStreamingService2 bitmexMarketDataStreamingService2 = new BaseBitmexMarketDataStreamingService2(
             marketEventCallback, heartBeatCallback, instruments);
+        bitmexMarketDataStreamingService2.init();
+        bitmexMarketDataStreamingService2.startMarketDataStreaming();
 
-        Uninterruptibles.sleepUninterruptibly(10_000L, TimeUnit.MILLISECONDS);
+        Uninterruptibles.sleepUninterruptibly(100_000L, TimeUnit.MILLISECONDS);
+
+        bitmexMarketDataStreamingService2.shutdown();
 
         int t = 0;
 

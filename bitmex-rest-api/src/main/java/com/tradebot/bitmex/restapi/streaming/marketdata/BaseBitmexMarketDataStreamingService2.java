@@ -32,9 +32,7 @@ public class BaseBitmexMarketDataStreamingService2 extends BaseBitmexStreamingSe
 
     @Override
     protected void onMessageHandler(String message) {
-        if (log.isDebugEnabled()) {
-            log.debug("Message returned: {}", message);
-        }
+
     }
 
     @Override
@@ -42,6 +40,7 @@ public class BaseBitmexMarketDataStreamingService2 extends BaseBitmexStreamingSe
         for (TradeableInstrument<String> instrument : instruments) {
             log.info("Subscribed to: {}", instrument.getInstrument());
             jettyCommunicationSocket.subscribe(buildSubscribeCommand("instrument:" + instrument.getInstrument()));
+            jettyCommunicationSocket.subscribe(buildSubscribeCommand("quote:" + instrument.getInstrument()));
         }
     }
 
@@ -50,7 +49,16 @@ public class BaseBitmexMarketDataStreamingService2 extends BaseBitmexStreamingSe
         for (TradeableInstrument<String> instrument : instruments) {
             log.info("Unsubscribed from: {}", instrument.getInstrument());
             jettyCommunicationSocket.subscribe(buildUnSubscribeCommand("instrument:" + instrument.getInstrument()));
+            jettyCommunicationSocket.subscribe(buildUnSubscribeCommand("quote:" + instrument.getInstrument()));
         }
+    }
+
+    private void processInstrumentReply(String message) {
+
+    }
+
+    private void processQuoteReply(String message) {
+
     }
 
 }

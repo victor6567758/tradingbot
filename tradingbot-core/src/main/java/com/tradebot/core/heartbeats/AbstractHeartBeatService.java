@@ -3,6 +3,7 @@ package com.tradebot.core.heartbeats;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.tradebot.core.streaming.heartbeats.HeartBeatStreamingService;
+import com.tradebot.core.utils.CommonUtils;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,16 +34,7 @@ public abstract class AbstractHeartBeatService<T> {
         }
 
         public void shutdown() {
-            executorService.shutdown();
-            try {
-                if (!executorService.awaitTermination(startWait * 2, TimeUnit.MILLISECONDS)) {
-                    executorService.shutdownNow();
-                }
-            } catch (InterruptedException interruptedException) {
-                executorService.shutdownNow();
-                log.warn("Could not shutdown executor service in graceful manner",
-                    interruptedException);
-            }
+            CommonUtils.commonExecutorServiceShutdown(executorService, startWait * 2);
         }
 
 

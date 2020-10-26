@@ -52,28 +52,7 @@ public class BitmexUtils {
         return StringUtils.substring(instrument.getInstrument(), 0, 3);
     }
 
-    public static String buildWebsocketCommandJson(String command, Object... args) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"op\": \"")
-            .append(command)
-            .append("\", \"args\": [");
-        for (int i = 0; i < args.length; i++) {
-            if (args[i] instanceof String) {
-                sb.append("\"");
-            }
-            sb.append(args[i]);
-            if (args[i] instanceof String) {
-                sb.append("\"");
-            }
-            if (i == args.length - 1) {
-                sb.append("]");
-            } else {
-                sb.append(", ");
-            }
-        }
-        sb.append("}");
-        return sb.toString();
-    }
+
 
     // -----------------
 

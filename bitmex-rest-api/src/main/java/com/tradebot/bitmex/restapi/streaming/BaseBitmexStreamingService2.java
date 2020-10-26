@@ -8,6 +8,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
@@ -17,35 +18,30 @@ public abstract class BaseBitmexStreamingService2 {
 
     protected final JettyCommunicationSocket jettyCommunicationSocket;
     protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
-    protected final WebSocketClient client = new WebSocketClient();
+    protected WebSocketClient client;
 
     public BaseBitmexStreamingService2() {
         BaseBitmexStreamingService2 pThis = this;
         jettyCommunicationSocket = new JettyCommunicationSocket(
-            pThis::onMessageHandler,
+            pThis::onMessageHandlerInternal,
             reason -> {
                 log.warn("Reconnecting: {}", reason);
-                pThis.connect();
+                pThis.init();
             }
         );
     }
 
-    public void init() throws Exception {
+    @SneakyThrows
+    public void init() {
         // start raises general Exception
+        client = new WebSocketClient();
         client.start();
 
         client.connect(jettyCommunicationSocket,
             new URI(bitmexAccountConfiguration.getBitmex().getApi().getWebSocketUrl()), new ClientUpgradeRequest());
+        jettyCommunicationSocket.waitConnected();
 
-        long nonce = System.currentTimeMillis();
-        String signature = getApiSignature(
-            bitmexAccountConfiguration.getBitmex().getApi().getSecret(), nonce);
-
-        jettyCommunicationSocket.subscribe(buildAuthenticateCommand(
-            bitmexAccountConfiguration.getBitmex().getApi().getKey(),
-            nonce,
-            signature));
-
+        authenticate();
         log.info("Websocket client fully connected");
     }
 
@@ -70,15 +66,35 @@ public abstract class BaseBitmexStreamingService2 {
     protected abstract void disconnect();
 
     protected String buildSubscribeCommand(String... args) {
-        return BitmexUtils.buildWebsocketCommandJson("subscribe", args);
+        return buildWebsocketCommandJson("subscribe", args);
     }
 
     protected String buildUnSubscribeCommand(String... args) {
-        return BitmexUtils.buildWebsocketCommandJson("unsubscribe", args);
+        return buildWebsocketCommandJson("unsubscribe", args);
     }
 
-    protected String buildAuthenticateCommand(String apiKey, long nonce, String signature) {
-        return BitmexUtils.buildWebsocketCommandJson("authKey", apiKey, nonce, signature);
+    private boolean processWelcomeReply(String message) {
+        return true;
+    }
+
+    private void onMessageHandlerInternal(String message) {
+        processWelcomeReply(message);
+        onMessageHandler(message);
+    }
+
+    private void authenticate() {
+        long nonce = System.currentTimeMillis();
+        String signature = getApiSignature(
+            bitmexAccountConfiguration.getBitmex().getApi().getSecret(), nonce);
+
+        jettyCommunicationSocket.subscribe(buildAuthenticateCommand(
+            bitmexAccountConfiguration.getBitmex().getApi().getKey(),
+            nonce,
+            signature));
+    }
+
+    private static String buildAuthenticateCommand(String apiKey, long nonce, String signature) {
+        return buildWebsocketCommandJson("authKey", apiKey, nonce, signature);
     }
 
     private static String getApiSignature(String secret, long nonce) {
@@ -89,5 +105,29 @@ public abstract class BaseBitmexStreamingService2 {
         return hashCode.toString();
 
     }
+
+    private static String buildWebsocketCommandJson(String command, Object... args) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"op\": \"")
+            .append(command)
+            .append("\", \"args\": [");
+        for (int i = 0; i < args.length; i++) {
+            if (args[i] instanceof String) {
+                sb.append("\"");
+            }
+            sb.append(args[i]);
+            if (args[i] instanceof String) {
+                sb.append("\"");
+            }
+            if (i == args.length - 1) {
+                sb.append("]");
+            } else {
+                sb.append(", ");
+            }
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
 
 }
