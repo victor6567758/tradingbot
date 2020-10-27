@@ -1,0 +1,22 @@
+{
+  "table": "quote",
+  "action": "insert",
+  "data": [
+    {
+      "timestamp": "2020-10-26T15:20:50.062Z",
+      "symbol": "XBTJPY",
+      "bidSize": 20001,
+      "bidPrice": 950000,
+      "askPrice": null,
+      "askSize": null
+    },
+    {
+      "timestamp": "2020-10-26T15:20:50.085Z",
+      "symbol": "XBTJPY",
+      "bidSize": 137646,
+      "bidPrice": 1375500,
+      "askPrice": 1377700,
+      "askSize": 137646
+    }
+  ]
+}

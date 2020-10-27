@@ -1,5 +1,8 @@
 package com.tradebot.bitmex.restapi.streaming;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.tradebot.core.utils.CommonUtils;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +34,7 @@ public class JettyCommunicationSocket {
     private static final long TERMINATION_WAIT = 2_000;
 
     private static final String PING_COMMAND = "ping";
+    private static final String PING_REPLY_COMMAND = "Ping";
 
 
     private final Consumer<String> messageHandler;
@@ -54,7 +58,7 @@ public class JettyCommunicationSocket {
 
     @OnWebSocketClose
     public void onClose(int statusCode, String reason) {
-        log.error("Connection closeed with code: {}, reason: {}", statusCode, reason);
+        log.error("Connection closed with code: {}, reason: {}", statusCode, reason);
         if (!stopped.get()) {
             reconnectHandler.accept("Socket disconnection");
         } else {
@@ -66,7 +70,7 @@ public class JettyCommunicationSocket {
     public void onMessage(String message) {
         // can come from multiple threads
 
-        if (message.equals("Pong")) {
+        if (message.equals(PING_REPLY_COMMAND)) {
             validateLastPongTime();
         }
 
@@ -128,5 +132,7 @@ public class JettyCommunicationSocket {
             log.warn("Shutdown in process...");
         }
     }
+
+
 
 }

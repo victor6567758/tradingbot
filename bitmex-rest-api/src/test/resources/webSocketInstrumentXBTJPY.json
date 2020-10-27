@@ -1,0 +1,15 @@
+{
+  "table": "instrument",
+  "action": "update",
+  "data": [
+    {
+      "symbol": "XBTJPY",
+      "openValue": 763660475,
+      "fairBasis": 80,
+      "fairPrice": 1376510,
+      "markPrice": 1376510,
+      "indicativeSettlePrice": 1376430,
+      "timestamp": "2020-10-26T15:21:00.000Z"
+    }
+  ]
+}

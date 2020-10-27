@@ -1,0 +1,14 @@
+{
+  "table": "quote",
+  "action": "insert",
+  "data": [
+    {
+      "timestamp": "2020-10-26T15:22:28.035Z",
+      "symbol": "XBTUSD",
+      "bidSize": 668,
+      "bidPrice": 12998,
+      "askPrice": 12998.5,
+      "askSize": 20262
+    }
+  ]
+}

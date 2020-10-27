@@ -3,9 +3,12 @@ package com.tradebot.app;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
-import com.tradebot.bitmex.restapi.streaming.marketdata.BaseBitmexMarketDataStreamingService2;
+import com.tradebot.bitmex.restapi.streaming.events.BitmexEventsStreamingService2;
+import com.tradebot.bitmex.restapi.streaming.marketdata.BitmexMarketDataStreamingService2;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
+import com.tradebot.core.events.EventCallback;
+import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatPayLoad;
 import com.tradebot.core.instrument.TradeableInstrument;
@@ -15,6 +18,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -70,7 +74,7 @@ public class TradeBotApp implements CommandLineRunner {
 
             @Override
             public void onMarketEvent(TradeableInstrument<String> instrument, double bid, double ask, DateTime eventDate) {
-                log.info("{}, {}", instrument, bid, ask);
+                log.info("Market data {}, {}, {}", instrument, bid, ask);
             }
         };
 
@@ -78,7 +82,7 @@ public class TradeBotApp implements CommandLineRunner {
 
             @Override
             public void onHeartBeat(HeartBeatPayLoad<DateTime> payLoad) {
-                log.info("{}", payLoad);
+                log.info("Heartbeat {}", payLoad);
             }
         };
 
@@ -86,14 +90,29 @@ public class TradeBotApp implements CommandLineRunner {
             new TradeableInstrument<>("XBTUSD"),
             new TradeableInstrument<>("XBTJPY")
         );
-        BaseBitmexMarketDataStreamingService2 bitmexMarketDataStreamingService2 = new BaseBitmexMarketDataStreamingService2(
+        BitmexMarketDataStreamingService2 bitmexMarketDataStreamingService2 = new BitmexMarketDataStreamingService2(
             marketEventCallback, heartBeatCallback, instruments);
         bitmexMarketDataStreamingService2.init();
         bitmexMarketDataStreamingService2.startMarketDataStreaming();
 
+        EventCallback<JSONObject> eventCallback = new EventCallback<JSONObject>() {
+            @Override
+            public void onEvent(EventPayLoad<JSONObject> eventPayLoad) {
+                log.info("Event: {}", eventPayLoad.getPayLoad().toString());
+            }
+        };
+
+
+
+        BitmexEventsStreamingService2 bitmexEventsStreamingService2 = new BitmexEventsStreamingService2(
+            eventCallback, heartBeatCallback);
+        bitmexEventsStreamingService2.init();
+        bitmexEventsStreamingService2.startEventsStreaming();
+
         Uninterruptibles.sleepUninterruptibly(100_000L, TimeUnit.MILLISECONDS);
 
         bitmexMarketDataStreamingService2.shutdown();
+        bitmexEventsStreamingService2.shutdown();
 
         int t = 0;
 

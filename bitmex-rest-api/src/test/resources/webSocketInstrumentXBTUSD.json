@@ -1,0 +1,15 @@
+{
+  "table": "instrument",
+  "action": "update",
+  "data": [
+    {
+      "symbol": "XBTUSD",
+      "openValue": 537341049976,
+      "fairBasis": 2.57,
+      "fairPrice": 13108.77,
+      "markPrice": 13108.77,
+      "indicativeSettlePrice": 13106.2,
+      "timestamp": "2020-10-26T15:21:05.000Z"
+    }
+  ]
+}
