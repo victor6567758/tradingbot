@@ -1,12 +1,14 @@
 package com.tradebot.bitmex.restapi.streaming.events;
 
+import com.tradebot.bitmex.restapi.events.TradeEventPayLoad;
+import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService2;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.streaming.events.EventsStreamingService;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 @Slf4j
 public class BitmexEventsStreamingService2 extends BaseBitmexStreamingService2 implements EventsStreamingService {
@@ -17,7 +19,7 @@ public class BitmexEventsStreamingService2 extends BaseBitmexStreamingService2 i
 
     public BitmexEventsStreamingService2(
         EventCallback<JSONObject> eventCallback,
-        HeartBeatCallback<DateTime> heartBeatCallback) {
+        HeartBeatCallback<Long> heartBeatCallback) {
         super(heartBeatCallback);
         this.eventCallback = eventCallback;
 
@@ -30,45 +32,38 @@ public class BitmexEventsStreamingService2 extends BaseBitmexStreamingService2 i
 
     private final EventCallback<JSONObject> eventCallback;
 
+
+    @Override
+    protected String extractSubscribeTopic(String subscribeElement) {
+        return subscribeElement;
+    }
+
     @Override
     public void startEventsStreaming() {
-        connect();
-    }
-
-    @Override
-    public void stopEventsStreaming() {
-        disconnect();
-    }
-
-    @Override
-    protected void connect() {
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(ANNOUNCEMENT));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(INSURANCE));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(PUBLIC_NOTIFICATIONS));
     }
 
     @Override
-    protected void disconnect() {
+    public void stopEventsStreaming() {
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(ANNOUNCEMENT));
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(INSURANCE));
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(PUBLIC_NOTIFICATIONS));
     }
 
     private void processAnnouncementReply(String message) {
-        if (log.isDebugEnabled()) {
-            log.debug("parsed announcement event: {}", message);
-        }
+        eventCallback.onEvent(new TradeEventPayLoad(
+            TradeEvents.EVENT_ANNOUNCEMENT, (JSONObject) JSONValue.parse(message)));
     }
 
     private void processInsuranceReply(String message) {
-        if (log.isDebugEnabled()) {
-            log.debug("parsed insurance event: {}", message);
-        }
+        eventCallback.onEvent(new TradeEventPayLoad(
+            TradeEvents.EVENT_INSURANCE, (JSONObject) JSONValue.parse(message)));
     }
 
     private void processPublicNotificationsReply(String message) {
-        if (log.isDebugEnabled()) {
-            log.debug("parsed publicNotifications event: {}", message);
-        }
+        eventCallback.onEvent(new TradeEventPayLoad(
+            TradeEvents.EVENT_PUBLIC_NOTIFICATION, (JSONObject) JSONValue.parse(message)));
     }
 }

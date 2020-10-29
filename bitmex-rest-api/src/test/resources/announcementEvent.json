@@ -1,0 +1,15 @@
+{
+  "table": "announcement",
+  "keys": [
+    "id"
+  ],
+  "types": {
+    "id": "integer",
+    "link": "string",
+    "title": "string",
+    "content": "string",
+    "date": "timestamp"
+  },
+  "action": "partial",
+  "data": []
+}

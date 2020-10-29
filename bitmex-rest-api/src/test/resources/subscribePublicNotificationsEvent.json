@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "publicNotifications",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "publicNotifications"
+    ]
+  }
+}

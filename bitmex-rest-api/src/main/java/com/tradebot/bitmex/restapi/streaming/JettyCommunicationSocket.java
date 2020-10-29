@@ -1,8 +1,7 @@
 package com.tradebot.bitmex.restapi.streaming;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.tradebot.core.heartbeats.HeartBeatCallback;
+import com.tradebot.core.heartbeats.HeartBeatPayLoad;
 import com.tradebot.core.utils.CommonUtils;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -34,11 +33,12 @@ public class JettyCommunicationSocket {
     private static final long TERMINATION_WAIT = 2_000;
 
     private static final String PING_COMMAND = "ping";
-    private static final String PING_REPLY_COMMAND = "Ping";
+    private static final String PONG_REPLY = "pong";
 
 
     private final Consumer<String> messageHandler;
     private final Consumer<String> reconnectHandler;
+    private final HeartBeatCallback<Long> heartBeatCallback;
 
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private final AtomicLong lastPongTime = new AtomicLong(-1L);
@@ -67,18 +67,20 @@ public class JettyCommunicationSocket {
     }
 
     @OnWebSocketMessage
+    // can come from multiple threads
     public void onMessage(String message) {
-        // can come from multiple threads
 
-        if (message.equals(PING_REPLY_COMMAND)) {
-            validateLastPongTime();
-        }
 
         if (log.isDebugEnabled()) {
             log.debug("Message received: {}", message);
         }
 
-        messageHandler.accept(message);
+        if (message.equals(PONG_REPLY)) {
+            validateLastPongTime();
+        } else {
+            messageHandler.accept(message);
+        }
+
     }
 
     public void waitConnected() {
@@ -123,16 +125,18 @@ public class JettyCommunicationSocket {
             long lastTime = lastPongTime.getAndSet(System.currentTimeMillis());
             if (lastTime > 0) {
                 long responseDelay = System.currentTimeMillis() - lastTime;
+                heartBeatCallback.onHeartBeat(new HeartBeatPayLoad<>(responseDelay));
                 if (responseDelay >= MAX_PONG_TIME_SECONDS) {
                     log.error("Pong not detected in {}", responseDelay);
                     reconnectHandler.accept("Websocket heartbeat failed");
                 }
+            } else {
+                heartBeatCallback.onHeartBeat(new HeartBeatPayLoad<>(-1L));
             }
         } else {
             log.warn("Shutdown in process...");
         }
     }
-
 
 
 }

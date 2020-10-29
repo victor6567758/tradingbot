@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "quote:XBTUSD",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "quote:XBTUSD"
+    ]
+  }
+}

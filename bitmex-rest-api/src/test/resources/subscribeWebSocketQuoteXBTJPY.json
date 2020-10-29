@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "quote:XBTJPY",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "quote:XBTJPY"
+    ]
+  }
+}

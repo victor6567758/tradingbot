@@ -1,6 +1,5 @@
 package com.tradebot.bitmex.restapi.streaming;
 
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -34,9 +33,19 @@ import org.joda.time.format.ISODateTimeFormat;
 @Slf4j
 public abstract class BaseBitmexStreamingService2 {
 
+    private static final String GET_URL_RELATIME = "GET" + "/realtime";
+
+    private static final Gson GSON = new GsonBuilder()
+        .registerTypeAdapter(DateTime.class, (JsonSerializer<DateTime>) (json, typeOfSrc, context) ->
+            new JsonPrimitive(ISODateTimeFormat.dateTime().print(json)))
+        .registerTypeAdapter(DateTime.class, (JsonDeserializer<DateTime>) (json, typeOfT, context) ->
+            ISODateTimeFormat.dateTime().parseDateTime(json.getAsString()))
+        .create();
+
     @Getter
     @RequiredArgsConstructor
     public static class MappingFunction {
+
         @Setter
         private boolean enabled;
         private final Consumer<String> consumer;
@@ -49,34 +58,24 @@ public abstract class BaseBitmexStreamingService2 {
         }
     }
 
-    private final HeartBeatCallback<DateTime> heartBeatCallback;
-
+    @Getter
     protected final JettyCommunicationSocket jettyCommunicationSocket;
 
     protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
-    private final Gson gson = new GsonBuilder()
-        .registerTypeAdapter(DateTime.class, (JsonSerializer<DateTime>) (json, typeOfSrc, context) ->
-            new JsonPrimitive(ISODateTimeFormat.dateTime().print(json)))
-        .registerTypeAdapter(DateTime.class, (JsonDeserializer<DateTime>) (json, typeOfT, context) ->
-            ISODateTimeFormat.dateTime().parseDateTime(json.getAsString()))
-        .create();
+
     protected WebSocketClient client;
 
     private MappingFunction[] mappingFunctions;
 
-    public BaseBitmexStreamingService2(HeartBeatCallback<DateTime> heartBeatCallback) {
-
-        this.heartBeatCallback = heartBeatCallback;
-
+    public BaseBitmexStreamingService2(HeartBeatCallback<Long> heartBeatCallback) {
         BaseBitmexStreamingService2 pThis = this;
         jettyCommunicationSocket = new JettyCommunicationSocket(
             pThis::onInternalMessageHandler,
             reason -> {
                 log.warn("Reconnecting: {}", reason);
                 pThis.init();
-            }
-        );
+            }, heartBeatCallback);
     }
 
     @SneakyThrows
@@ -108,10 +107,7 @@ public abstract class BaseBitmexStreamingService2 {
 
     }
 
-
-    protected abstract void connect();
-
-    protected abstract void disconnect();
+    protected abstract String extractSubscribeTopic(String subscribeElement);
 
     protected String buildSubscribeCommand(String... args) {
         return buildWebsocketCommandJson("subscribe", args);
@@ -121,8 +117,8 @@ public abstract class BaseBitmexStreamingService2 {
         return buildWebsocketCommandJson("unsubscribe", args);
     }
 
-    protected <T> BitmexResponse<T> parseMessage(String message, TypeToken<BitmexResponse<T>> type) {
-        return gson.fromJson(message, type.getType());
+    protected <T> BitmexResponse<T> parseMessage(String message, TypeToken<BitmexResponse<T>> typeToken) {
+        return GSON.fromJson(message, typeToken.getType());
     }
 
     protected void initMapping(MappingFunction[] mappingFunctions) {
@@ -134,7 +130,7 @@ public abstract class BaseBitmexStreamingService2 {
             throw new IllegalArgumentException("Invalid table name");
         }
 
-        for (MappingFunction mappingFunction: mappingFunctions) {
+        for (MappingFunction mappingFunction : mappingFunctions) {
             if (table.equals(mappingFunction.getTableName())) {
                 return mappingFunction;
             }
@@ -158,14 +154,8 @@ public abstract class BaseBitmexStreamingService2 {
             JsonElement element = JsonParser.parseString(message);
             if (element.isJsonObject()) {
                 JsonElement success = element.getAsJsonObject().get("success");
-
-                if (success != null) {
-                    if (success.getAsBoolean()) {
-                        JsonElement subscribe = element.getAsJsonObject().get("subscribe");
-                        if (subscribe != null) {
-                            resolveMappingFunction(subscribe.getAsString()).setEnabled(true);
-                        }
-                    }
+                if (success != null && success.getAsBoolean()) {
+                    enableMappedFunction(element);
                 } else {
                     JsonElement table = element.getAsJsonObject().get("table");
                     if (table != null) {
@@ -178,17 +168,25 @@ public abstract class BaseBitmexStreamingService2 {
         }
     }
 
+    private void enableMappedFunction(JsonElement element) {
+        JsonElement subscribe = element.getAsJsonObject().get("subscribe");
+        if (subscribe != null) {
+            String subscribeElement = subscribe.getAsString();
+            log.info("Subscribe success status of: {}", subscribeElement);
+            resolveMappingFunction(extractSubscribeTopic(subscribeElement)).setEnabled(true);
+        }
+    }
+
 
     private static String buildAuthenticateCommand(String apiKey, long nonce, String signature) {
         return buildWebsocketCommandJson("authKey", apiKey, nonce, signature);
     }
 
     private static String getApiSignature(String secret, long nonce) {
-        String message = "GET" + "/realtime" + nonce;
+        String message = GET_URL_RELATIME + nonce;
 
         Key key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-        HashCode hashCode = Hashing.hmacSha256(key).hashBytes(message.getBytes(StandardCharsets.UTF_8));
-        return hashCode.toString();
+        return Hashing.hmacSha256(key).hashBytes(message.getBytes(StandardCharsets.UTF_8)).toString();
 
     }
 

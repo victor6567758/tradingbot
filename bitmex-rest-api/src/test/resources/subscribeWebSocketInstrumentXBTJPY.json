@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "instrument:XBTJPY",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "instrument:XBTJPY"
+    ]
+  }
+}

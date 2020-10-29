@@ -1,24 +1,23 @@
 package com.tradebot.app;
 
 
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
-import com.tradebot.bitmex.restapi.streaming.events.BitmexEventsStreamingService2;
-import com.tradebot.bitmex.restapi.streaming.marketdata.BitmexMarketDataStreamingService2;
-import com.tradebot.core.account.Account;
-import com.tradebot.core.account.AccountDataProvider;
-import com.tradebot.core.events.EventCallback;
-import com.tradebot.core.events.EventPayLoad;
-import com.tradebot.core.heartbeats.HeartBeatCallback;
-import com.tradebot.core.heartbeats.HeartBeatPayLoad;
-import com.tradebot.core.instrument.TradeableInstrument;
-import com.tradebot.core.marketdata.MarketEventCallback;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
+//import com.google.common.util.concurrent.Uninterruptibles;
+//import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
+//import com.tradebot.bitmex.restapi.model.websocket.BitmexInstrument;
+//import com.tradebot.bitmex.restapi.streaming.marketdata.BitmexMarketDataStreamingService2;
+//import com.tradebot.core.account.Account;
+//import com.tradebot.core.account.AccountDataProvider;
+//import com.tradebot.core.events.EventCallback;
+//import com.tradebot.core.events.EventPayLoad;
+//import com.tradebot.core.heartbeats.HeartBeatCallback;
+//import com.tradebot.core.heartbeats.HeartBeatPayLoad;
+//import com.tradebot.core.instrument.TradeableInstrument;
+//import com.tradebot.core.marketdata.MarketEventCallback;
+//import java.util.Arrays;
+//import java.util.Collection;
+//import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
+//import org.joda.time.DateTime;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -46,8 +45,8 @@ public class TradeBotApp implements CommandLineRunner {
     public void run(String... args) {
         log.info("EXECUTING : command line runner");
 
-        AccountDataProvider<Long> accountDataProvider = new BitmexAccountDataProviderService();
-        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
+//        AccountDataProvider<Long> accountDataProvider = new BitmexAccountDataProviderService();
+//        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
 //
 //        BitmexTransactionDataProviderService bitmexTransactionDataProviderService = new BitmexTransactionDataProviderService();
 //        Transaction transaction = bitmexTransactionDataProviderService
@@ -70,49 +69,55 @@ public class TradeBotApp implements CommandLineRunner {
 //
 //        int t = 0;
 
-        MarketEventCallback<String> marketEventCallback = new MarketEventCallback<String>() {
+//        MarketEventCallback<String> marketEventCallback = new MarketEventCallback<String>() {
+//
+//            @Override
+//            public void onMarketEvent(TradeableInstrument<String> instrument, double bid, double ask, DateTime eventDate) {
+//                log.info("Market data {}, {}, {}", instrument, bid, ask);
+//            }
+//        };
+//
+//        EventCallback<BitmexInstrument> instrumentEventCallback = new EventCallback<BitmexInstrument>() {
+//
+//            @Override
+//            public void onEvent(EventPayLoad<BitmexInstrument> eventPayLoad) {
+//                log.info("Market instrument event {}", eventPayLoad.getPayLoad().toString());
+//            }
+//        };
+//
+//        HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallback<Long>() {
+//
+//            @Override
+//            public void onHeartBeat(HeartBeatPayLoad<Long> payLoad) {
+//                log.info("Heartbeat {}", payLoad);
+//            }
+//        };
+//
+//        Collection<TradeableInstrument<String>> instruments = Arrays.asList(
+//            new TradeableInstrument<>("XBTUSD"),
+//            new TradeableInstrument<>("XBTJPY")
+//        );
+//        BitmexMarketDataStreamingService2 bitmexMarketDataStreamingService2 = new BitmexMarketDataStreamingService2(
+//            marketEventCallback, instrumentEventCallback, heartBeatCallback, instruments);
+//        bitmexMarketDataStreamingService2.init();
+//        bitmexMarketDataStreamingService2.startMarketDataStreaming();
 
-            @Override
-            public void onMarketEvent(TradeableInstrument<String> instrument, double bid, double ask, DateTime eventDate) {
-                log.info("Market data {}, {}, {}", instrument, bid, ask);
-            }
-        };
+//        EventCallback<JSONObject> eventCallback = new EventCallback<JSONObject>() {
+//            @Override
+//            public void onEvent(EventPayLoad<JSONObject> eventPayLoad) {
+//                log.info("Event: {}", eventPayLoad.getPayLoad().toString());
+//            }
+//        };
 
-        HeartBeatCallback<DateTime> heartBeatCallback = new HeartBeatCallback<DateTime>() {
-
-            @Override
-            public void onHeartBeat(HeartBeatPayLoad<DateTime> payLoad) {
-                log.info("Heartbeat {}", payLoad);
-            }
-        };
-
-        Collection<TradeableInstrument<String>> instruments = Arrays.asList(
-            new TradeableInstrument<>("XBTUSD"),
-            new TradeableInstrument<>("XBTJPY")
-        );
-        BitmexMarketDataStreamingService2 bitmexMarketDataStreamingService2 = new BitmexMarketDataStreamingService2(
-            marketEventCallback, heartBeatCallback, instruments);
-        bitmexMarketDataStreamingService2.init();
-        bitmexMarketDataStreamingService2.startMarketDataStreaming();
-
-        EventCallback<JSONObject> eventCallback = new EventCallback<JSONObject>() {
-            @Override
-            public void onEvent(EventPayLoad<JSONObject> eventPayLoad) {
-                log.info("Event: {}", eventPayLoad.getPayLoad().toString());
-            }
-        };
-
-
-
-        BitmexEventsStreamingService2 bitmexEventsStreamingService2 = new BitmexEventsStreamingService2(
-            eventCallback, heartBeatCallback);
-        bitmexEventsStreamingService2.init();
-        bitmexEventsStreamingService2.startEventsStreaming();
-
-        Uninterruptibles.sleepUninterruptibly(100_000L, TimeUnit.MILLISECONDS);
-
-        bitmexMarketDataStreamingService2.shutdown();
-        bitmexEventsStreamingService2.shutdown();
+//        BitmexEventsStreamingService2 bitmexEventsStreamingService2 = new BitmexEventsStreamingService2(
+//            eventCallback, heartBeatCallback);
+//        bitmexEventsStreamingService2.init();
+//        bitmexEventsStreamingService2.startEventsStreaming();
+//
+//        Uninterruptibles.sleepUninterruptibly(100_000L, TimeUnit.MILLISECONDS);
+//
+//        bitmexMarketDataStreamingService2.shutdown();
+        //bitmexEventsStreamingService2.shutdown();
 
         int t = 0;
 

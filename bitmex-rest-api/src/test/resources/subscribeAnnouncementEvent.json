@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "announcement",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "announcement"
+    ]
+  }
+}

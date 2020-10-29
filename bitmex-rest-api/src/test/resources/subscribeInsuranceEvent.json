@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "insurance",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "insurance"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "table": "insurance",
+  "action": "partial",
+  "keys": [
+    "currency",
+    "timestamp"
+  ],
+  "types": {
+    "currency": "symbol",
+    "timestamp": "timestamp",
+    "walletBalance": "long"
+  },
+  "foreignKeys": {},
+  "attributes": {
+    "currency": "grouped",
+    "timestamp": "sorted"
+  },
+  "filter": {},
+  "data": [
+    {
+      "currency": "XBt",
+      "timestamp": "2020-10-28T12:00:00.000Z",
+      "walletBalance": 1575700539093
+    }
+  ]
+}

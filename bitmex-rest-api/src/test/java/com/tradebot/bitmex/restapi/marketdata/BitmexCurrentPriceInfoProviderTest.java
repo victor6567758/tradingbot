@@ -68,7 +68,7 @@ public class BitmexCurrentPriceInfoProviderTest {
     }
 
     @Test
-    public void getCurrentPricesForInstrument() {
+    public void testGetCurrentPricesForInstrumentTest() {
         Price<String> price = bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstrument(INSTRUMENT);
         assertThat(price.getInstrument().getInstrument()).isEqualTo(price.getInstrument().getInstrument());
         assertThat(price.getAskPrice()).isCloseTo(quotes.get(0).getAskPrice(), Offset.offset(0.0001));
@@ -77,7 +77,7 @@ public class BitmexCurrentPriceInfoProviderTest {
     }
 
     @Test
-    public void getCurrentPricesForInstruments() {
+    public void testGetCurrentPricesForInstruments() {
         Map<TradeableInstrument<String>, Price<String>> prices =
             bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstruments(Collections.singletonList(INSTRUMENT));
         assertThat(prices).hasSize(1);

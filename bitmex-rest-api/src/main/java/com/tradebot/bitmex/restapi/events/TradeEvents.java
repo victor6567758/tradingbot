@@ -5,13 +5,18 @@ package com.tradebot.bitmex.restapi.events;
 import com.tradebot.core.events.Event;
 
 public enum TradeEvents implements Event {
-    TRADE_UPDATE,
+    EVENT_INSURANCE,
+    EVENT_ANNOUNCEMENT,
+    EVENT_PUBLIC_NOTIFICATION,
+
+    BITMEX_INSTRUMENT,
+
     TRADE_CLOSE,
-    MIGRATE_TRADE_OPEN,
-    MIGRATE_TRADE_CLOSE,
     STOP_LOSS_FILLED,
     TAKE_PROFIT_FILLED,
-    TRAILING_STOP_FILLED,
+
+    MIGRATE_TRADE_CLOSE,
+
     NONE;
 
     public final String label;

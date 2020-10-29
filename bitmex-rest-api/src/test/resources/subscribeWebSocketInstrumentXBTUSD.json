@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "subscribe": "instrument:XBTUSD",
+  "request": {
+    "op": "subscribe",
+    "args": [
+      "instrument:XBTUSD"
+    ]
+  }
+}
