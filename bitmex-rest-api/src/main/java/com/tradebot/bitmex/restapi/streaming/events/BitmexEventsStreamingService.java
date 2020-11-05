@@ -1,126 +1,137 @@
 package com.tradebot.bitmex.restapi.streaming.events;
 
-import com.tradebot.bitmex.restapi.BitmexConstants;
-import com.tradebot.bitmex.restapi.BitmexJsonKeys;
-import com.tradebot.bitmex.restapi.streaming.BitmexStreamingService;
-import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.TradingConstants;
-import com.tradebot.core.account.Account;
-import com.tradebot.core.account.AccountDataProvider;
+import com.google.common.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
+import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
+import com.tradebot.bitmex.restapi.events.payload.BitmexTradeEventPayload;
+import com.tradebot.bitmex.restapi.events.payload.TradeEventPayLoad;
+import com.tradebot.bitmex.restapi.events.TradeEvents;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexExecution;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexOrder;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexResponse;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexTrade;
+import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService;
 import com.tradebot.core.events.EventCallback;
-import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.streaming.events.EventsStreamingService;
-import java.io.BufferedReader;
-import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 @Slf4j
-public class BitmexEventsStreamingService extends BitmexStreamingService implements
-    EventsStreamingService {
+public class BitmexEventsStreamingService extends BaseBitmexStreamingService implements EventsStreamingService {
 
-    private final String url;
-    private final AccountDataProvider<Long> accountDataProvider;
-    private final EventCallback<JSONObject> eventCallback;
+    private static final String ANNOUNCEMENT = "announcement";
+    private static final String INSURANCE = "insurance";
+    private static final String PUBLIC_NOTIFICATIONS = "publicNotifications";
+    private static final String ORDER = "order";
+    private static final String TRADE = "trade";
+    private static final String EXECUTION = "execution";
 
-    public BitmexEventsStreamingService(final String url, final String accessToken,
-        AccountDataProvider<Long> accountDataProvider, EventCallback<JSONObject> eventCallback,
-        HeartBeatCallback<DateTime> heartBeatCallback, String heartBeatSourceId) {
-        super(accessToken, heartBeatCallback, heartBeatSourceId);
-        this.url = url;
-        this.accountDataProvider = accountDataProvider;
+    public BitmexEventsStreamingService(
+        EventCallback<JSONObject> eventCallback,
+        EventCallback<BitmexExecution> executionEventCallback,
+        EventCallback<BitmexOrder> orderEventCallback,
+        EventCallback<BitmexTrade> tradeEventCallback,
+        HeartBeatCallback<Long> heartBeatCallback) {
+        super(heartBeatCallback);
         this.eventCallback = eventCallback;
+        this.executionEventCallback = executionEventCallback;
+        this.orderEventCallback = orderEventCallback;
+        this.tradeEventCallback = tradeEventCallback;
+
+        initMapping(new MappingFunction[]{
+            new MappingFunction(this::processAnnouncementReply, ANNOUNCEMENT),
+            new MappingFunction(this::processInsuranceReply, INSURANCE),
+            new MappingFunction(this::processPublicNotificationsReply, PUBLIC_NOTIFICATIONS),
+            new MappingFunction(this::processOrder, ORDER),
+            new MappingFunction(this::processTrade, TRADE),
+            new MappingFunction(this::processExecution, EXECUTION)
+        });
     }
+
+    private final EventCallback<JSONObject> eventCallback;
+    private final EventCallback<BitmexExecution> executionEventCallback;
+    private final EventCallback<BitmexOrder> orderEventCallback;
+    private final EventCallback<BitmexTrade> tradeEventCallback;
+
 
     @Override
-    public void stopEventsStreaming() {
-        this.serviceUp = false;
-        if (streamThread != null && streamThread.isAlive()) {
-            streamThread.interrupt();
-        }
-    }
-
-    private String accountsAsCsvString(Collection<Account<Long>> accounts) {
-        StringBuilder accountsAsCsv = new StringBuilder();
-        boolean firstTime = true;
-        for (Account<Long> account : accounts) {
-            if (firstTime) {
-                firstTime = false;
-            } else {
-                accountsAsCsv.append(TradingConstants.ENCODED_COMMA);
-            }
-            accountsAsCsv.append(account.getAccountId());
-        }
-        return accountsAsCsv.toString();
-    }
-
-    @Override
-    protected String getStreamingUrl() {
-        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
-        return this.url + BitmexConstants.EVENTS_RESOURCE + "?accountIds=" + accountsAsCsvString(
-            accounts);
+    protected String extractSubscribeTopic(String subscribeElement) {
+        return subscribeElement;
     }
 
     @Override
     public void startEventsStreaming() {
-        stopEventsStreaming();
-        streamThread = new Thread(new Runnable() {
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(ANNOUNCEMENT));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(INSURANCE));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(PUBLIC_NOTIFICATIONS));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(ORDER));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(EXECUTION));
+    }
 
-            @Override
-            public void run() {
-                try (CloseableHttpClient httpClient = getHttpClient()) {
-                    BufferedReader br = setUpStreamIfPossible(httpClient);
-                    if (br != null) {
-                        String line;
-                        while ((line = br.readLine()) != null && serviceUp) {
-                            Object obj = JSONValue.parse(line);
-                            JSONObject jsonPayLoad = (JSONObject) obj;
-                            if (jsonPayLoad.containsKey(BitmexJsonKeys.heartbeat)) {
-                                handleHeartBeat(jsonPayLoad);
-                            } else if (jsonPayLoad.containsKey(BitmexJsonKeys.transaction)) {
-                                JSONObject transactionObject = (JSONObject) jsonPayLoad
-                                    .get(BitmexJsonKeys.transaction);
-                                String transactionType = transactionObject.get(BitmexJsonKeys.type)
-                                    .toString();
-                                /*convert here so that event bus can post to an appropriate handler,
-                                 * event though this does not belong here*/
-                                EventPayLoad<JSONObject> payLoad = BitmexUtils
-                                    .toBitmexEventPayLoad(transactionType,
-                                        transactionObject);
-                                if (payLoad != null) {
-                                    eventCallback.onEvent(payLoad);
-                                }
-                            } else if (jsonPayLoad.containsKey(BitmexJsonKeys.disconnect)) {
-                                handleDisconnect(line);
-                            }
-                        }
-                        br.close();
-                    }
+    @Override
+    public void stopEventsStreaming() {
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(ANNOUNCEMENT));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(INSURANCE));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(PUBLIC_NOTIFICATIONS));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(ORDER));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(TRADE));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(EXECUTION));
+    }
 
-                } catch (Exception e) {
-                    log.error("error encountered inside event streaming thread", e);
-                } finally {
-                    serviceUp = false;
+    private void processAnnouncementReply(String message) {
+        eventCallback.onEvent(new TradeEventPayLoad(
+            TradeEvents.EVENT_ANNOUNCEMENT, (JSONObject) JSONValue.parse(message)));
+    }
 
-                }
+    private void processInsuranceReply(String message) {
+        eventCallback.onEvent(new TradeEventPayLoad(
+            TradeEvents.EVENT_INSURANCE, (JSONObject) JSONValue.parse(message)));
+    }
 
+    private void processPublicNotificationsReply(String message) {
+        eventCallback.onEvent(new TradeEventPayLoad(
+            TradeEvents.EVENT_PUBLIC_NOTIFICATION, (JSONObject) JSONValue.parse(message)));
+    }
+
+    private void processOrder(String message) {
+        BitmexResponse<BitmexOrder> orders = parseMessage(message, new TypeToken<>() {
+        });
+
+        for (BitmexOrder order : orders.getData()) {
+            orderEventCallback.onEvent(new BitmexOrderEventPayload(TradeEvents.EVENT_ORDER, order));
+
+            if (log.isDebugEnabled()) {
+                log.debug("Parsed order event: {}", order.toString());
             }
-        }, "OandEventStreamingThread");
-        streamThread.start();
+        }
     }
 
-    @Override
-    protected void startStreaming() {
-        this.startEventsStreaming();
+    private void processTrade(String message) {
+        BitmexResponse<BitmexTrade> trades = parseMessage(message, new TypeToken<>() {
+        });
+
+        for (BitmexTrade trade : trades.getData()) {
+            tradeEventCallback.onEvent(new BitmexTradeEventPayload(TradeEvents.EVENT_TRADE, trade));
+
+            if (log.isDebugEnabled()) {
+                log.debug("Parsed trade event: {}", trade.toString());
+            }
+        }
     }
 
-    @Override
-    protected void stopStreaming() {
-        this.stopEventsStreaming();
-    }
+    private void processExecution(String message) {
+        BitmexResponse<BitmexExecution> executions = parseMessage(message, new TypeToken<>() {
+        });
 
+        for (BitmexExecution execution : executions.getData()) {
+            executionEventCallback.onEvent(new BitmexExecutionEventPayload(TradeEvents.EVENT_EXECUTION, execution));
+
+            if (log.isDebugEnabled()) {
+                log.debug("Parsed execution event: {}", execution.toString());
+            }
+        }
+    }
 }

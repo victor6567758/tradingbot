@@ -39,7 +39,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 @SuppressWarnings("unchecked")
-public class BitmexMarketDataStreamingService2Test {
+public class BitmexMarketDataStreamingServiceTest {
 
     private static final Collection<TradeableInstrument<String>> INSTRUMENTS = Arrays.asList(
         new TradeableInstrument<>("XBTUSD"),
@@ -59,7 +59,7 @@ public class BitmexMarketDataStreamingService2Test {
 
 
     private JettyCommunicationSocket jettyCommunicationSocketSpy;
-    private BitmexMarketDataStreamingService2 bitmexMarketDataStreamingService2Spy;
+    private BitmexMarketDataStreamingService bitmexMarketDataStreamingService2Spy;
 
     private String instrumentXBTJPY;
     private String instrumentXBTUSD;
@@ -157,7 +157,7 @@ public class BitmexMarketDataStreamingService2Test {
         bitmexInstrumentEventCallbackSpy = spy(bitmexInstrumentEventCallback);
         marketEventCallbackSpy = spy(marketEventCallback);
 
-        bitmexMarketDataStreamingService2Spy = spy(new BitmexMarketDataStreamingService2(
+        bitmexMarketDataStreamingService2Spy = spy(new BitmexMarketDataStreamingService(
             marketEventCallbackSpy,
             bitmexInstrumentEventCallbackSpy,
             heartBeatCallbackSpy,

@@ -10,7 +10,7 @@ package com.tradebot.bitmex.restapi.trade.utils;
 //import com.tradebot.bitmex.restapi.events.AccountEvents;
 //import com.tradebot.bitmex.restapi.events.OrderEventPayLoad;
 //import com.tradebot.bitmex.restapi.events.OrderEvents;
-//import com.tradebot.bitmex.restapi.events.TradeEventPayLoad;
+//import com.tradebot.bitmex.restapi.events.payload.TradeEventPayLoad;
 //import com.tradebot.bitmex.restapi.events.TradeEvents;
 //import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 //import com.tradebot.core.TradingSignal;

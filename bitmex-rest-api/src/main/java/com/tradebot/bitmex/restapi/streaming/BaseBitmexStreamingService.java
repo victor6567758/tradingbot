@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
 @Slf4j
-public abstract class BaseBitmexStreamingService2 {
+public abstract class BaseBitmexStreamingService {
 
     private static final String GET_URL_RELATIME = "GET" + "/realtime";
 
@@ -68,8 +68,8 @@ public abstract class BaseBitmexStreamingService2 {
 
     private MappingFunction[] mappingFunctions;
 
-    public BaseBitmexStreamingService2(HeartBeatCallback<Long> heartBeatCallback) {
-        BaseBitmexStreamingService2 pThis = this;
+    public BaseBitmexStreamingService(HeartBeatCallback<Long> heartBeatCallback) {
+        BaseBitmexStreamingService pThis = this;
         jettyCommunicationSocket = new JettyCommunicationSocket(
             pThis::onInternalMessageHandler,
             reason -> {

@@ -1,134 +1,121 @@
 package com.tradebot.bitmex.restapi.streaming.marketdata;
 
-import com.tradebot.bitmex.restapi.BitmexConstants;
-import com.tradebot.bitmex.restapi.BitmexJsonKeys;
-import com.tradebot.bitmex.restapi.streaming.BitmexStreamingService;
-import com.tradebot.core.TradingConstants;
+import com.google.common.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.events.BitmexInstrumentEventPayload;
+import com.tradebot.bitmex.restapi.events.TradeEvents;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexInstrument;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexQuote;
+import com.tradebot.bitmex.restapi.model.websocket.BitmexResponse;
+import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService;
+import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.MarketEventCallback;
 import com.tradebot.core.streaming.marketdata.MarketDataStreamingService;
-import com.tradebot.core.utils.TradingUtils;
-import java.io.BufferedReader;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class BitmexMarketDataStreamingService extends BitmexStreamingService implements
-    MarketDataStreamingService {
+public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService implements MarketDataStreamingService {
 
+    private static final String QUOTE = "quote";
+    private static final String INSTRUMENT = "instrument";
+    public static final char QUOTE_DELIMITER = ':';
 
-    private final String url;
-    private final MarketEventCallback<String> marketEventCallback;
-
-    public BitmexMarketDataStreamingService(String url, String accessToken, long accountId,
-        Collection<TradeableInstrument<String>> instruments,
+    public BitmexMarketDataStreamingService(
         MarketEventCallback<String> marketEventCallback,
-        HeartBeatCallback<DateTime> heartBeatCallback, String heartbeatSourceId) {
-        super(accessToken, heartBeatCallback, heartbeatSourceId);
-        this.url =
-            url + BitmexConstants.PRICES_RESOURCE + "?accountId=" + accountId + "&instruments="
-                + instrumentsAsCsv(instruments);
+        EventCallback<BitmexInstrument> instrumentEventCallback,
+        HeartBeatCallback<Long> heartBeatCallback,
+        Collection<TradeableInstrument<String>> instruments) {
+        super(heartBeatCallback);
+
         this.marketEventCallback = marketEventCallback;
-    }
+        this.instrumentEventCallback = instrumentEventCallback;
+        this.instruments = instruments;
 
-    private String instrumentsAsCsv(Collection<TradeableInstrument<String>> instruments) {
-        StringBuilder csvLst = new StringBuilder();
-        boolean firstTime = true;
-        for (TradeableInstrument<String> instrument : instruments) {
-            if (firstTime) {
-                firstTime = false;
-            } else {
-                csvLst.append(TradingConstants.ENCODED_COMMA);
+        initMapping(
+            new MappingFunction[]{
+                new MappingFunction(this::processInstrumentReply, INSTRUMENT),
+                new MappingFunction(this::processQuoteReply, QUOTE)
             }
-            csvLst.append(instrument.getInstrument());
-        }
-        return csvLst.toString();
+        );
     }
 
-    @Override
-    protected String getStreamingUrl() {
-        return this.url;
-    }
+    private final MarketEventCallback<String> marketEventCallback;
+    private final EventCallback<BitmexInstrument> instrumentEventCallback;
+    private final Collection<TradeableInstrument<String>> instruments;
 
     @Override
-    public void stopMarketDataStreaming() {
-        this.serviceUp = false;
-        if (streamThread != null && streamThread.isAlive()) {
-            streamThread.interrupt();
+    protected String extractSubscribeTopic(String subscribeElement) {
+        int idx = StringUtils.indexOf(subscribeElement, ':');
+        if (idx >= 0) {
+            return StringUtils.substring(subscribeElement, 0, idx);
         }
+        throw new IllegalArgumentException("Cannot extract subscribe topic");
     }
 
     @Override
     public void startMarketDataStreaming() {
-        stopMarketDataStreaming();
-        this.streamThread = new Thread(new Runnable() {
+        for (TradeableInstrument<String> instrument : instruments) {
+            log.info("Subscribed to: {}", instrument.getInstrument());
+            jettyCommunicationSocket.subscribe(buildSubscribeCommand(getInstrumentParameters(instrument.getInstrument())));
+            jettyCommunicationSocket.subscribe(buildSubscribeCommand(getQuoteParameters(instrument.getInstrument())));
+        }
+    }
 
-            @Override
-            public void run() {
-                try (CloseableHttpClient httpClient = getHttpClient()) {
-                    BufferedReader br = setUpStreamIfPossible(httpClient);
-                    if (br != null) {
-                        String line;
-                        while ((line = br.readLine()) != null && serviceUp) {
-                            Object obj = JSONValue.parse(line);
-                            JSONObject instrumentTick = (JSONObject) obj;
-                            // unwrap if necessary
-                            if (instrumentTick.containsKey(BitmexJsonKeys.tick)) {
-                                instrumentTick = (JSONObject) instrumentTick
-                                    .get(BitmexJsonKeys.tick);
-                            }
+    @Override
+    public void stopMarketDataStreaming() {
+        for (TradeableInstrument<String> instrument : instruments) {
+            log.info("Unsubscribed from: {}", instrument.getInstrument());
+            jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(getInstrumentParameters(instrument.getInstrument())));
+            jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(getQuoteParameters(instrument.getInstrument())));
+        }
+    }
 
-                            if (instrumentTick.containsKey(BitmexJsonKeys.instrument)) {
-                                final String instrument = instrumentTick
-                                    .get(BitmexJsonKeys.instrument).toString();
-                                final String timeAsString = instrumentTick.get(BitmexJsonKeys.time)
-                                    .toString();
-                                final long eventTime = Long.parseLong(timeAsString);
-                                final double bidPrice = ((Number) instrumentTick.get(
-                                    BitmexJsonKeys.bid)).doubleValue();
-                                final double askPrice = ((Number) instrumentTick.get(
-                                    BitmexJsonKeys.ask)).doubleValue();
-                                marketEventCallback
-                                    .onMarketEvent(new TradeableInstrument<String>(instrument),
-                                        bidPrice, askPrice,
-                                        new DateTime(TradingUtils.toMillisFromNanos(eventTime)));
-                            } else if (instrumentTick.containsKey(BitmexJsonKeys.heartbeat)) {
-                                handleHeartBeat(instrumentTick);
-                            } else if (instrumentTick.containsKey(BitmexJsonKeys.disconnect)) {
-                                handleDisconnect(line);
-                            }
-                        }
-                        br.close();
-                        // stream.close();
-                    }
-                } catch (Exception e) {
-                    log.error("error encountered inside market data streaming thread", e);
-                } finally {
-                    serviceUp = false;
-                }
+    private void processQuoteReply(String message) {
 
+        BitmexResponse<BitmexQuote> quotes = parseMessage(message, new TypeToken<>() {
+        });
+
+        for (BitmexQuote quote : quotes.getData()) {
+            marketEventCallback.onMarketEvent(
+                new TradeableInstrument<>(quote.getSymbol()),
+                quote.getBidPrice(),
+                quote.getAskPrice(),
+                quote.getTimestamp()
+            );
+
+            if (log.isDebugEnabled()) {
+                log.debug("Parsed market event: {}", quote.getSymbol());
             }
-        }, "OandMarketDataStreamingThread");
-        this.streamThread.start();
+        }
+    }
+
+    private void processInstrumentReply(String message) {
+
+        BitmexResponse<BitmexInstrument> instrument = parseMessage(message, new TypeToken<>() {
+        });
+
+        for (BitmexInstrument bitmexInstrument : instrument.getData()) {
+            instrumentEventCallback.onEvent(new BitmexInstrumentEventPayload(TradeEvents.EVENT_INSTRUMENT, bitmexInstrument));
+
+            if (log.isDebugEnabled()) {
+                log.debug("Parsed instrument event: {}", bitmexInstrument.toString());
+            }
+        }
+
 
     }
 
-    @Override
-    protected void startStreaming() {
-        startMarketDataStreaming();
 
+    private static String getInstrumentParameters(String instrumentName) {
+        return INSTRUMENT + QUOTE_DELIMITER + instrumentName;
     }
 
-    @Override
-    protected void stopStreaming() {
-        stopMarketDataStreaming();
-
+    private static String getQuoteParameters(String instrumentName) {
+        return QUOTE + QUOTE_DELIMITER + instrumentName;
     }
+
 
 }

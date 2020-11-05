@@ -24,10 +24,10 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 @SuppressWarnings("unchecked")
-public class BitmexEventsStreamingService2Test {
+public class BitmexEventsStreamingServiceTest {
 
     private JettyCommunicationSocket jettyCommunicationSocketSpy;
-    private BitmexEventsStreamingService2 bitmexEventsStreamingService2Spy;
+    private BitmexEventsStreamingService bitmexEventsStreamingServiceSpy;
 
     private String publicNotification;
     private String publicAnnouncement;
@@ -84,22 +84,22 @@ public class BitmexEventsStreamingService2Test {
         heartBeatCallbackSpy = spy(heartBeatCallback);
         eventCallbackSpy = spy(eventCallback);
 
-        bitmexEventsStreamingService2Spy = spy(new BitmexEventsStreamingService2(eventCallbackSpy, heartBeatCallbackSpy));
-        jettyCommunicationSocketSpy = spy(bitmexEventsStreamingService2Spy.getJettyCommunicationSocket());
+        bitmexEventsStreamingServiceSpy = spy(new BitmexEventsStreamingService(eventCallbackSpy, heartBeatCallbackSpy));
+        jettyCommunicationSocketSpy = spy(bitmexEventsStreamingServiceSpy.getJettyCommunicationSocket());
 
-        doNothing().when(bitmexEventsStreamingService2Spy).shutdown();
-        doNothing().when(bitmexEventsStreamingService2Spy).init();
-        doNothing().when(bitmexEventsStreamingService2Spy).startEventsStreaming();
-        doNothing().when(bitmexEventsStreamingService2Spy).stopEventsStreaming();
+        doNothing().when(bitmexEventsStreamingServiceSpy).shutdown();
+        doNothing().when(bitmexEventsStreamingServiceSpy).init();
+        doNothing().when(bitmexEventsStreamingServiceSpy).startEventsStreaming();
+        doNothing().when(bitmexEventsStreamingServiceSpy).stopEventsStreaming();
 
-        bitmexEventsStreamingService2Spy.init();
-        bitmexEventsStreamingService2Spy.startEventsStreaming();
+        bitmexEventsStreamingServiceSpy.init();
+        bitmexEventsStreamingServiceSpy.startEventsStreaming();
     }
 
     @After
     public void tearDowmn() {
-        bitmexEventsStreamingService2Spy.stopEventsStreaming();
-        bitmexEventsStreamingService2Spy.shutdown();
+        bitmexEventsStreamingServiceSpy.stopEventsStreaming();
+        bitmexEventsStreamingServiceSpy.shutdown();
     }
 
     @Test

@@ -8,16 +8,10 @@ public enum TradeEvents implements Event {
     EVENT_INSURANCE,
     EVENT_ANNOUNCEMENT,
     EVENT_PUBLIC_NOTIFICATION,
-
-    BITMEX_INSTRUMENT,
-
-    TRADE_CLOSE,
-    STOP_LOSS_FILLED,
-    TAKE_PROFIT_FILLED,
-
-    MIGRATE_TRADE_CLOSE,
-
-    NONE;
+    EVENT_INSTRUMENT,
+    EVENT_ORDER,
+    EVENT_TRADE,
+    EVENT_EXECUTION;
 
     public final String label;
 

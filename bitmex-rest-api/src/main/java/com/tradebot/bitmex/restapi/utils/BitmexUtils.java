@@ -3,23 +3,15 @@ package com.tradebot.bitmex.restapi.utils;
 import com.google.common.base.Preconditions;
 import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
-import com.tradebot.bitmex.restapi.events.AccountEventPayLoad;
-import com.tradebot.bitmex.restapi.events.AccountEvents;
-import com.tradebot.bitmex.restapi.events.OrderEventPayLoad;
-import com.tradebot.bitmex.restapi.events.OrderEvents;
-import com.tradebot.bitmex.restapi.events.TradeEventPayLoad;
-import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.core.TradingConstants;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.events.Event;
-import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.order.OrderType;
 import com.tradebot.core.utils.TradingUtils;
 import java.io.InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.message.BasicHeader;
-import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -52,33 +44,10 @@ public class BitmexUtils {
         return StringUtils.substring(instrument.getInstrument(), 0, 3);
     }
 
-
-
     // -----------------
 
-    public static EventPayLoad<JSONObject> toBitmexEventPayLoad(String transactionType,
-        JSONObject payLoad) {
-        Preconditions.checkNotNull(transactionType);
-        Event evt = findAppropriateType(AccountEvents.values(), transactionType);
-        if (evt == null) {
-            evt = findAppropriateType(OrderEvents.values(), transactionType);
-            if (evt == null) {
-                evt = findAppropriateType(TradeEvents.values(), transactionType);
-                if (evt == null) {
-                    return null;
-                } else {
-                    return new TradeEventPayLoad((TradeEvents) evt, payLoad);
-                }
-            } else {
-                return new OrderEventPayLoad((OrderEvents) evt, payLoad);
-            }
-        } else {
-            return new AccountEventPayLoad((AccountEvents) evt, payLoad);
-        }
 
-    }
-
-    public static final BasicHeader createAuthHeader(String accessToken) {
+    public static BasicHeader createAuthHeader(String accessToken) {
         return new BasicHeader("Authorization", "Bearer " + accessToken);
     }
 

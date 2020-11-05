@@ -2,6 +2,7 @@ package com.tradebot.bitmex.restapi.account;
 
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.UserApi;
+import com.tradebot.bitmex.restapi.generated.model.Margin;
 import com.tradebot.bitmex.restapi.generated.model.Wallet;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
@@ -40,9 +41,10 @@ public class BitmexAccountDataProviderService implements AccountDataProvider<Lon
     }
 
     private Account<Long> getUserAccount() throws ApiException {
-        // TODO: add margin
         Wallet wallet = getUserApi().userGetWallet(bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency());
-        return new Account<>(wallet.getAmount().doubleValue(), 0.0, wallet.getCurrency(), wallet.getAccount().longValue(), 1);
+        Margin margine = getUserApi().userGetMargin(wallet.getCurrency());
+        return new Account<>(wallet.getAmount().doubleValue(), margine.getMarginBalance().doubleValue(),
+            wallet.getCurrency(), wallet.getAccount().longValue(), 1);
     }
 
 }
