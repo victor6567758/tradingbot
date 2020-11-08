@@ -9,6 +9,9 @@ import static org.mockito.Mockito.verify;
 
 import com.google.common.io.Resources;
 import com.tradebot.bitmex.restapi.events.TradeEvents;
+import com.tradebot.bitmex.restapi.model.BitmexExecution;
+import com.tradebot.bitmex.restapi.model.BitmexOrder;
+import com.tradebot.bitmex.restapi.model.BitmexTrade;
 import com.tradebot.bitmex.restapi.streaming.JettyCommunicationSocket;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.events.EventPayLoad;
@@ -44,6 +47,10 @@ public class BitmexEventsStreamingServiceTest {
     private HeartBeatCallback<Long> heartBeatCallbackSpy;
     private EventCallback<JSONObject> eventCallbackSpy;
 
+    private EventCallback<BitmexExecution> executionEventCallbackSpy;
+    private EventCallback<BitmexOrder> orderEventCallbackSpy;
+    private EventCallback<BitmexTrade> tradeEventCallbackSpy;
+
     // Must not be lambdas for correct Mockito work
     private final HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallback<Long>() {
 
@@ -55,6 +62,30 @@ public class BitmexEventsStreamingServiceTest {
 
         @Override
         public void onEvent(EventPayLoad<JSONObject> eventPayLoad) {
+        }
+    };
+    private final EventCallback<BitmexExecution> executionEventCallback = new EventCallback<BitmexExecution>() {
+
+
+        @Override
+        public void onEvent(EventPayLoad<BitmexExecution> eventPayLoad) {
+
+        }
+    };
+    private final EventCallback<BitmexTrade> tradeEventCallback = new EventCallback<BitmexTrade>() {
+
+
+        @Override
+        public void onEvent(EventPayLoad<BitmexTrade> eventPayLoad) {
+
+        }
+    };
+    private final EventCallback<BitmexOrder> orderEventCallback = new EventCallback<BitmexOrder>() {
+
+
+        @Override
+        public void onEvent(EventPayLoad<BitmexOrder> eventPayLoad) {
+
         }
     };
 
@@ -83,8 +114,12 @@ public class BitmexEventsStreamingServiceTest {
 
         heartBeatCallbackSpy = spy(heartBeatCallback);
         eventCallbackSpy = spy(eventCallback);
+        executionEventCallbackSpy = spy(executionEventCallback);
+        orderEventCallbackSpy = spy(orderEventCallback);
+        tradeEventCallbackSpy = spy(tradeEventCallback);
 
-        bitmexEventsStreamingServiceSpy = spy(new BitmexEventsStreamingService(eventCallbackSpy, heartBeatCallbackSpy));
+        bitmexEventsStreamingServiceSpy = spy(new BitmexEventsStreamingService(eventCallbackSpy, executionEventCallbackSpy, orderEventCallbackSpy, tradeEventCallbackSpy,
+            heartBeatCallbackSpy));
         jettyCommunicationSocketSpy = spy(bitmexEventsStreamingServiceSpy.getJettyCommunicationSocket());
 
         doNothing().when(bitmexEventsStreamingServiceSpy).shutdown();

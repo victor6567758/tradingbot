@@ -1,6 +1,6 @@
 package com.tradebot.bitmex.restapi.events.payload;
 
-import com.tradebot.bitmex.restapi.model.websocket.BitmexTrade;
+import com.tradebot.bitmex.restapi.model.BitmexTrade;
 import com.tradebot.core.events.Event;
 import com.tradebot.core.events.EventPayLoad;
 

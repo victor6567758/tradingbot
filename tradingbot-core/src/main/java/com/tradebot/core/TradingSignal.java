@@ -15,4 +15,5 @@ public enum TradingSignal {
             return this;
         }
     }
+
 }

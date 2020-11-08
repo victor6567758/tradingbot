@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
-import com.tradebot.bitmex.restapi.model.websocket.BitmexOrder;
+import com.tradebot.bitmex.restapi.model.BitmexOrder;
 import com.tradebot.core.events.EventHandler;
 import com.tradebot.core.events.EventPayLoadToTweet;
 import com.tradebot.core.events.notification.email.EmailContentGenerator;

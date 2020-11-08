@@ -1,14 +1,14 @@
 
 package com.tradebot.core.trade;
 
+import com.tradebot.core.TradingSignal;
+import com.tradebot.core.instrument.TradeableInstrument;
 import lombok.Getter;
 import org.joda.time.DateTime;
 
-import com.tradebot.core.TradingSignal;
-import com.tradebot.core.instrument.TradeableInstrument;
-
 @Getter
 public class Trade<M, N, K> {
+
     private final M tradeId;
     private final long units;
     private final TradingSignal side;
@@ -20,8 +20,17 @@ public class Trade<M, N, K> {
     private final K accountId;
     private final String toStr;
 
-    public Trade(M tradeId, long units, TradingSignal side, TradeableInstrument<N> instrument, DateTime tradeDate,
-            double takeProfitPrice, double executionPrice, double stopLoss, K accountId) {
+    public Trade(
+        M tradeId,
+        long units,
+        TradingSignal side,
+        TradeableInstrument<N> instrument,
+        DateTime tradeDate,
+        double takeProfitPrice,
+        double executionPrice,
+        double stopLoss,
+        K accountId) {
+
         this.tradeId = tradeId;
         this.units = units;
         this.side = side;
@@ -31,9 +40,9 @@ public class Trade<M, N, K> {
         this.executionPrice = executionPrice;
         this.stopLoss = stopLoss;
         this.accountId = accountId;
-        this.toStr = String.format(
-                "Trade Id=%d, Units=%d, Side=%s, Instrument=%s, TradeDate=%s, TP=%3.5f, Price=%3.5f, SL=%3.5f",
-                tradeId, units, side, instrument, tradeDate.toString(), takeProfitPrice, executionPrice, stopLoss);
+        toStr = String.format(
+            "Trade Id=%s, Units=%d, Side=%s, Instrument=%s, TradeDate=%s, TP=%3.5f, Price=%3.5f, SL=%3.5f",
+            tradeId.toString(), units, side, instrument, tradeDate.toString(), takeProfitPrice, executionPrice, stopLoss);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.tradebot.bitmex.restapi.position;
 
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
+import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.api.PositionApi;
 import com.tradebot.bitmex.restapi.generated.model.Position;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
@@ -14,7 +15,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 
 
 @Slf4j
@@ -28,10 +28,16 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
             bitmexAccountConfiguration.getBitmex().getApi().getSecret())
     );
 
+    @Getter(AccessLevel.PACKAGE)
+    private final OrderApi orderApi = new OrderApi(
+        new ApiClientAuthorizeable(bitmexAccountConfiguration.getBitmex().getApi().getKey(),
+            bitmexAccountConfiguration.getBitmex().getApi().getSecret())
+    );
+
     @Override
     @SneakyThrows
     public com.tradebot.core.position.Position<String> getPositionForInstrument(Long accountId, TradeableInstrument<String> instrument) {
-          return getPositionApi().positionGet(null, null, null).stream()
+        return getPositionApi().positionGet(null, null, null).stream()
             .filter(position -> position.getAccount().longValue() == accountId)
             .filter(position -> position.getSymbol().equals(instrument.getInstrument()))
             .map(BitmexPositionManagementProvider::toPosition).findAny().orElseThrow();
@@ -46,8 +52,10 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
     }
 
     @Override
-    public boolean closePosition(Long accountId, TradeableInstrument<String> instrument) {
-        throw new NotImplementedException("closePosition");
+    @SneakyThrows
+    public boolean closePosition(Long accountId, TradeableInstrument<String> instrument, double price) {
+        getOrderApi().orderClosePosition(instrument.getInstrument(), price <= 0 ? null : price);
+        return true;
     }
 
     private static com.tradebot.core.position.Position<String> toPosition(Position position) {

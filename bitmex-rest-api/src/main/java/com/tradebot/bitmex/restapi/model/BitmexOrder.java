@@ -1,6 +1,8 @@
-package com.tradebot.bitmex.restapi.model.websocket;
+package com.tradebot.bitmex.restapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.tradebot.core.TradingSignal;
+import com.tradebot.core.order.OrderType;
 import lombok.Data;
 
 @Data
@@ -16,10 +18,10 @@ public class BitmexOrder {
     private Double price;
 
     //Valid options: Buy, Sell.
-    private String side;
+    private TradingSignal side;
 
     // Valid options: Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, MarketWithLeftOverAsLimit, Pegged.
-    private String ordType;
+    private OrderType ordType;
 
     //Day, GoodTillCancel, ImmediateOrCancel, FillOrKill. Defaults to 'GoodTillCancel' for 'Limit', 'StopLimit', 'LimitIfTouched',
     // and 'MarketWithLeftOverAsLimit' orders.
@@ -29,5 +31,6 @@ public class BitmexOrder {
     // 'AllOrNone' instruction requires displayQty to be 0. 'MarkPrice', 'IndexPrice' or 'LastPrice' instruction valid for 'Stop', 'StopLimit', 'MarketIfTouched', and 'LimitIfTouched' orders.
     private String execInst;
 
-    private String ordStatus;
+    // New | Filled | PartiallyFilled | Canceled | Rejected
+    private OrderStatus ordStatus;
 }

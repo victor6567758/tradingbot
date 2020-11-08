@@ -12,6 +12,6 @@ public interface PositionManagementProvider<M, N> {
 
     Collection<Position<M>> getPositionsForAccount(N accountId);
 
-    boolean closePosition(N accountId, TradeableInstrument<M> instrument);
+    boolean closePosition(N accountId, TradeableInstrument<M> instrument, double price);
 
 }

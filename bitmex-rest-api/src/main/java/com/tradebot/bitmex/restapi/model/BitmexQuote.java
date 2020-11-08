@@ -1,4 +1,4 @@
-package com.tradebot.bitmex.restapi.model.websocket;
+package com.tradebot.bitmex.restapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

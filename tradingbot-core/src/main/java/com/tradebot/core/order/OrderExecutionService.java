@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +26,7 @@ public class OrderExecutionService<M, N, K> {
     private final PreOrderValidationService<M, N, K> preOrderValidationService;
     private final CurrentPriceInfoProvider<N> currentPriceInfoProvider;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    // TODO track 60 submissions per miniute
 
     public OrderExecutionService(AccountInfoService<K, N> accountInfoService,
         OrderManagementProvider<M, N, K> orderManagementProvider,
@@ -55,22 +57,17 @@ public class OrderExecutionService<M, N, K> {
             }
             Optional<K> accountId = this.accountInfoService.findAccountToTrade();
             if (accountId.isEmpty()) {
-                log.info(
-                    "Not a single eligible account found as the reserve may have been exhausted.");
+                log.info("Not a single eligible account found as the reserve may have been exhausted.");
                 return;
             }
             Order<N, M> order;
             if (decision.getLimitPrice() == 0.0) {
-                // market order
-                order = new Order<>(decision.getInstrument(),
-                    baseTradingConfig.getMaxAllowedQuantity(),
-                    decision.getSignal(), OrderType.MARKET, decision.getTakeProfitPrice(),
-                    decision.getStopLossPrice());
+                order = Order.buildMarketOrder(decision.getInstrument(), baseTradingConfig.getMaxAllowedQuantity(),
+                    decision.getSignal(), decision.getTakeProfitPrice(), decision.getStopLossPrice());
+
             } else {
-                order = new Order<>(decision.getInstrument(),
-                    baseTradingConfig.getMaxAllowedQuantity(),
-                    decision.getSignal(), OrderType.LIMIT, decision.getTakeProfitPrice(),
-                    decision.getStopLossPrice(), decision.getLimitPrice());
+                order = Order.buildLimitOrder(decision.getInstrument(), baseTradingConfig.getMaxAllowedQuantity(),
+                    decision.getSignal(), decision.getLimitPrice(), decision.getTakeProfitPrice(), decision.getStopLossPrice());
             }
             M orderId = orderManagementProvider.placeOrder(order, accountId.get());
             if (orderId != null) {

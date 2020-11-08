@@ -1,12 +1,13 @@
 package com.tradebot.bitmex.restapi;
 
 import com.tradebot.core.TradingConstants;
+import lombok.experimental.UtilityClass;
 import org.apache.http.message.BasicHeader;
 
 
+@UtilityClass
 public final class BitmexConstants {
-    private BitmexConstants() {
-    }
+
 
     // public static final String ACCESS_TOKEN =
     // "9d741c8312f25d9f5a094e53a354875b-2c9a7b49523374e177210af8e111c2f6";

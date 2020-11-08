@@ -42,9 +42,13 @@ public class BitmexAccountDataProviderService implements AccountDataProvider<Lon
 
     private Account<Long> getUserAccount() throws ApiException {
         Wallet wallet = getUserApi().userGetWallet(bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency());
-        Margin margine = getUserApi().userGetMargin(wallet.getCurrency());
-        return new Account<>(wallet.getAmount().doubleValue(), margine.getMarginBalance().doubleValue(),
-            wallet.getCurrency(), wallet.getAccount().longValue(), 1);
+        Margin margin = getUserApi().userGetMargin(wallet.getCurrency());
+        return new Account<>(
+            wallet.getAmount().doubleValue(),
+            margin.getMarginBalance().doubleValue(),
+            wallet.getCurrency(),
+            wallet.getAccount().longValue(),
+            margin.getMarginLeverage());
     }
 
 }

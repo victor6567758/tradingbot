@@ -10,14 +10,11 @@ import static org.mockito.Mockito.verify;
 import com.google.common.io.Resources;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer;
-import com.tradebot.bitmex.restapi.model.websocket.BitmexInstrument;
-import com.tradebot.bitmex.restapi.model.websocket.BitmexQuote;
-import com.tradebot.bitmex.restapi.model.websocket.BitmexResponse;
+import com.tradebot.bitmex.restapi.model.BitmexInstrument;
+import com.tradebot.bitmex.restapi.model.BitmexQuote;
+import com.tradebot.bitmex.restapi.model.BitmexResponse;
 import com.tradebot.bitmex.restapi.streaming.JettyCommunicationSocket;
+import com.tradebot.bitmex.restapi.utils.BitmexJsonBuilder;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
@@ -32,7 +29,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,12 +46,7 @@ public class BitmexMarketDataStreamingServiceTest {
     private static final TradeableInstrument INSTRUMENTS_XBTJPY = INSTRUMENTS.stream().filter(n -> "XBTJPY".equals(n.getInstrument())).findAny().orElseThrow();
 
 
-    private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(DateTime.class, (JsonSerializer<DateTime>) (json, typeOfSrc, context) ->
-            new JsonPrimitive(ISODateTimeFormat.dateTime().print(json)))
-        .registerTypeAdapter(DateTime.class, (JsonDeserializer<DateTime>) (json, typeOfT, context) ->
-            ISODateTimeFormat.dateTime().parseDateTime(json.getAsString()))
-        .create();
+    private static final Gson GSON = BitmexJsonBuilder.buildJson();
 
 
     private JettyCommunicationSocket jettyCommunicationSocketSpy;

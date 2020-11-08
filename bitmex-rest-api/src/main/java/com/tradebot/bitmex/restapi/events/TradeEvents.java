@@ -13,20 +13,9 @@ public enum TradeEvents implements Event {
     EVENT_TRADE,
     EVENT_EXECUTION;
 
-    public final String label;
-
-    TradeEvents(String label) {
-        this.label = label;
-    }
-
-    TradeEvents() {
-        this.label = null;
-    }
-
-
     @Override
     public String label() {
-        return label;
+        return this.name();
     }
 
 }

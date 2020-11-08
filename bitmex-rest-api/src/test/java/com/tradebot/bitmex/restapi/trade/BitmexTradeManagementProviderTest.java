@@ -1,123 +1,66 @@
 package com.tradebot.bitmex.restapi.trade;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.BitmexTestUtils;
-import com.tradebot.core.TradingSignal;
-import com.tradebot.core.trade.Trade;
+import com.google.common.io.Resources;
+import com.google.gson.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.generated.api.TradeApi;
+import com.tradebot.bitmex.restapi.generated.model.Trade;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.JSON;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Iterator;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.impl.client.CloseableHttpClient;
+import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 public class BitmexTradeManagementProviderTest {
 
-    @Test
-    public void modifyTradeTest() throws Exception {
-        BitmexTradeManagementProvider service = new BitmexTradeManagementProvider(
-            BitmexTestConstants.url,
-            BitmexTestConstants.accessToken);
-        final long tradeId = BitmexTestConstants.tradeId;
-        assertEquals("https://api-fxtrade.oanda.com/v1/accounts/123456/trades/1800805337", service
-            .getTradeForAccountUrl(tradeId, BitmexTestConstants.accountId));
-        BitmexTradeManagementProvider spy = doMockStuff(
-            "src/test/resources/tradesForAccount123456.txt", service);
+    private static final long DUMMY_ACCOUNT = 12345L;
+    private final JSON json = new JSON();
+    private final TradeApi tradeApi = mock(TradeApi.class);
 
-        final double stopLoss = 150.0;
-        final double takeProfit = 110.0;
-        spy.modifyTrade(BitmexTestConstants.accountId, tradeId, stopLoss, takeProfit);
-        verify(spy, times(1))
-            .createPatchCommand(BitmexTestConstants.accountId, tradeId, stopLoss, takeProfit);
+    private List<Trade> trades;
+    private BitmexTradeManagementProvider bitmexTradeManagementProviderSpy;
 
-    }
+    @Before
+    public void init() throws IOException, ApiException {
+        bitmexTradeManagementProviderSpy = spy(new BitmexTradeManagementProvider());
 
-    @Test
-    public void closeTradeTest() throws Exception {
-        BitmexTradeManagementProvider service = new BitmexTradeManagementProvider(
-            BitmexTestConstants.url,
-            BitmexTestConstants.accessToken);
-        assertEquals("https://api-fxtrade.oanda.com/v1/accounts/123456/trades/1800805337", service
-            .getTradeForAccountUrl(BitmexTestConstants.tradeId, BitmexTestConstants.accountId));
-        BitmexTradeManagementProvider spy = doMockStuff(
-            "src/test/resources/tradesForAccount123456.txt", service);
+        trades = json.deserialize(Resources.toString(Resources.getResource("tradesAll.json"), StandardCharsets.UTF_8),
+            new TypeToken<List<Trade>>() {
+            }.getType());
 
-        boolean success = spy
-            .closeTrade(BitmexTestConstants.tradeId, BitmexTestConstants.accountId);
-        assertTrue(success);
-        verify(spy.getHttpClient(), times(1)).execute(any(HttpDelete.class));
+        when(tradeApi.tradeGet(
+            isNull(),
+            isNull(),
+            isNull(),
+            any(BigDecimal.class),
+            eq(BigDecimal.ZERO),
+            eq(true),
+            isNull(),
+            isNull())
+        ).thenReturn(trades);
+
+        doReturn(tradeApi).when(bitmexTradeManagementProviderSpy).getTradeApi();
+
     }
 
     @Test
-    public void givenTradeForAccTest() throws Exception {
-        BitmexTradeManagementProvider service = new BitmexTradeManagementProvider(
-            BitmexTestConstants.url,
-            BitmexTestConstants.accessToken);
-
-        assertEquals("https://api-fxtrade.oanda.com/v1/accounts/123456/trades/1800805337", service
-            .getTradeForAccountUrl(BitmexTestConstants.tradeId, BitmexTestConstants.accountId));
-
-        BitmexTradeManagementProvider spy = doMockStuff(
-            "src/test/resources/trade1800805337ForAccount123456.txt",
-            service);
-        Trade<Long, String, Long> trade = spy.getTradeForAccount(BitmexTestConstants.tradeId,
-            BitmexTestConstants.accountId);
-        assertEquals(TradingSignal.SHORT, trade.getSide());
-        assertEquals(3000L, trade.getUnits());
-        assertEquals(120.521, trade.getExecutionPrice(), BitmexTestConstants.precision);
-        assertEquals(105.521, trade.getTakeProfitPrice(), BitmexTestConstants.precision);
-        assertEquals(121.521, trade.getStopLoss(), BitmexTestConstants.precision);
+    public void testGetTradesForAccount() {
+        Collection<com.tradebot.core.trade.Trade<String, String, Long>> trades =
+            bitmexTradeManagementProviderSpy.getTradesForAccount(DUMMY_ACCOUNT);
+        assertThat(trades.size()).isGreaterThan(1);
     }
 
-    private BitmexTradeManagementProvider doMockStuff(String fname,
-        BitmexTradeManagementProvider service)
-        throws Exception {
-        BitmexTradeManagementProvider spy = Mockito.spy(service);
-        CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
-        when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        BitmexTestUtils.mockHttpInteraction(fname, mockHttpClient);
-        return spy;
-    }
 
-    @Test
-    public void allTradesForAccTest() throws Exception {
-        BitmexTradeManagementProvider service = new BitmexTradeManagementProvider(
-            BitmexTestConstants.url,
-            BitmexTestConstants.accessToken);
-
-        assertEquals("https://api-fxtrade.oanda.com/v1/accounts/123456/trades", service
-            .getTradesInfoUrl(BitmexTestConstants.accountId));
-
-        BitmexTradeManagementProvider spy = doMockStuff(
-            "src/test/resources/tradesForAccount123456.txt", service);
-
-        Collection<Trade<Long, String, Long>> trades = spy
-            .getTradesForAccount(BitmexTestConstants.accountId);
-        assertEquals(2, trades.size());
-
-        Iterator<Trade<Long, String, Long>> itr = trades.iterator();
-        Trade<Long, String, Long> trade1 = itr.next();
-        Trade<Long, String, Long> trade2 = itr.next();
-
-        assertEquals(TradingSignal.SHORT, trade1.getSide());
-        assertEquals(3000L, trade1.getUnits());
-        assertEquals(120.521, trade1.getExecutionPrice(), BitmexTestConstants.precision);
-        assertEquals(105.521, trade1.getTakeProfitPrice(), BitmexTestConstants.precision);
-        assertEquals(121.521, trade1.getStopLoss(), BitmexTestConstants.precision);
-
-        assertEquals(TradingSignal.LONG, trade2.getSide());
-        assertEquals(3000L, trade2.getUnits());
-        assertEquals(1.0098, trade2.getExecutionPrice(), BitmexTestConstants.precision);
-        assertEquals(1.15979, trade2.getTakeProfitPrice(), BitmexTestConstants.precision);
-        assertEquals(0.9854, trade2.getStopLoss(), BitmexTestConstants.precision);
-
-    }
 }

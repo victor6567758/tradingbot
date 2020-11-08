@@ -3,7 +3,7 @@ package com.tradebot.app;
 
 //import com.google.common.util.concurrent.Uninterruptibles;
 //import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
-//import com.tradebot.bitmex.restapi.model.websocket.BitmexInstrument;
+//import com.tradebot.bitmex.restapi.model.BitmexInstrument;
 //import com.tradebot.bitmex.restapi.streaming.marketdata.BitmexMarketDataStreamingService2;
 //import com.tradebot.core.account.Account;
 //import com.tradebot.core.account.AccountDataProvider;
@@ -16,6 +16,14 @@ package com.tradebot.app;
 //import java.util.Arrays;
 //import java.util.Collection;
 //import java.util.concurrent.TimeUnit;
+import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
+import com.tradebot.bitmex.restapi.order.BitmexOrderManagementProvider;
+import com.tradebot.bitmex.restapi.trade.BitmexTradeManagementProvider;
+import com.tradebot.core.account.Account;
+import com.tradebot.core.account.AccountDataProvider;
+import com.tradebot.core.order.Order;
+import com.tradebot.core.trade.Trade;
+import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 //import org.joda.time.DateTime;
 import org.springframework.boot.CommandLineRunner;
@@ -45,9 +53,10 @@ public class TradeBotApp implements CommandLineRunner {
     public void run(String... args) {
         log.info("EXECUTING : command line runner");
 
-//        AccountDataProvider<Long> accountDataProvider = new BitmexAccountDataProviderService();
-//        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
-//
+        AccountDataProvider<Long> accountDataProvider = new BitmexAccountDataProviderService();
+        Collection<Account<Long>> accounts = accountDataProvider.getLatestAccountsInfo();
+
+        int kk = 0;
 //        BitmexTransactionDataProviderService bitmexTransactionDataProviderService = new BitmexTransactionDataProviderService();
 //        Transaction transaction = bitmexTransactionDataProviderService
 //            .getTransaction("00000000-0000-0000-0000-000000000000", (Long) accounts.iterator().next().getAccountId());
@@ -118,6 +127,13 @@ public class TradeBotApp implements CommandLineRunner {
 //
 //        bitmexMarketDataStreamingService2.shutdown();
         //bitmexEventsStreamingService2.shutdown();
+
+//        BitmexOrderManagementProvider bitmexOrderManagementProvider = new BitmexOrderManagementProvider();
+//        Collection<Order<String, String>> orders = bitmexOrderManagementProvider.allPendingOrders();
+
+        BitmexTradeManagementProvider bitmexTradeManagementProvider = new BitmexTradeManagementProvider();
+        Collection<Trade<String, String, Long>> trades =
+            bitmexTradeManagementProvider.getTradesForAccount(accounts.iterator().next().getAccountId());
 
         int t = 0;
 

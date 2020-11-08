@@ -3,15 +3,12 @@ package com.tradebot.bitmex.restapi.streaming;
 import com.google.common.hash.Hashing;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer;
 import com.google.gson.JsonSyntaxException;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
-import com.tradebot.bitmex.restapi.model.websocket.BitmexResponse;
+import com.tradebot.bitmex.restapi.model.BitmexResponse;
+import com.tradebot.bitmex.restapi.utils.BitmexJsonBuilder;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import java.net.URI;
@@ -27,20 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
 
 @Slf4j
 public abstract class BaseBitmexStreamingService {
 
     private static final String GET_URL_RELATIME = "GET" + "/realtime";
 
-    private static final Gson GSON = new GsonBuilder()
-        .registerTypeAdapter(DateTime.class, (JsonSerializer<DateTime>) (json, typeOfSrc, context) ->
-            new JsonPrimitive(ISODateTimeFormat.dateTime().print(json)))
-        .registerTypeAdapter(DateTime.class, (JsonDeserializer<DateTime>) (json, typeOfT, context) ->
-            ISODateTimeFormat.dateTime().parseDateTime(json.getAsString()))
-        .create();
+    private static final Gson GSON = BitmexJsonBuilder.buildJson();
 
     @Getter
     @RequiredArgsConstructor

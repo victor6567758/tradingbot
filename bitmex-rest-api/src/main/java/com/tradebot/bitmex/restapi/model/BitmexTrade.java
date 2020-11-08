@@ -1,6 +1,7 @@
-package com.tradebot.bitmex.restapi.model.websocket;
+package com.tradebot.bitmex.restapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.tradebot.core.TradingSignal;
 import lombok.Data;
 
 @Data
@@ -8,7 +9,7 @@ import lombok.Data;
 public class BitmexTrade {
 
     private String symbol;
-    private String side;
+    private TradingSignal side;
     private double price;
     private double size;
     private String timestamp;

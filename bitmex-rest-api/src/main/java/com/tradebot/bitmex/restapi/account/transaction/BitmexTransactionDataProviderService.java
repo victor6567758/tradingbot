@@ -58,7 +58,8 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
     private static com.tradebot.core.account.transaction.Transaction<String, Long, String> mapToTransaction(Transaction transaction) {
         return new com.tradebot.core.account.transaction.Transaction<>(
             transaction.getTransactID(),
-            BitmexUtils.findByLabel(BitmexTransactionTypeEvent.values(), transaction.getTransactType()),
+            BitmexUtils.findByStringMarker(BitmexTransactionTypeEvent.values(),
+                bitmexTransactionTypeEvent -> transaction.getTransactType().equals(bitmexTransactionTypeEvent.label())),
             transaction.getAccount().longValue(),
             transaction.getCurrency(),
             transaction.getAmount().longValue(),

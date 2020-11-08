@@ -1,20 +1,15 @@
 package com.tradebot.bitmex.restapi.position;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.io.Resources;
 import com.google.gson.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.api.PositionApi;
 import com.tradebot.bitmex.restapi.generated.model.Position;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
@@ -25,7 +20,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
-import org.apache.commons.lang3.NotImplementedException;
 import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +32,9 @@ public class BitmexPositionManagementProviderTest {
 
     private final JSON json = new JSON();
     private final PositionApi positionApi = mock(PositionApi.class);
-    private List<Position> positions;
+    private final OrderApi orderApi = mock(OrderApi.class);
 
+    private List<Position> positions;
     private BitmexPositionManagementProvider bitmexPositionManagementProviderSpy;
 
     @Before
@@ -57,6 +52,7 @@ public class BitmexPositionManagementProviderTest {
         ).thenReturn(positions);
 
         doReturn(positionApi).when(bitmexPositionManagementProviderSpy).getPositionApi();
+        doReturn(orderApi).when(bitmexPositionManagementProviderSpy).getOrderApi();
     }
 
     @Test
@@ -81,10 +77,11 @@ public class BitmexPositionManagementProviderTest {
         assertThat(allPositions.stream().anyMatch(n -> n.getInstrument().getInstrument().equals(INSTRUMENT_XBTJPY.getInstrument()))).isTrue();
     }
 
-    @Test(expected = NotImplementedException.class)
+    @Test
     public void testClosePosition() {
         Position storedPosition = positions.stream().filter(n -> n.getSymbol().equals(INSTRUMENT_XBTUSD.getInstrument())).findAny().orElseThrow();
-        bitmexPositionManagementProviderSpy.closePosition(storedPosition.getAccount().longValue(), INSTRUMENT_XBTUSD);
+        boolean result = bitmexPositionManagementProviderSpy.closePosition(storedPosition.getAccount().longValue(), INSTRUMENT_XBTUSD, 0);
+        assertThat(result).isTrue();
     }
 
 }

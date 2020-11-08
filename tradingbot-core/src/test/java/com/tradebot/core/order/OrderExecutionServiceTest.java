@@ -54,8 +54,7 @@ public class OrderExecutionServiceTest<N> {
         /*market order*/
         TradingDecision<N> tradingDecision1 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21);
         /*limit order*/
-        TradingDecision<N> tradingDecision2 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21,
-            2.12);
+        TradingDecision<N> tradingDecision2 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21, 2.12);
 
         when(preOrderValidationService.checkInstrumentNotAlreadyTraded(gbpaud)).thenReturn(true);
         when(preOrderValidationService.checkLimitsForCcy(gbpaud, signal)).thenReturn(true);

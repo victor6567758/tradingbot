@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.io.Resources;
 import com.google.gson.reflect.TypeToken;
 import com.tradebot.bitmex.restapi.generated.api.UserApi;
+import com.tradebot.bitmex.restapi.generated.model.Margin;
 import com.tradebot.bitmex.restapi.generated.model.Wallet;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
@@ -29,6 +30,7 @@ public class BitmexAccountDataProviderServiceTest {
     private BitmexAccountDataProviderService bitmexAccountDataProviderServiceSpy;
 
     private Wallet wallet;
+    private Margin margin;
 
     @Before
     public void init() throws ApiException, IOException {
@@ -36,8 +38,11 @@ public class BitmexAccountDataProviderServiceTest {
 
         wallet = json.deserialize(Resources.toString(Resources.getResource("walletReply.json"), StandardCharsets.UTF_8),
             new TypeToken<Wallet>() {}.getType());
+        margin = json.deserialize(Resources.toString(Resources.getResource("marginReply.json"), StandardCharsets.UTF_8),
+            new TypeToken<Margin>() {}.getType());
 
         when(userApi.userGetWallet(eq(wallet.getCurrency()))).thenReturn(wallet);
+        when(userApi.userGetMargin(eq(wallet.getCurrency()))).thenReturn(margin);
         doReturn(userApi).when(bitmexAccountDataProviderServiceSpy).getUserApi();
 
     }
@@ -48,14 +53,16 @@ public class BitmexAccountDataProviderServiceTest {
 
         assertThat(account.getAccountId()).isEqualTo(wallet.getAccount().longValue());
         assertThat(account.getCurrency()).isEqualTo(wallet.getCurrency());
+        assertThat(account.getMarginRate()).isEqualTo(margin.getMarginLeverage());
     }
 
     @Test
-    public void getLatestAccountsInfo() {
+    public void testGetLatestAccountsInfo() {
         Collection<Account<Long>> accounts = bitmexAccountDataProviderServiceSpy.getLatestAccountsInfo();
         assertThat(accounts).hasSize(1);
         assertThat(accounts.iterator().next().getAccountId()).isEqualTo(wallet.getAccount().longValue());
         assertThat(accounts.iterator().next().getCurrency()).isEqualTo(wallet.getCurrency());
+        assertThat(accounts.iterator().next().getMarginRate()).isEqualTo(margin.getMarginLeverage());
     }
 
 

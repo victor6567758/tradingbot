@@ -1,6 +1,5 @@
 package com.tradebot.bitmex.restapi.utils;
 
-import com.google.common.base.Preconditions;
 import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.core.TradingConstants;
@@ -10,16 +9,15 @@ import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.order.OrderType;
 import com.tradebot.core.utils.TradingUtils;
 import java.io.InputStream;
+import java.util.function.Predicate;
+import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.message.BasicHeader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-
+@UtilityClass
 public class BitmexUtils {
-
-    private BitmexUtils() {
-    }
 
     public static BitmexAccountConfiguration readBitmexCredentials() {
         Yaml yaml = new Yaml(new Constructor(BitmexAccountConfiguration.class));
@@ -28,16 +26,13 @@ public class BitmexUtils {
         return yaml.load(inputStream);
     }
 
-    public static Event findByLabel(Event[] events, String label) {
-        Preconditions.checkNotNull(label);
-        Preconditions.checkNotNull(events);
-
-        for (Event value : events) {
-            if (value.label().equals(label)) {
-                return value;
+    public static <T> T findByStringMarker(T[] list, Predicate<T> predicate) {
+        for (T element : list) {
+            if (predicate.test(element)) {
+                return element;
             }
         }
-        throw new IllegalArgumentException("Cannot find a value by label");
+        throw new IllegalArgumentException("Cannot find a value");
     }
 
     public static String getSymbol(TradeableInstrument<String> instrument) {
