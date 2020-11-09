@@ -1,70 +1,82 @@
 package com.tradebot.bitmex.restapi.instrument;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.tradebot.bitmex.restapi.BitmexTestConstants;
-import com.tradebot.bitmex.restapi.BitmexTestUtils;
+import com.google.common.io.Resources;
+import com.google.gson.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.generated.api.InstrumentApi;
+import com.tradebot.bitmex.restapi.generated.model.Instrument;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.core.instrument.TradeableInstrument;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Iterator;
-import org.apache.http.impl.client.CloseableHttpClient;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.junit.Before;
 import org.junit.Test;
 
 
 public class BitmexInstrumentDataProviderServiceTest {
 
-    @Test
-    public void allInstruments() throws Exception {
-        final BitmexInstrumentDataProviderService service = new BitmexInstrumentDataProviderService(
-            BitmexTestConstants.url, BitmexTestConstants.accountId,
-            BitmexTestConstants.accessToken);
-        assertEquals(
-            "https://api-fxtrade.oanda.com/v1/instruments?accountId=123456&fields=instrument%2Cpip%2CinterestRate",
-            service.getInstrumentsUrl());
-        BitmexInstrumentDataProviderService spy = spy(service);
-        CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
-        when(spy.getHttpClient()).thenReturn(mockHttpClient);
-        BitmexTestUtils.mockHttpInteraction("src/test/resources/instruments.txt", mockHttpClient);
-        Collection<TradeableInstrument<String>> allInstruments = spy.getInstruments();
-        assertEquals(2, allInstruments.size());
-        Iterator<TradeableInstrument<String>> itr = allInstruments.iterator();
+    private static final BigDecimal CHUNK_SIZE = BigDecimal.valueOf(500);
 
-        TradeableInstrument<String> instrument1 = itr.next();
-        assertNotNull(instrument1.getInstrumentPairInterestRate());
-        assertEquals("AUD_CAD", instrument1.getInstrument());
-        assertEquals(0.0001, instrument1.getPip(), BitmexTestConstants.precision);
-        assertEquals(0.0164,
-            instrument1.getInstrumentPairInterestRate().getBaseCurrencyBidInterestRate(),
-            BitmexTestConstants.precision);
-        assertEquals(0.0274,
-            instrument1.getInstrumentPairInterestRate().getBaseCurrencyAskInterestRate(),
-            BitmexTestConstants.precision);
-        assertEquals(0.002,
-            instrument1.getInstrumentPairInterestRate().getQuoteCurrencyBidInterestRate(),
-            BitmexTestConstants.precision);
-        assertEquals(0.008,
-            instrument1.getInstrumentPairInterestRate().getQuoteCurrencyAskInterestRate(),
-            BitmexTestConstants.precision);
+    private final JSON json = new JSON();
 
-        TradeableInstrument<String> instrument2 = itr.next();
-        assertNotNull(instrument2.getInstrumentPairInterestRate());
-        assertEquals("AUD_CHF", instrument2.getInstrument());
-        assertEquals(0.0001, instrument2.getPip(), BitmexTestConstants.precision);
-        assertEquals(0.0164,
-            instrument2.getInstrumentPairInterestRate().getBaseCurrencyBidInterestRate(),
-            BitmexTestConstants.precision);
-        assertEquals(0.0274,
-            instrument2.getInstrumentPairInterestRate().getBaseCurrencyAskInterestRate(),
-            BitmexTestConstants.precision);
-        assertEquals(-0.013,
-            instrument2.getInstrumentPairInterestRate().getQuoteCurrencyBidInterestRate(),
-            BitmexTestConstants.precision);
-        assertEquals(0.003,
-            instrument2.getInstrumentPairInterestRate().getQuoteCurrencyAskInterestRate(),
-            BitmexTestConstants.precision);
+    private BitmexInstrumentDataProviderService bitmexInstrumentDataProviderServiceSpy;
+    private final InstrumentApi instrumentApi = mock(InstrumentApi.class);
+    private List<Instrument> instruments;
+
+    @Before
+    public void init() throws IOException, ApiException {
+        bitmexInstrumentDataProviderServiceSpy = spy(new BitmexInstrumentDataProviderService());
+
+        instruments = json.deserialize(Resources.toString(Resources.getResource("instrumentsAll.json"), StandardCharsets.UTF_8),
+            new TypeToken<List<Instrument>>() {
+            }.getType());
+
+        when(instrumentApi.instrumentGet(
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(CHUNK_SIZE),
+            eq(BigDecimal.ZERO),
+            eq(true),
+            isNull(),
+            isNull())
+        ).thenReturn(instruments);
+
+        when(instrumentApi.instrumentGet(
+            isNull(),
+            isNull(),
+            isNull(),
+            eq(CHUNK_SIZE),
+            not(eq(BigDecimal.ZERO)),
+            eq(true),
+            isNull(),
+            isNull())
+        ).thenReturn(Collections.emptyList());
+
+        doReturn(instrumentApi).when(bitmexInstrumentDataProviderServiceSpy).getInstrumentApi();
     }
+
+    @Test
+    public void testGetInstruments() {
+        Collection<TradeableInstrument<String>> tradebleInstruments = bitmexInstrumentDataProviderServiceSpy.getInstruments();
+        assertThat(tradebleInstruments).hasSize(instruments.size());
+        assertThat(tradebleInstruments.stream().map(TradeableInstrument::getInstrument).distinct().collect(Collectors.toList()))
+            .containsExactlyInAnyOrder(instruments.stream().map(Instrument::getSymbol).toArray(String[]::new));
+
+    }
+
 }

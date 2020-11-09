@@ -1,110 +1,78 @@
 package com.tradebot.bitmex.restapi.instrument;
 
-import static com.tradebot.bitmex.restapi.BitmexJsonKeys.ask;
-import static com.tradebot.bitmex.restapi.BitmexJsonKeys.bid;
-import static com.tradebot.bitmex.restapi.BitmexJsonKeys.instruments;
-import static com.tradebot.bitmex.restapi.BitmexJsonKeys.interestRate;
-
-import com.google.common.collect.Lists;
-import com.tradebot.bitmex.restapi.BitmexConstants;
-import com.tradebot.bitmex.restapi.BitmexJsonKeys;
+import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
+import com.tradebot.bitmex.restapi.generated.api.InstrumentApi;
+import com.tradebot.bitmex.restapi.generated.model.Instrument;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.instrument.InstrumentDataProvider;
-import com.tradebot.core.instrument.InstrumentPairInterestRate;
 import com.tradebot.core.instrument.TradeableInstrument;
-import com.tradebot.core.utils.TradingUtils;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
+import org.apache.commons.collections4.CollectionUtils;
 
 
 @Slf4j
 public class BitmexInstrumentDataProviderService implements InstrumentDataProvider<String> {
 
+    private static final BigDecimal CHUNK_SIZE = BigDecimal.valueOf(500);
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
-    private final String url;
-    private final long accountId;
-    private final BasicHeader authHeader;
-    static final String fieldsRequested = "instrument%2Cpip%2CinterestRate";
 
-    public BitmexInstrumentDataProviderService(String url, long accountId, String accessToken) {
-        this.url = url;
-        this.accountId = accountId;
-        this.authHeader = BitmexUtils.createAuthHeader(accessToken);
-    }
+    @Getter(AccessLevel.PACKAGE)
+    private final InstrumentApi instrumentApi = new InstrumentApi(
+        new ApiClientAuthorizeable(bitmexAccountConfiguration.getBitmex().getApi().getKey(),
+            bitmexAccountConfiguration.getBitmex().getApi().getSecret())
+    );
 
-    CloseableHttpClient getHttpClient() {
-        return HttpClientBuilder.create().build();
-    }
-
-    String getInstrumentsUrl() {
-        return url + BitmexConstants.INSTRUMENTS_RESOURCE + "?accountId=" + accountId + "&fields="
-            + fieldsRequested;
-    }
 
     @Override
+    @SneakyThrows
     public Collection<TradeableInstrument<String>> getInstruments() {
-        Collection<TradeableInstrument<String>> instrumentsList = Lists.newArrayList();
-        try (CloseableHttpClient httpClient = getHttpClient()) {
-            HttpUriRequest httpGet = new HttpGet(getInstrumentsUrl());
-            httpGet.setHeader(authHeader);
-            log.info(TradingUtils.executingRequestMsg(httpGet));
-
-            HttpResponse resp = httpClient.execute(httpGet);
-            String strResp = TradingUtils.responseToString(resp);
-            if (!StringUtils.isEmpty(strResp)) {
-                Object obj = JSONValue.parse(strResp);
-                JSONObject jsonResp = (JSONObject) obj;
-                JSONArray instrumentArray = (JSONArray) jsonResp.get(instruments);
-
-                for (Object o : instrumentArray) {
-                    JSONObject instrumentJson = (JSONObject) o;
-                    String instrument = (String) instrumentJson.get(BitmexJsonKeys.instrument);
-                    String[] currencies = BitmexUtils.splitCcyPair(instrument);
-                    double pip = Double
-                        .parseDouble(instrumentJson.get(BitmexJsonKeys.pip).toString());
-                    JSONObject interestRates = (JSONObject) instrumentJson.get(interestRate);
-                    if (interestRates.size() != 2) {
-                        throw new IllegalArgumentException();
-                    }
-
-                    JSONObject currency1Json = (JSONObject) interestRates.get(currencies[0]);
-                    JSONObject currency2Json = (JSONObject) interestRates.get(currencies[1]);
-
-                    final double baseCurrencyBidInterestRate = ((Number) currency1Json.get(bid))
-                        .doubleValue();
-                    final double baseCurrencyAskInterestRate = ((Number) currency1Json.get(ask))
-                        .doubleValue();
-                    final double quoteCurrencyBidInterestRate = ((Number) currency2Json.get(bid))
-                        .doubleValue();
-                    final double quoteCurrencyAskInterestRate = ((Number) currency2Json.get(ask))
-                        .doubleValue();
-
-                    InstrumentPairInterestRate instrumentPairInterestRate = new InstrumentPairInterestRate(
-                        baseCurrencyBidInterestRate, baseCurrencyAskInterestRate,
-                        quoteCurrencyBidInterestRate,
-                        quoteCurrencyAskInterestRate);
-                    TradeableInstrument<String> tradeableInstrument = new TradeableInstrument<>(
-                        instrument, pip,
-                        instrumentPairInterestRate, null);
-                    instrumentsList.add(tradeableInstrument);
-                }
-            } else {
-                log.error("Error message: {}", resp);
-            }
-        } catch (Exception e) {
-            log.error("exception encountered whilst retrieving all instruments info", e);
-        }
-        return instrumentsList;
+        List<Instrument> instruments = getAllInstruments();
+        return instruments.stream().map(BitmexInstrumentDataProviderService::toTradeableInstrument).collect(Collectors.toList());
     }
 
+    private List<Instrument> getAllInstruments() throws ApiException {
+        List<Instrument> allInstruments = new ArrayList<>();
+        BigDecimal position = BigDecimal.ZERO;
+        while (true) {
+            List<Instrument> chunk = getInstrumentApi().instrumentGet(
+                null,
+                null,
+                null,
+                CHUNK_SIZE,
+                position,
+                true,
+                null,
+                null
+            );
+
+            if (CollectionUtils.isEmpty(chunk)) {
+                break;
+            }
+            allInstruments.addAll(chunk);
+            position = position.add(CHUNK_SIZE);
+        }
+
+        return allInstruments;
+    }
+
+    private static TradeableInstrument<String> toTradeableInstrument(Instrument instrument) {
+        return new TradeableInstrument<>(
+            instrument.getSymbol(),
+            instrument.getSymbol(),
+            instrument.getTickSize(),
+            null,
+            instrument.getSymbol()
+        );
+    }
 }

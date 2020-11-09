@@ -14,8 +14,5 @@ public class InstrumentPairInterestRate {
     private final Double quoteCurrencyBidInterestRate;
     private final Double quoteCurrencyAskInterestRate;
 
-    public InstrumentPairInterestRate() {
-        this(null, null, null, null);
-    }
 
 }

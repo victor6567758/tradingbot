@@ -1,7 +1,7 @@
 bitmex:
   api:
-    key: sRDw1Kf40PrO26nlBVPGBPd0
-    secret: B4lgqyejhFtADfSsQ7bQB1retMPSFHMQ_1SArrY0ZqX_vqvK
+    key: g0NEqStp4VbtzPZJ4v_HUFtR
+    secret: 60Gi_Ln64gj1yC1cxMIAf2U0AIAZdAFzMfP5WG5_0OtZUgnH
     email: victorofff@gmail.com
     mainCurrency: XBt
     transactionsDepth: 100

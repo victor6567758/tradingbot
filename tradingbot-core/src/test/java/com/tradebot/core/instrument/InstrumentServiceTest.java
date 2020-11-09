@@ -53,10 +53,10 @@ public class InstrumentServiceTest {
 
 	@Test
 	public void equalityTest() {
-		TradeableInstrument<Long> usdjpy1 = new TradeableInstrument<>("USD_JPY", 10001L, "USDJPY currency pair");
-		TradeableInstrument<Long> usdjpy2 = new TradeableInstrument<>("USD_JPY", 10002L, "USDJPY currency pair");
-		TradeableInstrument<Long> usdjpy3 = new TradeableInstrument<>("USD_JPY", 10001L, "USDJPY currency pair");
-		TradeableInstrument<Long> usdchf1 = new TradeableInstrument<>("USD_CHF", 10003L, "USDCHF currency pair");
+		TradeableInstrument<Long> usdjpy1 = new TradeableInstrument<>("USD_JPY", 10001L, 0.0, null, "USDJPY currency pair");
+		TradeableInstrument<Long> usdjpy2 = new TradeableInstrument<>("USD_JPY", 10002L, 0.0, null, "USDJPY currency pair");
+		TradeableInstrument<Long> usdjpy3 = new TradeableInstrument<>("USD_JPY", 10001L, 0.0, null, "USDJPY currency pair");
+		TradeableInstrument<Long> usdchf1 = new TradeableInstrument<>("USD_CHF", 10003L, 0.0, null, "USDCHF currency pair");
 
 		assertThat(usdjpy1).isEqualTo(usdjpy3);
 		assertThat(usdjpy1).isNotEqualTo(usdjpy2);

@@ -15,25 +15,10 @@ public class TradeableInstrument<T> {
     private final InstrumentPairInterestRate instrumentPairInterestRate;
 
     public TradeableInstrument(String instrument) {
-        this(instrument, null);
+        this(instrument, null, 0.0, null, instrument);
     }
 
-    public TradeableInstrument(String instrument, String description) {
-        this(instrument, null, description);
-    }
-
-    public TradeableInstrument(
-        String instrument,
-        T instrumentId,
-        String description) {
-        this(instrument, instrumentId, 0, null, description);
-    }
-
-    public TradeableInstrument(
-        String instrument,
-        double pip,
-        InstrumentPairInterestRate instrumentPairInterestRate,
-        String description) {
+    public TradeableInstrument(String instrument, double pip, InstrumentPairInterestRate instrumentPairInterestRate, String description) {
         this(instrument, null, pip, instrumentPairInterestRate, description);
     }
 
@@ -41,16 +26,9 @@ public class TradeableInstrument<T> {
         String instrument,
         T instrumentId,
         double pip,
-        InstrumentPairInterestRate instrumentPairInterestRate) {
-        this(instrument, instrumentId, pip, instrumentPairInterestRate, null);
-    }
-
-    public TradeableInstrument(
-        String instrument,
-        T instrumentId,
-        double pip,
         InstrumentPairInterestRate instrumentPairInterestRate,
         String description) {
+
         this.instrument = instrument;
         this.pip = pip;
         this.instrumentPairInterestRate = instrumentPairInterestRate;

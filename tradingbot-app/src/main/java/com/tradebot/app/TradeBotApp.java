@@ -1,6 +1,5 @@
 package com.tradebot.app;
 
-
 //import com.google.common.util.concurrent.Uninterruptibles;
 //import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
 //import com.tradebot.bitmex.restapi.model.BitmexInstrument;
@@ -16,16 +15,14 @@ package com.tradebot.app;
 //import java.util.Arrays;
 //import java.util.Collection;
 //import java.util.concurrent.TimeUnit;
+
 import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
-import com.tradebot.bitmex.restapi.order.BitmexOrderManagementProvider;
-import com.tradebot.bitmex.restapi.trade.BitmexTradeManagementProvider;
+import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
-import com.tradebot.core.order.Order;
-import com.tradebot.core.trade.Trade;
+import com.tradebot.core.instrument.TradeableInstrument;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
-//import org.joda.time.DateTime;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -131,9 +128,12 @@ public class TradeBotApp implements CommandLineRunner {
 //        BitmexOrderManagementProvider bitmexOrderManagementProvider = new BitmexOrderManagementProvider();
 //        Collection<Order<String, String>> orders = bitmexOrderManagementProvider.allPendingOrders();
 
-        BitmexTradeManagementProvider bitmexTradeManagementProvider = new BitmexTradeManagementProvider();
-        Collection<Trade<String, String, Long>> trades =
-            bitmexTradeManagementProvider.getTradesForAccount(accounts.iterator().next().getAccountId());
+//        BitmexTradeManagementProvider bitmexTradeManagementProvider = new BitmexTradeManagementProvider();
+//        Collection<Trade<String, String, Long>> trades =
+//            bitmexTradeManagementProvider.getTradesForAccount(accounts.iterator().next().getAccountId());
+//
+        BitmexInstrumentDataProviderService bitmexInstrumentDataProviderService = new BitmexInstrumentDataProviderService();
+        Collection<TradeableInstrument<String>> instruments = bitmexInstrumentDataProviderService.getInstruments();
 
         int t = 0;
 
