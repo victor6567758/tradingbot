@@ -25,39 +25,32 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.checkerframework.checker.units.qual.A;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("unchecked")
 public class OrderExecutionServiceTest<N> {
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void placeOrderTest() throws ExecutionException, InterruptedException {
-        AccountInfoService<Long, N> accountInfoService = mock(AccountInfoService.class);
-        OrderManagementProvider<Long, N, Long> orderManagementProvider = mock(
-            OrderManagementProvider.class);
-        BaseTradingConfig baseTradingConfig = mock(BaseTradingConfig.class);
+    private static final int ALLOWED_SUBMISSIONS = 20;
 
-        PreOrderValidationService<Long, N, Long> preOrderValidationService = mock(
-            PreOrderValidationService.class);
-        CurrentPriceInfoProvider<N> currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
-        OrderExecutionService<Long, N, Long> service = new OrderExecutionService<>(
-            accountInfoService,
-            orderManagementProvider,
-            baseTradingConfig,
-            preOrderValidationService,
-            currentPriceInfoProvider);
+    private final AccountInfoService<Long, N> accountInfoService = mock(AccountInfoService.class);
+    private final OrderManagementProvider<Long, N, Long> orderManagementProvider = mock(OrderManagementProvider.class);
+    private final BaseTradingConfig baseTradingConfig = mock(BaseTradingConfig.class);
+    private final PreOrderValidationService<Long, N, Long> preOrderValidationService = mock(PreOrderValidationService.class);
+    private final CurrentPriceInfoProvider<N> currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
+    private final TradeableInstrument<N> gbpaud = new TradeableInstrument<>("GBP_AUD");
+    private final TradingSignal signal = TradingSignal.SHORT;
+    private final TradingDecision<N> tradingDecision1 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21);
+    private final TradingDecision<N> tradingDecision2 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21, 2.12);
 
-        TradeableInstrument<N> gbpaud = new TradeableInstrument<>("GBP_AUD");
-        TradingSignal signal = TradingSignal.SHORT;
-
-        /*market order*/
-        TradingDecision<N> tradingDecision1 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21);
-        /*limit order*/
-        TradingDecision<N> tradingDecision2 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21, 2.12);
-
+    @Before
+    public void init() {
         when(preOrderValidationService.checkInstrumentNotAlreadyTraded(gbpaud)).thenReturn(true);
         when(preOrderValidationService.checkLimitsForCcy(gbpaud, signal)).thenReturn(true);
+
         Collection<TradeableInstrument<N>> instruments = new ArrayList<>();
         instruments.add(gbpaud);
         Map<TradeableInstrument<N>, Price<N>> priceMap = new HashMap<>();
@@ -77,6 +70,35 @@ public class OrderExecutionServiceTest<N> {
         when(accountInfoService.findAccountToTrade())
             .thenReturn(Optional.of(TradingTestConstants.ACCOUNT_ID_1));
         when(baseTradingConfig.getMaxAllowedQuantity()).thenReturn(100);
+    }
+
+    @Test
+    public void testPlaceOrders() throws ExecutionException, InterruptedException {
+
+        OrderExecutionServiceContext orderExecutionServiceContext = new OrderExecutionServiceContext() {
+
+            @Override
+            public boolean ifTradeAllowed() {
+                return true;
+            }
+
+            @Override
+            public String getReason() {
+                return null;
+            }
+        };
+
+        OrderExecutionService<Long, N, Long> service = new OrderExecutionService<>(
+            accountInfoService,
+            orderManagementProvider,
+            baseTradingConfig,
+            preOrderValidationService,
+            currentPriceInfoProvider,
+            orderExecutionServiceContext);
+
+
+
+
 
         Future<Boolean> futureTask1 = service.submit(tradingDecision1);
         Future<Boolean> futureTask2 = service.submit(tradingDecision2);
@@ -89,4 +111,46 @@ public class OrderExecutionServiceTest<N> {
 
         service.shutdown();
     }
+
+    @Test
+    public void testOrderSubmissionIsInterrupted() throws ExecutionException, InterruptedException {
+
+        OrderExecutionServiceContext orderExecutionServiceContext = new OrderExecutionServiceContext() {
+
+            private AtomicInteger counter = new AtomicInteger(ALLOWED_SUBMISSIONS);
+
+            @Override
+            public void fired() {
+            }
+
+            @Override
+            public boolean ifTradeAllowed() {
+                return counter.getAndDecrement() > 0;
+            }
+
+            @Override
+            public String getReason() {
+                return null;
+            }
+        };
+
+        OrderExecutionService<Long, N, Long> service = new OrderExecutionService<>(
+            accountInfoService,
+            orderManagementProvider,
+            baseTradingConfig,
+            preOrderValidationService,
+            currentPriceInfoProvider,
+            orderExecutionServiceContext);
+
+        for (int i = 0; i < ALLOWED_SUBMISSIONS; i++) {
+            Future<Boolean> future = service.submit(tradingDecision1);
+            assertThat(future.get()).isTrue();
+        }
+
+        Future<Boolean> future = service.submit(tradingDecision1);
+        assertThat(future.get()).isFalse();
+
+        service.shutdown();
+    }
+
 }
