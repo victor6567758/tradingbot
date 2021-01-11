@@ -29,7 +29,7 @@ public class BitmexTransaction extends BaseDomain {
     @Column(name = "units", nullable = true)
     private Long units;
 
-    @Column(name = "transaction_time", nullable = false)
+    @Column(name = "transaction_time")
     private Timestamp transactionTime;
 
     @Column(name = "price")

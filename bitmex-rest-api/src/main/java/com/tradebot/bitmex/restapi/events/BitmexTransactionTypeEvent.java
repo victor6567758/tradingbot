@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 public enum BitmexTransactionTypeEvent implements Event {
     REALIZED_PNL("RealisedPNL"),
     TRANSFER("Transfer"),
-    UNREALIZED_PNL("UnrealizedPNL");
+    UNREALIZED_PNL("UnrealisedPNL");
 
     public final String label;
 

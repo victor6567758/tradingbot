@@ -31,5 +31,4 @@ CREATE TABLE bitmex_transaction
     CONSTRAINT f_bitmex_transaction_acc FOREIGN KEY (account_id) REFERENCES bitmex_account (id)
 );
 
-create
-index i_jbitmex_transaction_acc_id on bitmex_transaction (account_id);
+create index i_jbitmex_transaction_acc_id on bitmex_transaction (account_id);

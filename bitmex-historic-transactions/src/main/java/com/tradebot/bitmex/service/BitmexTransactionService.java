@@ -72,7 +72,9 @@ public class BitmexTransactionService {
         bitmexTransaction.setPnl(transaction.getPnl());
         bitmexTransaction.setPrice(transaction.getPrice() == null ? 0.0 : transaction.getPrice());
         bitmexTransaction.setTransactionId(transaction.getTransactionId());
-        bitmexTransaction.setTransactionTime(new Timestamp(transaction.getTransactionTime().toDate().getTime()));
+        if (transaction.getTransactionTime() != null) {
+            bitmexTransaction.setTransactionTime(new Timestamp(transaction.getTransactionTime().toDate().getTime()));
+        }
         bitmexTransaction.setTransactionType(transaction.getTransactionType().name());
         bitmexTransaction.setUnits(transaction.getUnits());
         bitmexTransaction.setInstrument(transaction.getInstrument().getInstrument());
