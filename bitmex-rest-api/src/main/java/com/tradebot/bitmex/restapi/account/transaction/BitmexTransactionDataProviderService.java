@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 
 @Slf4j
 public class BitmexTransactionDataProviderService implements TransactionDataProvider<String, Long, String> {
@@ -35,6 +36,17 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
             .filter(transaction -> transaction.getTransactID().equals(transactionId))
             .findAny().map(BitmexTransactionDataProviderService::mapToTransaction).orElseThrow();
+    }
+
+    @Override
+    @SneakyThrows
+    public List<com.tradebot.core.account.transaction.Transaction<String, Long, String>> getTransactionsGreaterThanDateTime(
+        DateTime dateTime, Long accountId) {
+        return getAllTransaction().stream()
+            .filter(transaction -> transaction.getAccount().longValue() == accountId)
+            .filter(transaction -> dateTime == null || transaction.getTransactTime().compareTo(dateTime) > 0)
+            .map(BitmexTransactionDataProviderService::mapToTransaction)
+            .collect(Collectors.toList());
     }
 
     @Override

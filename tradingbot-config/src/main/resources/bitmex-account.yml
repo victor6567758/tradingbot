@@ -10,3 +10,15 @@ bitmex:
     tradesDepth: 100
     webSocketUrl: wss://testnet.bitmex.com/realtime
     limitOrdersPerMinute: 60
+
+  db:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres?useSSL=false
+    user: postgres
+    pass: changeme
+
+hibernate:
+  dialect: org.hibernate.dialect.MySQL5Dialect
+  show_sql: true
+  hbm2ddl.auto: validate
+

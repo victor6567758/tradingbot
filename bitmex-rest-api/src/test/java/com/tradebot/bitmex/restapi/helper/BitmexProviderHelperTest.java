@@ -26,8 +26,5 @@ public class BitmexProviderHelperTest {
         assertEquals("USDJPY", this.providerHelper.toIsoFormat("USD_JPY"));
     }
 
-    @Test
-    public void fromHashTagCurrencyTest() {
-        assertEquals("AUD_USD", this.providerHelper.fromHashTagCurrency("#AUDUSD"));
-    }
+
 }

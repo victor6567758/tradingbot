@@ -18,6 +18,7 @@
     <module>tradingbot-app</module>
     <module>tradingbot-core</module>
     <module>bitmex-rest-api</module>
+    <module>bitmex-historic-transactions</module>
   </modules>
 
   <properties>
@@ -53,6 +54,8 @@
     <spring.boot.version>2.3.4.RELEASE</spring.boot.version>
     <snakeyaml.version>1.27</snakeyaml.version>
     <jetty.websoket.client.version>9.4.33.v20201020</jetty.websoket.client.version>
+    <postgresql.version>42.2.18</postgresql.version>
+    <hikary.version>3.4.5</hikary.version>
 
   </properties>
 
@@ -145,10 +148,23 @@
       </dependency>
 
       <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
+      </dependency>
+
+      <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>${joda-time.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>${hikary.version}</version>
+      </dependency>
+
 
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -289,19 +305,23 @@
           <argLine>
             --illegal-access=permit
           </argLine>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.22.0</version>
-        <configuration>
-          <argLine>
-            --illegal-access=permit
-          </argLine>
-        </configuration>
-      </plugin>
+
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-failsafe-plugin</artifactId>-->
+<!--        <version>2.22.0</version>-->
+<!--        <configuration>-->
+<!--          <argLine>-->
+<!--            &#45;&#45;illegal-access=permit-->
+<!--          </argLine>-->
+<!--        </configuration>-->
+<!--      </plugin>-->
 
 
       <plugin>

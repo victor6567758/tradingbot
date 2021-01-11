@@ -10,7 +10,7 @@ public class BitmexProviderHelper implements ProviderHelper<String> {
 
     @Override
     public String fromIsoFormat(String instrument) {
-        return BitmexUtils.isoCcyToOandaCcy(instrument);
+        return BitmexUtils.isoCcyToExchangeCcy(instrument);
     }
 
     @Override
@@ -21,14 +21,8 @@ public class BitmexProviderHelper implements ProviderHelper<String> {
 
     @Override
     public String toIsoFormat(String instrument) {
-        String tokens[] = TradingUtils.splitCcyPair(instrument, TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE);
-        String isoInstrument = tokens[0] + tokens[1];
-        return isoInstrument;
-    }
-
-    @Override
-    public String fromHashTagCurrency(String instrument) {
-        return BitmexUtils.hashTagCcyToOandaCcy(instrument);
+        String[] tokens = TradingUtils.splitCcyPair(instrument, TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE);
+        return tokens[0] + tokens[1];
     }
 
     @Override

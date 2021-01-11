@@ -8,11 +8,14 @@ public class BitmexAccountConfiguration {
 
     @Data
     public static class Bitmex {
+
         private Api api;
+        private Db db;
     }
 
     @Data
     public static class Api {
+
         private String key;
         private String secret;
         private String email;
@@ -23,6 +26,16 @@ public class BitmexAccountConfiguration {
         private int tradesDepth;
         private String webSocketUrl;
         private int limitOrdersPerMinute;
+    }
+
+    @Data
+    public static class Db {
+
+        private String driverClassName;
+        private String url;
+        private String user;
+        private String pass;
+
     }
 
     private Bitmex bitmex;

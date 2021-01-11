@@ -31,12 +31,12 @@
     </rollingPolicy>
   </appender>
 
-  <logger name="com.tradebot" level="DEBUG" additivity="false">
+  <logger name="com.tradebot" level="WARN" additivity="false">
     <appender-ref ref="Console"/>
     <appender-ref ref="RollingFile" />
   </logger>
 
-  <root level="INFO">
+  <root level="WARN">
     <appender-ref ref="RollingFile" />
     <appender-ref ref="Console" />
   </root>

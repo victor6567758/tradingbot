@@ -9,8 +9,6 @@ public interface ProviderHelper<T> {
 
     String fromPairSeparatorFormat(String instrument);
 
-    String fromHashTagCurrency(String instrument);
-
     T getLongNotation();
 
     T getShortNotation();

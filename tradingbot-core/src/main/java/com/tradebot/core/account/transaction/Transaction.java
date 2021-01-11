@@ -22,6 +22,7 @@ public class Transaction<M, N, T> {
     private final Double interest;
     private final Double pnl;
     private final TradingSignal side;
+
     @Setter
     private M linkedTransactionId;
 

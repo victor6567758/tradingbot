@@ -5,14 +5,13 @@
 
   <artifactId>bitmex-rest-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
 
   <parent>
     <groupId>com.trading-bot</groupId>
     <artifactId>com.trading-bot.happy-trader</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-
-  <packaging>jar</packaging>
 
 
   <dependencies>
