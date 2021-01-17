@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <property name="PROD_LOGS" value="/home/viktor/work/tradingbot/logs" />
+  <property name="LOGS" value="../logs" />
 
   <appender name="Console"
     class="ch.qos.logback.core.ConsoleAppender">
@@ -14,7 +14,7 @@
 
   <appender name="RollingFile"
     class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${PROD_LOGS}/happy-trader-2.0.log</file>
+    <file>${LOGS}/happy-trader-2.0.log</file>
     <encoder
       class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
       <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
@@ -22,7 +22,7 @@
 
     <rollingPolicy
       class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${PROD_LOGS}/archived/happy-trader-2.0-%d{yyyy-MM-dd}.%i.log
+      <fileNamePattern>${LOGS}/archived/happy-trader-2.0-%d{yyyy-MM-dd}.%i.log
       </fileNamePattern>
       <timeBasedFileNamingAndTriggeringPolicy
         class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">

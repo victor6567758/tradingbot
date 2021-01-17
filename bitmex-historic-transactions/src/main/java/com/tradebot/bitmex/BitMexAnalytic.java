@@ -21,6 +21,7 @@ public class BitMexAnalytic implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
+            log.info("Started");
             bitmexTransactionService.saveNewTransactions();
         } catch (RuntimeException re) {
           log.error("Error", re);

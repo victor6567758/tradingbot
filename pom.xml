@@ -15,6 +15,7 @@
 
   <modules>
     <module>tradingbot-config</module>
+    <module>tradingbot-config-test</module>
     <module>tradingbot-app</module>
     <module>tradingbot-core</module>
     <module>bitmex-rest-api</module>
@@ -43,7 +44,6 @@
     <commons-collections.version>4.4</commons-collections.version>
     <assertj-core.version>3.8.0</assertj-core.version>
     <json.simple.version>1.1.1</json.simple.version>
-
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <jackson-databind.version>2.11.3</jackson-databind.version>
@@ -302,6 +302,12 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.0</version>
         <configuration>
+<!--          <systemProperties>-->
+<!--            <property>-->
+<!--              <name>java.util.logging.config.file</name>-->
+<!--              <value>src/test/resources/logging.properties</value>-->
+<!--            </property>-->
+<!--          </systemProperties>-->
           <argLine>
             --illegal-access=permit
           </argLine>

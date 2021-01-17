@@ -45,11 +45,12 @@ public class BitmexTransactionService {
             BitmexAccount bitmexAcc = bitmexAccountRepository.findByAccountId(account.getAccountId())
                 .orElseGet(() -> bitmexAccountRepository.save(new BitmexAccount(account.getAccountId(), account.getCurrency())));
 
-            DateTime maxTransactionTime = bitmexTransactionRepository.getMaxTransactionTimeForAccount(bitmexAcc)
+            Timestamp maxTransactionTime = bitmexTransactionRepository.getMaxTransactionTimeForAccount(bitmexAcc)
                 .orElse(null);
 
             List<Transaction<String, Long, String>> newTransactions =
-                getBitmexTransactiondataProvider().getTransactionsGreaterThanDateTime(maxTransactionTime, account.getAccountId());
+                getBitmexTransactiondataProvider().getTransactionsGreaterThanDateTime(
+                    maxTransactionTime != null ? new DateTime(maxTransactionTime) : null, account.getAccountId());
             log.info("Found {} new transactions for account {}", newTransactions.size(), account.getAccountId());
 
             for (Transaction<String, Long, String> transaction : newTransactions) {

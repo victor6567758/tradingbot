@@ -28,6 +28,14 @@
     </dependency>
 
     <dependency>
+      <groupId>com.trading-bot</groupId>
+      <artifactId>tradingbot-config-test</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
     </dependency>

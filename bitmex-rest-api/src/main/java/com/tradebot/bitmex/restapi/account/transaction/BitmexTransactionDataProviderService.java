@@ -44,7 +44,13 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
         DateTime dateTime, Long accountId) {
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
-            .filter(transaction -> dateTime == null || transaction.getTransactTime().compareTo(dateTime) > 0)
+            .filter(transaction -> {
+                if (dateTime == null || transaction.getTransactTime() == null) {
+                    return true;
+                } else {
+                    return transaction.getTransactTime().compareTo(dateTime) > 0;
+                }
+            })
             .map(BitmexTransactionDataProviderService::mapToTransaction)
             .collect(Collectors.toList());
     }
