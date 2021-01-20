@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
-public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider<String> {
+public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
@@ -33,8 +33,8 @@ public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider<
 
 
     @Override
-    public Map<TradeableInstrument<String>, Price<String>> getCurrentPricesForInstruments(
-        Collection<TradeableInstrument<String>> tradeableInstruments) {
+    public Map<TradeableInstrument, Price> getCurrentPricesForInstruments(
+        Collection<TradeableInstrument> tradeableInstruments) {
 
         return tradeableInstruments.stream()
             .map(this::getCurrentQuote)
@@ -43,20 +43,20 @@ public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider<
     }
 
     @Override
-    public Price<String> getCurrentPricesForInstrument(TradeableInstrument<String> instrument) {
+    public Price getCurrentPricesForInstrument(TradeableInstrument instrument) {
         return getCurrentQuote(instrument);
     }
 
     @SneakyThrows
-    private Price<String> getCurrentQuote(TradeableInstrument<String> instrument) {
+    private Price getCurrentQuote(TradeableInstrument instrument) {
         List<Quote> quotes = getQuoteApi().quoteGet(BitmexUtils.getSymbol(instrument), null, null, BigDecimal.ONE, null, true, null, null);
         if (quotes.size() > 1) {
             log.warn("More than 1 quote returned");
         }
 
         Quote quote = quotes.get(0);
-        return new Price<>(
-            new TradeableInstrument<>(quote.getSymbol()),
+        return new Price(
+            new TradeableInstrument(quote.getSymbol(), quote.getSymbol()),
             quote.getBidPrice(),
             quote.getAskPrice(),
             quote.getTimestamp()

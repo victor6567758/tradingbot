@@ -12,19 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 @Slf4j
-public class PreOrderValidationService<M, N, K> {
+public class PreOrderValidationService<N, K> {
 
     static final int FIVE_YRS_IN_MTHS = 60;
 
-    private final TradeInfoService<M, N, K> tradeInfoService;
-    private final MovingAverageCalculationService<N> movingAverageCalculationService;
+    private final TradeInfoService<N, K> tradeInfoService;
+    private final MovingAverageCalculationService movingAverageCalculationService;
     private final BaseTradingConfig baseTradingConfig;
-    private final OrderInfoService<M, N, K> orderInfoService;
+    private final OrderInfoService<N, K> orderInfoService;
 
-    public PreOrderValidationService(TradeInfoService<M, N, K> tradeInfoService,
-        MovingAverageCalculationService<N> movingAverageCalculationService,
+    public PreOrderValidationService(TradeInfoService<N, K> tradeInfoService,
+        MovingAverageCalculationService movingAverageCalculationService,
         BaseTradingConfig baseTradingConfig,
-        OrderInfoService<M, N, K> orderInfoService) {
+        OrderInfoService<N, K> orderInfoService) {
         this.tradeInfoService = tradeInfoService;
         this.movingAverageCalculationService = movingAverageCalculationService;
         this.baseTradingConfig = baseTradingConfig;
@@ -32,7 +32,7 @@ public class PreOrderValidationService<M, N, K> {
     }
 
     public boolean isInSafeZone(TradingSignal signal, double price,
-        TradeableInstrument<N> instrument) {
+        TradeableInstrument instrument) {
         // check 10yr wma and make sure we are 10% on either side
         double wma10yr = this.movingAverageCalculationService
             .calculateWMA(instrument, FIVE_YRS_IN_MTHS,
@@ -51,7 +51,7 @@ public class PreOrderValidationService<M, N, K> {
         }
     }
 
-    public boolean checkInstrumentNotAlreadyTraded(TradeableInstrument<N> instrument) {
+    public boolean checkInstrumentNotAlreadyTraded(TradeableInstrument instrument) {
         Collection<K> accIds = this.tradeInfoService
             .findAllAccountsWithInstrumentTrades(instrument);
         if (!CollectionUtils.isEmpty(accIds)) {
@@ -59,7 +59,7 @@ public class PreOrderValidationService<M, N, K> {
                 instrument.getInstrument());
             return false;
         } else {
-            Collection<Order<N, M>> pendingOrders = this.orderInfoService
+            Collection<Order<N>> pendingOrders = this.orderInfoService
                 .pendingOrdersForInstrument(instrument);
             if (!pendingOrders.isEmpty()) {
                 log.warn("Pending order with instrument {} already exists",
@@ -70,7 +70,7 @@ public class PreOrderValidationService<M, N, K> {
         }
     }
 
-    public boolean checkLimitsForCcy(TradeableInstrument<N> instrument, TradingSignal signal) {
+    public boolean checkLimitsForCcy(TradeableInstrument instrument, TradingSignal signal) {
         String[] currencies = TradingUtils.splitInstrumentPair(instrument.getInstrument());
         for (String currency : currencies) {
             int positionCount = this.tradeInfoService.findNetPositionCountForCurrency(currency)

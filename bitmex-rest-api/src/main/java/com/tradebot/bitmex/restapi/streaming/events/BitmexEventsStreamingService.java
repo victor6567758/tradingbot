@@ -4,7 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexTradeEventPayload;
-import com.tradebot.bitmex.restapi.events.payload.TradeEventPayLoad;
+import com.tradebot.bitmex.restapi.events.payload.JsonEventPayLoad;
 import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexOrder;
@@ -62,6 +62,16 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     }
 
     @Override
+    public void init() {
+        super.init();
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+    }
+
+    @Override
     public void startEventsStreaming() {
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(ANNOUNCEMENT));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(INSURANCE));
@@ -82,17 +92,17 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     }
 
     private void processAnnouncementReply(String message) {
-        eventCallback.onEvent(new TradeEventPayLoad(
+        eventCallback.onEvent(new JsonEventPayLoad(
             TradeEvents.EVENT_ANNOUNCEMENT, (JSONObject) JSONValue.parse(message)));
     }
 
     private void processInsuranceReply(String message) {
-        eventCallback.onEvent(new TradeEventPayLoad(
+        eventCallback.onEvent(new JsonEventPayLoad(
             TradeEvents.EVENT_INSURANCE, (JSONObject) JSONValue.parse(message)));
     }
 
     private void processPublicNotificationsReply(String message) {
-        eventCallback.onEvent(new TradeEventPayLoad(
+        eventCallback.onEvent(new JsonEventPayLoad(
             TradeEvents.EVENT_PUBLIC_NOTIFICATION, (JSONObject) JSONValue.parse(message)));
     }
 

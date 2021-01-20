@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 
 @Slf4j
-public class BitmexOrderManagementProvider implements OrderManagementProvider<String, String, Long> {
+public class BitmexOrderManagementProvider implements OrderManagementProvider<String, Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
@@ -37,7 +37,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     @Override
     @SneakyThrows
-    public String placeOrder(com.tradebot.core.order.Order<String, String> order, Long accountId) {
+    public String placeOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
 
         Order newOrder = getOrderApi().orderNew(
             order.getInstrument().getInstrument(),
@@ -63,7 +63,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     @Override
     @SneakyThrows
-    public boolean modifyOrder(com.tradebot.core.order.Order<String, String> order, Long accountId) {
+    public boolean modifyOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
         getOrderApi().orderAmend(
             order.getOrderId(),
             null,
@@ -89,7 +89,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     @Override
     @SneakyThrows
-    public Collection<com.tradebot.core.order.Order<String, String>> allPendingOrders() {
+    public Collection<com.tradebot.core.order.Order<String>> allPendingOrders() {
         return getAllOrders().stream().filter(
             order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
                 order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText())
@@ -98,7 +98,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     @Override
     @SneakyThrows
-    public Collection<com.tradebot.core.order.Order<String, String>> pendingOrdersForAccount(Long accountId) {
+    public Collection<com.tradebot.core.order.Order<String>> pendingOrdersForAccount(Long accountId) {
         return getAllOrders().stream()
             .filter(order -> order.getAccount().longValue() == accountId)
             .filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
@@ -108,7 +108,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     @Override
     @SneakyThrows
-    public com.tradebot.core.order.Order<String, String> pendingOrderForAccount(String orderId, Long accountId) {
+    public com.tradebot.core.order.Order<String> pendingOrderForAccount(String orderId, Long accountId) {
         return getAllOrders().stream()
             .filter(order -> order.getAccount().longValue() == accountId)
             .filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
@@ -119,7 +119,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     @Override
     @SneakyThrows
-    public Collection<com.tradebot.core.order.Order<String, String>> pendingOrdersForInstrument(TradeableInstrument<String> instrument) {
+    public Collection<com.tradebot.core.order.Order<String>> pendingOrdersForInstrument(TradeableInstrument instrument) {
         return getAllOrders().stream()
             .filter(order -> order.getSymbol().equals(instrument.getInstrument()))
             .filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
@@ -140,9 +140,9 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
         );
     }
 
-    private static com.tradebot.core.order.Order<String, String> toOrder(Order order) {
-        com.tradebot.core.order.Order<String, String> convertedOrder = com.tradebot.core.order.Order.<String, String>builder()
-            .instrument(new TradeableInstrument<>(order.getSymbol()))
+    private static com.tradebot.core.order.Order<String> toOrder(Order order) {
+        com.tradebot.core.order.Order<String> convertedOrder = com.tradebot.core.order.Order.<String>builder()
+            .instrument(new TradeableInstrument(order.getSymbol(), order.getSymbol()))
             .units(order.getOrderQty().longValue())
             .side(TradingSignalConvertible.fromString(order.getSide()))
             .type(OrderTypeConvertible.fromString(order.getOrdType()))

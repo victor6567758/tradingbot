@@ -48,7 +48,7 @@ public class BitmexTransactionDataProviderServiceTest {
         assertThat(transactions.iterator().hasNext()).isTrue();
         Transaction transaction = transactions.iterator().next();
 
-        com.tradebot.core.account.transaction.Transaction<String, Long, String> transactionFound = bitmexTransactionDataProviderServiceSpy
+        com.tradebot.core.account.transaction.Transaction<String, Long> transactionFound = bitmexTransactionDataProviderServiceSpy
             .getTransaction(transaction.getTransactID(), transaction.getAccount().longValue());
 
         assertThat(transactionFound.getAccountId()).isEqualTo(transaction.getAccount().longValue());
@@ -61,7 +61,7 @@ public class BitmexTransactionDataProviderServiceTest {
         assertThat(transactions.iterator().hasNext()).isTrue();
         Transaction transaction = transactions.iterator().next();
 
-        Collection<com.tradebot.core.account.transaction.Transaction<String, Long, String>> transactionsFound =
+        Collection<com.tradebot.core.account.transaction.Transaction<String, Long>> transactionsFound =
             bitmexTransactionDataProviderServiceSpy.getTransactionsGreaterThanId(
                 "", transaction.getAccount().longValue());
         assertThat(transactionsFound).hasSize(2);

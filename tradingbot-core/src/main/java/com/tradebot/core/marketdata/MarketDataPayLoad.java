@@ -8,9 +8,9 @@ import com.tradebot.core.instrument.TradeableInstrument;
 
 @RequiredArgsConstructor
 @Getter
-public class MarketDataPayLoad<T> {
+public class MarketDataPayLoad {
     private final double bidPrice;
     private final double askPrice;
-    private final TradeableInstrument<T> instrument;
+    private final TradeableInstrument instrument;
     private final DateTime eventDate;
 }

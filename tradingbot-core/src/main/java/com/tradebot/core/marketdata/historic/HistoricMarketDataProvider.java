@@ -4,16 +4,16 @@ import com.tradebot.core.instrument.TradeableInstrument;
 import java.util.List;
 import org.joda.time.DateTime;
 
-public interface HistoricMarketDataProvider<T> {
+public interface HistoricMarketDataProvider {
 
-    List<CandleStick<T>> getCandleSticks(
-        TradeableInstrument<T> instrument,
+    List<CandleStick> getCandleSticks(
+        TradeableInstrument instrument,
         CandleStickGranularity granularity,
         DateTime from,
         DateTime to);
 
-    List<CandleStick<T>> getCandleSticks(
-        TradeableInstrument<T> instrument,
+    List<CandleStick> getCandleSticks(
+        TradeableInstrument instrument,
         CandleStickGranularity granularity,
         int count);
 }

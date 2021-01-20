@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 
 @Slf4j
-public class BitmexTradeManagementProvider implements TradeManagementProvider<String, String, Long> {
+public class BitmexTradeManagementProvider implements TradeManagementProvider<String, Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
@@ -42,7 +42,7 @@ public class BitmexTradeManagementProvider implements TradeManagementProvider<St
 
     @Override
     @SneakyThrows
-    public com.tradebot.core.trade.Trade<String, String, Long> getTradeForAccount(String tradeId, Long accountId) {
+    public com.tradebot.core.trade.Trade<String, Long> getTradeForAccount(String tradeId, Long accountId) {
         return getAllTrades().stream()
             .filter(trade -> trade.getTrdMatchID().equals(tradeId))
             .map(trade -> convertTo(accountId, trade))
@@ -51,7 +51,7 @@ public class BitmexTradeManagementProvider implements TradeManagementProvider<St
 
     @Override
     @SneakyThrows
-    public Collection<com.tradebot.core.trade.Trade<String, String, Long>> getTradesForAccount(Long accountId) {
+    public Collection<com.tradebot.core.trade.Trade<String, Long>> getTradesForAccount(Long accountId) {
         return getAllTrades().stream().map(trade -> convertTo(accountId, trade)).collect(Collectors.toList());
     }
 
@@ -68,12 +68,12 @@ public class BitmexTradeManagementProvider implements TradeManagementProvider<St
         );
     }
 
-    private com.tradebot.core.trade.Trade<String, String, Long> convertTo(Long accountId, Trade trade) {
-        return new com.tradebot.core.trade.Trade<>(
+    private com.tradebot.core.trade.Trade<String, Long> convertTo(Long accountId, Trade trade) {
+        return new com.tradebot.core.trade.Trade(
             trade.getTrdMatchID(),
             trade.getSize().longValue(),
             TradingSignalConvertible.fromString(trade.getSide()),
-            new TradeableInstrument<>(trade.getSymbol()),
+            new TradeableInstrument(trade.getSymbol(), trade.getSymbol()),
             trade.getTimestamp(),
             0.0,
             trade.getPrice(),

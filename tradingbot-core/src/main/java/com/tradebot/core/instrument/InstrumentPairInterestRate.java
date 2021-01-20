@@ -9,10 +9,10 @@ import lombok.ToString;
 @ToString
 public class InstrumentPairInterestRate {
 
-    private final Double baseCurrencyBidInterestRate;
-    private final Double baseCurrencyAskInterestRate;
-    private final Double quoteCurrencyBidInterestRate;
-    private final Double quoteCurrencyAskInterestRate;
+    private final double baseCurrencyBidInterestRate;
+    private final double baseCurrencyAskInterestRate;
+    private final double quoteCurrencyBidInterestRate;
+    private final double quoteCurrencyAskInterestRate;
 
 
 }

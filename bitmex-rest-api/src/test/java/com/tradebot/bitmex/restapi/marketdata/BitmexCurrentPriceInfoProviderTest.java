@@ -37,7 +37,7 @@ public class BitmexCurrentPriceInfoProviderTest {
         .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
         .toFormatter();
 
-    private static final TradeableInstrument<String> INSTRUMENT = new TradeableInstrument<>("XBTUSD");
+    private static final TradeableInstrument INSTRUMENT = new TradeableInstrument("XBTUSD", "XBTUSD");
     private final JSON json = new JSON();
     private final QuoteApi quoteApi = mock(QuoteApi.class);
 
@@ -69,7 +69,7 @@ public class BitmexCurrentPriceInfoProviderTest {
 
     @Test
     public void testGetCurrentPricesForInstrumentTest() {
-        Price<String> price = bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstrument(INSTRUMENT);
+        Price price = bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstrument(INSTRUMENT);
         assertThat(price.getInstrument().getInstrument()).isEqualTo(price.getInstrument().getInstrument());
         assertThat(price.getAskPrice()).isCloseTo(quotes.get(0).getAskPrice(), Offset.offset(0.0001));
         assertThat(price.getBidPrice()).isCloseTo(quotes.get(0).getBidPrice(), Offset.offset(0.0001));
@@ -78,11 +78,11 @@ public class BitmexCurrentPriceInfoProviderTest {
 
     @Test
     public void testGetCurrentPricesForInstruments() {
-        Map<TradeableInstrument<String>, Price<String>> prices =
+        Map<TradeableInstrument, Price> prices =
             bitmexCurrentPriceInfoProviderSpy.getCurrentPricesForInstruments(Collections.singletonList(INSTRUMENT));
         assertThat(prices).hasSize(1);
 
-        Price<String> price = prices.get(INSTRUMENT);
+        Price price = prices.get(INSTRUMENT);
         assertThat(price).isNotNull();
         assertThat(price.getInstrument().getInstrument()).isEqualTo(price.getInstrument().getInstrument());
         assertThat(price.getAskPrice()).isCloseTo(quotes.get(0).getAskPrice(), Offset.offset(0.0001));

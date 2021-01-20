@@ -14,13 +14,15 @@ import org.yaml.snakeyaml.representer.Representer;
 @UtilityClass
 public class BitmexUtils {
 
+    private static final String BITMEX_ACCOUNT_YML = "bitmex-account.yml";
+
     public static BitmexAccountConfiguration readBitmexCredentials() {
         Representer representer = new Representer();
         representer.getPropertyUtils().setSkipMissingProperties(true);
 
         Yaml yaml = new Yaml(new Constructor(BitmexAccountConfiguration.class), representer);
         InputStream inputStream = BitmexAccountConfiguration.class.getClassLoader()
-            .getResourceAsStream("bitmex-account.yml");
+            .getResourceAsStream(BITMEX_ACCOUNT_YML);
         return yaml.load(inputStream);
     }
 
@@ -33,7 +35,7 @@ public class BitmexUtils {
         throw new IllegalArgumentException("Cannot find a value");
     }
 
-    public static String getSymbol(TradeableInstrument<String> instrument) {
+    public static String getSymbol(TradeableInstrument instrument) {
         return StringUtils.substring(instrument.getInstrument(), 0, 3);
     }
 

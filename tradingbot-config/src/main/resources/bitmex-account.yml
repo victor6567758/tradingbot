@@ -17,3 +17,28 @@ bitmex:
     user: postgres
     pass: changeme
 
+  tradingConfiguration:
+    minReserveRatio: 1
+    minAmountRequired: 1
+    maxAllowedQuantity: 1
+    maxAllowedNetContracts: 1
+    max10yrWmaOffset: 1
+    mailTo: victorofff@gmail.com
+    priceExpiryMinutes: 20
+    tradeableInstruments:
+      - instrument: XBTUSD
+        description: XBTUSD
+        instrumentId: XBTUSD
+        pip: 0.0
+        baseCurrencyBidInterestRate: -1.0
+        baseCurrencyAskInterestRate: -1.0
+        quoteCurrencyBidInterestRate: -1.0
+        quoteCurrencyAskInterestRate: -1.0
+      - instrument: XBJUSD
+        description: XBJUSD
+        instrumentId: XBJUSD
+        pip: 0.0
+        baseCurrencyBidInterestRate: -1.0
+        baseCurrencyAskInterestRate: -1.0
+        quoteCurrencyBidInterestRate: -1.0
+        quoteCurrencyAskInterestRate: -1.0

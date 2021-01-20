@@ -33,6 +33,16 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.trading-bot</groupId>
       <artifactId>tradingbot-config</artifactId>
       <version>0.0.1-SNAPSHOT</version>
@@ -154,7 +164,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <fork>true</fork>
-          <mainClass>com.tradebot.app.TradeBotApp</mainClass>
+          <mainClass>com.tradebot.TradeBotApp</mainClass>
         </configuration>
         <executions>
           <execution>
@@ -170,7 +180,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>com.tradebot.app.TradeBotApp</mainClass>
+              <mainClass>com.tradebot.TradeBotApp</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

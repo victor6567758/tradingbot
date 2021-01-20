@@ -8,8 +8,8 @@ import com.tradebot.core.instrument.TradeableInstrument;
 
 @RequiredArgsConstructor
 @Getter
-public class Price<T> {
-    private final TradeableInstrument<T> instrument;
+public class Price {
+    private final TradeableInstrument instrument;
     private final double bidPrice;
     private final double askPrice;
     private final DateTime pricePoint;

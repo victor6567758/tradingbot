@@ -10,9 +10,9 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class Order<M, N> {
+public class Order<N> {
 
-    private final TradeableInstrument<M> instrument;
+    private final TradeableInstrument instrument;
     private final long units;
     private final TradingSignal side;
     private final OrderType type;
@@ -24,14 +24,14 @@ public class Order<M, N> {
     @Setter
     private N orderId;
 
-    public static <M, N> Order<M, N> buildMarketOrder(
-        TradeableInstrument<M> instrument,
+    public static <N> Order<N> buildMarketOrder(
+        TradeableInstrument instrument,
         long units,
         TradingSignal side,
         double takeProfit,
         double stopLoss
     ) {
-        return Order.<M, N>builder()
+        return Order.<N>builder()
             .instrument(instrument)
             .units(units)
             .side(side)
@@ -42,15 +42,15 @@ public class Order<M, N> {
             .stopPrice(0.0).build();
     }
 
-    public static <M, N> Order<M, N> buildLimitOrder(
-        TradeableInstrument<M> instrument,
+    public static <N> Order<N> buildLimitOrder(
+        TradeableInstrument instrument,
         long units,
         TradingSignal side,
         double price,
         double takeProfit,
         double stopLoss
     ) {
-        return Order.<M, N>builder()
+        return Order.<N>builder()
             .instrument(instrument)
             .units(units)
             .side(side)
@@ -61,15 +61,15 @@ public class Order<M, N> {
             .stopPrice(0.0).build();
     }
 
-    public static <M, N> Order<M, N> buildStopMarketOrder(
-        TradeableInstrument<M> instrument,
+    public static <N> Order<N> buildStopMarketOrder(
+        TradeableInstrument instrument,
         long units,
         TradingSignal side,
         double stopPrice,
         double takeProfit,
         double stopLoss
     ) {
-        return Order.<M, N>builder()
+        return Order.<N>builder()
             .instrument(instrument)
             .units(units)
             .side(side)
@@ -80,8 +80,8 @@ public class Order<M, N> {
             .stopPrice(stopPrice).build();
     }
 
-    public static <M, N> Order<M, N> buildStopLimitOrder(
-        TradeableInstrument<M> instrument,
+    public static <N> Order<N> buildStopLimitOrder(
+        TradeableInstrument instrument,
         long units,
         TradingSignal side,
         double stopPrice,
@@ -89,7 +89,7 @@ public class Order<M, N> {
         double takeProfit,
         double stopLoss
     ) {
-        return Order.<M, N>builder()
+        return Order.<N>builder()
             .instrument(instrument)
             .units(units)
             .side(side)

@@ -1,7 +1,7 @@
 package com.tradebot.bitmex.restapi.streaming.marketdata;
 
 import com.google.common.reflect.TypeToken;
-import com.tradebot.bitmex.restapi.events.BitmexInstrumentEventPayload;
+import com.tradebot.bitmex.restapi.events.payload.BitmexInstrumentEventPayload;
 import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.model.BitmexInstrument;
 import com.tradebot.bitmex.restapi.model.BitmexQuote;
@@ -24,10 +24,10 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
     public static final char QUOTE_DELIMITER = ':';
 
     public BitmexMarketDataStreamingService(
-        MarketEventCallback<String> marketEventCallback,
+        MarketEventCallback marketEventCallback,
         EventCallback<BitmexInstrument> instrumentEventCallback,
         HeartBeatCallback<Long> heartBeatCallback,
-        Collection<TradeableInstrument<String>> instruments) {
+        Collection<TradeableInstrument> instruments) {
         super(heartBeatCallback);
 
         this.marketEventCallback = marketEventCallback;
@@ -42,9 +42,19 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
         );
     }
 
-    private final MarketEventCallback<String> marketEventCallback;
+    private final MarketEventCallback marketEventCallback;
     private final EventCallback<BitmexInstrument> instrumentEventCallback;
-    private final Collection<TradeableInstrument<String>> instruments;
+    private final Collection<TradeableInstrument> instruments;
+
+    @Override
+    public void init() {
+        super.init();
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+    }
 
     @Override
     protected String extractSubscribeTopic(String subscribeElement) {
@@ -57,7 +67,7 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
 
     @Override
     public void startMarketDataStreaming() {
-        for (TradeableInstrument<String> instrument : instruments) {
+        for (TradeableInstrument instrument : instruments) {
             log.info("Subscribed to: {}", instrument.getInstrument());
             jettyCommunicationSocket.subscribe(buildSubscribeCommand(getInstrumentParameters(instrument.getInstrument())));
             jettyCommunicationSocket.subscribe(buildSubscribeCommand(getQuoteParameters(instrument.getInstrument())));
@@ -66,7 +76,7 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
 
     @Override
     public void stopMarketDataStreaming() {
-        for (TradeableInstrument<String> instrument : instruments) {
+        for (TradeableInstrument instrument : instruments) {
             log.info("Unsubscribed from: {}", instrument.getInstrument());
             jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(getInstrumentParameters(instrument.getInstrument())));
             jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(getQuoteParameters(instrument.getInstrument())));
@@ -80,7 +90,7 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
 
         for (BitmexQuote quote : quotes.getData()) {
             marketEventCallback.onMarketEvent(
-                new TradeableInstrument<>(quote.getSymbol()),
+                new TradeableInstrument(quote.getSymbol(), quote.getSymbol()),
                 quote.getBidPrice(),
                 quote.getAskPrice(),
                 quote.getTimestamp()

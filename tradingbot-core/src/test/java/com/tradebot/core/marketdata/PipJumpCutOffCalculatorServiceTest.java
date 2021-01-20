@@ -30,34 +30,34 @@ public class PipJumpCutOffCalculatorServiceTest {
 		final double pip1 = 0.0001;
 		final double pip2 = 0.01;
 
-		CurrentPriceInfoProvider<String> currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
-		InstrumentService<String> instrumentService = mock(InstrumentService.class);
+		CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
+		InstrumentService instrumentService = mock(InstrumentService.class);
 		DateTime now = DateTime.now();
 
-		TradeableInstrument<String> eurusd = new TradeableInstrument<>("EUR_USD");
-		Price<String> eurusdPrice = new Price<>(eurusd, 1.11905, 1.11915, now);
+		TradeableInstrument eurusd = new TradeableInstrument("EUR_USD","EUR_USD");
+		Price eurusdPrice = new Price(eurusd, 1.11905, 1.11915, now);
 
-		TradeableInstrument<String> nzdchf = new TradeableInstrument<>("NZD_CHF");
-		Price<String> nzdchfPrice = new Price<>(nzdchf, 0.65382, 0.65402, now);
+		TradeableInstrument nzdchf = new TradeableInstrument("NZD_CHF","NZD_CHF");
+		Price nzdchfPrice = new Price(nzdchf, 0.65382, 0.65402, now);
 
-		TradeableInstrument<String> gbpjpy = new TradeableInstrument<>("GBP_JPY");
-		Price<String> gbpjpyPrice = new Price<>(gbpjpy, 166.506, 166.524, now);
+		TradeableInstrument gbpjpy = new TradeableInstrument("GBP_JPY","GBP_JPY");
+		Price gbpjpyPrice = new Price(gbpjpy, 166.506, 166.524, now);
 
-		TradeableInstrument<String> gbpnzd = new TradeableInstrument<>("GBP_NZD");
-		Price<String> gbpnzdPrice = new Price<>(gbpnzd, 2.17625, 2.17671, now);
+		TradeableInstrument gbpnzd = new TradeableInstrument("GBP_NZD","GBP_NZD");
+		Price gbpnzdPrice = new Price(gbpnzd, 2.17625, 2.17671, now);
 
 		final double basePip = 45.0;
 		PipJumpCutOffCalculator<String> pipCalculator = new PipJumpCutOffCalculatorService<>(eurusd,
 				currentPriceInfoProvider, basePip, instrumentService);
 
-		Map<TradeableInstrument<String>, Price<String>> eurusdnzdchfMap = Maps.newHashMap();
+		Map<TradeableInstrument, Price> eurusdnzdchfMap = Maps.newHashMap();
 		eurusdnzdchfMap.put(eurusd, eurusdPrice);
 		eurusdnzdchfMap.put(nzdchf, nzdchfPrice);
 
-		Map<TradeableInstrument<String>, Price<String>> gbpnzdMap = Maps.newHashMap();
+		Map<TradeableInstrument, Price> gbpnzdMap = Maps.newHashMap();
 		gbpnzdMap.put(gbpnzd, gbpnzdPrice);
 
-		Map<TradeableInstrument<String>, Price<String>> gbpjpyMap = Maps.newHashMap();
+		Map<TradeableInstrument, Price> gbpjpyMap = Maps.newHashMap();
 		gbpjpyMap.put(gbpjpy, gbpjpyPrice);
 
 		when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(eurusd, nzdchf))))

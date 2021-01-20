@@ -10,12 +10,12 @@ import org.joda.time.DateTime;
 
 @Getter
 @ToString
-public class Transaction<M, N, T> {
+public class Transaction<M, N> {
 
     private final M transactionId;
     private final Event transactionType;
     private final N accountId;
-    private final TradeableInstrument<T> instrument;
+    private final TradeableInstrument instrument;
     private final Long units;
     private final DateTime transactionTime;
     private final Double price;
@@ -42,7 +42,7 @@ public class Transaction<M, N, T> {
         this.transactionId = transactionId;
         this.transactionType = transactionType;
         this.accountId = accountId;
-        this.instrument = new TradeableInstrument<>(instrument);
+        this.instrument = new TradeableInstrument(instrument, instrument);
         this.units = units;
         this.side = side;
         this.transactionTime = transactionTime;

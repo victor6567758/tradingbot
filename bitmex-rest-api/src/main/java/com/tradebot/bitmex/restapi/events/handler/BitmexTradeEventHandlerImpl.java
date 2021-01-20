@@ -18,7 +18,7 @@ public class BitmexTradeEventHandlerImpl implements
     EmailContentGenerator<BitmexTrade, BitmexTradeEventPayload>,
     EventPayLoadToTweet<BitmexTrade, BitmexTradeEventPayload> {
 
-    private final TradeInfoService<Long, String, Long> tradeInfoService;
+    private final TradeInfoService<Long, Long> tradeInfoService;
     private final long accountId;
 
 

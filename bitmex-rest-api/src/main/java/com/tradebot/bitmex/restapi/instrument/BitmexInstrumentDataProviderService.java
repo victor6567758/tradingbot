@@ -21,7 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 
 @Slf4j
-public class BitmexInstrumentDataProviderService implements InstrumentDataProvider<String> {
+public class BitmexInstrumentDataProviderService implements InstrumentDataProvider {
 
     private static final BigDecimal CHUNK_SIZE = BigDecimal.valueOf(500);
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
@@ -36,7 +36,7 @@ public class BitmexInstrumentDataProviderService implements InstrumentDataProvid
 
     @Override
     @SneakyThrows
-    public Collection<TradeableInstrument<String>> getInstruments() {
+    public Collection<TradeableInstrument> getInstruments() {
         List<Instrument> instruments = getAllInstruments();
         return instruments.stream().map(BitmexInstrumentDataProviderService::toTradeableInstrument).collect(Collectors.toList());
     }
@@ -66,8 +66,8 @@ public class BitmexInstrumentDataProviderService implements InstrumentDataProvid
         return allInstruments;
     }
 
-    private static TradeableInstrument<String> toTradeableInstrument(Instrument instrument) {
-        return new TradeableInstrument<>(
+    private static TradeableInstrument toTradeableInstrument(Instrument instrument) {
+        return new TradeableInstrument(
             instrument.getSymbol(),
             instrument.getSymbol(),
             instrument.getTickSize(),

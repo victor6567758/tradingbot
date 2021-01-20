@@ -72,7 +72,7 @@ public class BitmexInstrumentDataProviderServiceTest {
 
     @Test
     public void testGetInstruments() {
-        Collection<TradeableInstrument<String>> tradebleInstruments = bitmexInstrumentDataProviderServiceSpy.getInstruments();
+        Collection<TradeableInstrument> tradebleInstruments = bitmexInstrumentDataProviderServiceSpy.getInstruments();
         assertThat(tradebleInstruments).hasSize(instruments.size());
         assertThat(tradebleInstruments.stream().map(TradeableInstrument::getInstrument).distinct().collect(Collectors.toList()))
             .containsExactlyInAnyOrder(instruments.stream().map(Instrument::getSymbol).toArray(String[]::new));

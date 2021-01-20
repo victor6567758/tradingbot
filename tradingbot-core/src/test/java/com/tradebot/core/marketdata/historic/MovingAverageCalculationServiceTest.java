@@ -21,13 +21,13 @@ public class MovingAverageCalculationServiceTest {
 
     @Test
     public void countBasedMovingAvgTest() {
-        HistoricMarketDataProvider<String> historicMarketDataProvider = mock(
+        HistoricMarketDataProvider historicMarketDataProvider = mock(
             HistoricMarketDataProvider.class);
-        MovingAverageCalculationService<String> service = new MovingAverageCalculationService<>(
+        MovingAverageCalculationService service = new MovingAverageCalculationService(
             historicMarketDataProvider);
         final int candleStickCt = 7;
-        TradeableInstrument<String> eurnzd = new TradeableInstrument<String>("EUR_NZD");
-        List<CandleStick<String>> candleSticks = createEurNzdCandleSticks();
+        TradeableInstrument eurnzd = new TradeableInstrument("EUR_NZD", "EUR_NZD");
+        List<CandleStick> candleSticks = createEurNzdCandleSticks();
         when(historicMarketDataProvider
             .getCandleSticks(eurnzd, CandleStickGranularity.M, candleStickCt)).thenReturn(
             candleSticks);
@@ -49,14 +49,14 @@ public class MovingAverageCalculationServiceTest {
 
     @Test
     public void fromToBasedMovingAvgTest() {
-        HistoricMarketDataProvider<String> historicMarketDataProvider = mock(
+        HistoricMarketDataProvider historicMarketDataProvider = mock(
             HistoricMarketDataProvider.class);
-        MovingAverageCalculationService<String> service = new MovingAverageCalculationService<String>(
+        MovingAverageCalculationService service = new MovingAverageCalculationService(
             historicMarketDataProvider);
         DateTime from = new DateTime(1430469000000L);
         DateTime to = new DateTime(1430469055000L);
-        TradeableInstrument<String> gbpchf = new TradeableInstrument<String>("GBP_CHF");
-        List<CandleStick<String>> candleSticks = createGbpChfCandleSticks();
+        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF", "GBP_CHF");
+        List<CandleStick> candleSticks = createGbpChfCandleSticks();
         when(
             historicMarketDataProvider.getCandleSticks(gbpchf, CandleStickGranularity.S5, from, to))
             .thenReturn(
@@ -75,22 +75,22 @@ public class MovingAverageCalculationServiceTest {
         assertEquals(wma, smaWmaPair.right, TradingTestConstants.PRECISION);
     }
 
-    private List<CandleStick<String>> createGbpChfCandleSticks() {
+    private List<CandleStick> createGbpChfCandleSticks() {
         double[] closingPrices = {1.42916, 1.430375, 1.429985, 1.430295, 1.430195, 1.429565,
             1.429895, 1.42975,
             1.42945, 1.42902, 1.42874, 1.42864};
         return createCandleSticks(closingPrices);
     }
 
-    private List<CandleStick<String>> createEurNzdCandleSticks() {
+    private List<CandleStick> createEurNzdCandleSticks() {
         double[] closingPrices = {1.4713, 1.519, 1.5787, 1.6288, 1.69, 1.7256, 1.7031};
         return createCandleSticks(closingPrices);
     }
 
-    private List<CandleStick<String>> createCandleSticks(double[] closingPrices) {
-        List<CandleStick<String>> candleSticks = Lists.newArrayList();
+    private List<CandleStick> createCandleSticks(double[] closingPrices) {
+        List<CandleStick> candleSticks = Lists.newArrayList();
         for (double closingPrice : closingPrices) {
-            CandleStick<String> candle = mock(CandleStick.class);
+            CandleStick candle = mock(CandleStick.class);
             candleSticks.add(candle);
             when(candle.getClosePrice()).thenReturn(closingPrice);
         }

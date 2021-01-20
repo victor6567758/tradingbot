@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 
 @Slf4j
-public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvider<String> {
+public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvider {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
@@ -32,8 +32,8 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
 
     @SneakyThrows
     @Override
-    public List<CandleStick<String>> getCandleSticks(
-        TradeableInstrument<String> instrument,
+    public List<CandleStick> getCandleSticks(
+        TradeableInstrument instrument,
         CandleStickGranularity granularity,
         DateTime from,
         DateTime to) {
@@ -48,8 +48,8 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
 
     @SneakyThrows
     @Override
-    public List<CandleStick<String>> getCandleSticks(
-        TradeableInstrument<String> instrument,
+    public List<CandleStick> getCandleSticks(
+        TradeableInstrument instrument,
         CandleStickGranularity granularity,
         int count) {
 
@@ -68,14 +68,14 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
             bucket -> toCandleStick(bucket, granularity)).collect(Collectors.toList());
     }
 
-    private static CandleStick<String> toCandleStick(TradeBin tradeBin, CandleStickGranularity granularity) {
-        return new CandleStick<>(
+    private static CandleStick toCandleStick(TradeBin tradeBin, CandleStickGranularity granularity) {
+        return new CandleStick(
             tradeBin.getOpen(),
             tradeBin.getHigh(),
             tradeBin.getLow(),
             tradeBin.getClose(),
             tradeBin.getTimestamp(),
-            new TradeableInstrument<>(tradeBin.getSymbol()),
+            new TradeableInstrument(tradeBin.getSymbol(), tradeBin.getSymbol()),
             granularity
         );
     }

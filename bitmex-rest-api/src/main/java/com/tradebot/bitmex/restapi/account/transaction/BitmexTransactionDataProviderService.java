@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 
 @Slf4j
-public class BitmexTransactionDataProviderService implements TransactionDataProvider<String, Long, String> {
+public class BitmexTransactionDataProviderService implements TransactionDataProvider<String, Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
@@ -31,7 +31,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
 
     @Override
     @SneakyThrows
-    public com.tradebot.core.account.transaction.Transaction<String, Long, String> getTransaction(String transactionId, Long accountId) {
+    public com.tradebot.core.account.transaction.Transaction<String, Long> getTransaction(String transactionId, Long accountId) {
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
             .filter(transaction -> transaction.getTransactID().equals(transactionId))
@@ -40,7 +40,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
 
     @Override
     @SneakyThrows
-    public List<com.tradebot.core.account.transaction.Transaction<String, Long, String>> getTransactionsGreaterThanDateTime(
+    public List<com.tradebot.core.account.transaction.Transaction<String, Long>> getTransactionsGreaterThanDateTime(
         DateTime dateTime, Long accountId) {
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
@@ -57,7 +57,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
 
     @Override
     @SneakyThrows
-    public List<com.tradebot.core.account.transaction.Transaction<String, Long, String>> getTransactionsGreaterThanId(
+    public List<com.tradebot.core.account.transaction.Transaction<String, Long>> getTransactionsGreaterThanId(
         String minTransactionId, Long accountId) {
 
         return getAllTransaction().stream()
@@ -73,7 +73,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
             (double) bitmexAccountConfiguration.getBitmex().getApi().getTransactionsDepth(), 0.0);
     }
 
-    private static com.tradebot.core.account.transaction.Transaction<String, Long, String> mapToTransaction(Transaction transaction) {
+    private static com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {
         return new com.tradebot.core.account.transaction.Transaction<>(
             transaction.getTransactID(),
             BitmexUtils.findByStringMarker(BitmexTransactionTypeEvent.values(),

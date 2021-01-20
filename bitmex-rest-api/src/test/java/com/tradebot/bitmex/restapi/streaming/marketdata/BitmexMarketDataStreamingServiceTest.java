@@ -37,9 +37,9 @@ import org.mockito.ArgumentCaptor;
 @SuppressWarnings("unchecked")
 public class BitmexMarketDataStreamingServiceTest {
 
-    private static final Collection<TradeableInstrument<String>> INSTRUMENTS = Arrays.asList(
-        new TradeableInstrument<>("XBTUSD"),
-        new TradeableInstrument<>("XBTJPY")
+    private static final Collection<TradeableInstrument> INSTRUMENTS = Arrays.asList(
+        new TradeableInstrument("XBTUSD", "XBTUSD"),
+        new TradeableInstrument("XBTJPY","XBTJPY")
     );
 
     private static final TradeableInstrument INSTRUMENTS_XBTUSD = INSTRUMENTS.stream().filter(n -> "XBTUSD".equals(n.getInstrument())).findAny().orElseThrow();
@@ -73,7 +73,7 @@ public class BitmexMarketDataStreamingServiceTest {
 
     private HeartBeatCallback<Long> heartBeatCallbackSpy;
     private EventCallback<BitmexInstrument> bitmexInstrumentEventCallbackSpy;
-    private MarketEventCallback<String> marketEventCallbackSpy;
+    private MarketEventCallback marketEventCallbackSpy;
 
     // Must not be lambdas for correct Mockito work
     private final HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallback<Long>() {
@@ -89,10 +89,10 @@ public class BitmexMarketDataStreamingServiceTest {
 
         }
     };
-    private final MarketEventCallback<String> marketEventCallback = new MarketEventCallback<String>() {
+    private final MarketEventCallback marketEventCallback = new MarketEventCallback() {
 
         @Override
-        public void onMarketEvent(TradeableInstrument<String> instrument, double bid, double ask, DateTime eventDate) {
+        public void onMarketEvent(TradeableInstrument instrument, double bid, double ask, DateTime eventDate) {
 
         }
     };
@@ -174,7 +174,7 @@ public class BitmexMarketDataStreamingServiceTest {
     @Test
     public void testMarkedDataXBTJPY() {
 
-        ArgumentCaptor<TradeableInstrument<String>> argument1Captor = ArgumentCaptor.forClass(TradeableInstrument.class);
+        ArgumentCaptor<TradeableInstrument> argument1Captor = ArgumentCaptor.forClass(TradeableInstrument.class);
         ArgumentCaptor<Double> argument2Captor = ArgumentCaptor.forClass(Double.class);
         ArgumentCaptor<Double> argument3Captor = ArgumentCaptor.forClass(Double.class);
         ArgumentCaptor<DateTime> argument4Captor = ArgumentCaptor.forClass(DateTime.class);
@@ -184,7 +184,7 @@ public class BitmexMarketDataStreamingServiceTest {
 
         verify(marketEventCallbackSpy, times(2)).onMarketEvent(argument1Captor.capture(), argument2Captor.capture(), argument3Captor.capture(), argument4Captor.capture());
 
-        List<TradeableInstrument<String>> capturedArgument1List = argument1Captor.getAllValues();
+        List<TradeableInstrument> capturedArgument1List = argument1Captor.getAllValues();
         List<Double> capturedArgument2List = argument2Captor.getAllValues();
         List<Double> capturedArgument3List = argument3Captor.getAllValues();
         List<DateTime> capturedArgument4List = argument4Captor.getAllValues();
@@ -203,7 +203,7 @@ public class BitmexMarketDataStreamingServiceTest {
     @Test
     public void testMarkedDataXBTUSD() {
 
-        ArgumentCaptor<TradeableInstrument<String>> argument1Captor = ArgumentCaptor.forClass(TradeableInstrument.class);
+        ArgumentCaptor<TradeableInstrument> argument1Captor = ArgumentCaptor.forClass(TradeableInstrument.class);
         ArgumentCaptor<Double> argument2Captor = ArgumentCaptor.forClass(Double.class);
         ArgumentCaptor<Double> argument3Captor = ArgumentCaptor.forClass(Double.class);
         ArgumentCaptor<DateTime> argument4Captor = ArgumentCaptor.forClass(DateTime.class);
@@ -213,7 +213,7 @@ public class BitmexMarketDataStreamingServiceTest {
 
         verify(marketEventCallbackSpy, times(1)).onMarketEvent(argument1Captor.capture(), argument2Captor.capture(), argument3Captor.capture(), argument4Captor.capture());
 
-        TradeableInstrument<String> capturedArgument1 = argument1Captor.getValue();
+        TradeableInstrument capturedArgument1 = argument1Captor.getValue();
         Double capturedArgument2 = argument2Captor.getValue();
         Double capturedArgument3 = argument3Captor.getValue();
         DateTime capturedArgument4 = argument4Captor.getValue();

@@ -19,7 +19,7 @@ public class BitmexOrderEventHandlerImpl implements
     EventPayLoadToTweet<BitmexOrder, BitmexOrderEventPayload> {
 
 
-    private final TradeInfoService<Long, String, Long> tradeInfoService;
+    private final TradeInfoService<Long, Long> tradeInfoService;
     private final long accountId;
 
 
@@ -28,7 +28,6 @@ public class BitmexOrderEventHandlerImpl implements
     @AllowConcurrentEvents
     public void handleEvent(BitmexOrderEventPayload payLoad) {
         Preconditions.checkNotNull(payLoad);
-
         tradeInfoService.refreshTradesForAccount(accountId);
     }
 

@@ -6,25 +6,22 @@ import lombok.ToString;
 
 @Getter
 @ToString
-public class TradeableInstrument<T> {
+public class TradeableInstrument {
     private final String instrument;
     private final String description;
-    private final T instrumentId;
+    private final String instrumentId;
     private final double pip;
     private final int hash;
     private final InstrumentPairInterestRate instrumentPairInterestRate;
 
-    public TradeableInstrument(String instrument) {
-        this(instrument, null, 0.0, null, instrument);
+    public TradeableInstrument(String instrument, String instrumentId) {
+        this(instrument, instrumentId, 0.0, null, instrument);
     }
 
-    public TradeableInstrument(String instrument, double pip, InstrumentPairInterestRate instrumentPairInterestRate, String description) {
-        this(instrument, null, pip, instrumentPairInterestRate, description);
-    }
 
     public TradeableInstrument(
         String instrument,
-        T instrumentId,
+        String instrumentId,
         double pip,
         InstrumentPairInterestRate instrumentPairInterestRate,
         String description) {
@@ -52,7 +49,6 @@ public class TradeableInstrument<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -63,7 +59,7 @@ public class TradeableInstrument<T> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        TradeableInstrument<T> other = (TradeableInstrument<T>) obj;
+        TradeableInstrument other = (TradeableInstrument) obj;
         if (instrument == null) {
             if (other.instrument != null) {
                 return false;

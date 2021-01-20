@@ -6,12 +6,12 @@ import java.util.Collection;
 import com.tradebot.core.instrument.TradeableInstrument;
 
 
-public interface PositionManagementProvider<M, N> {
+public interface PositionManagementProvider<N> {
 
-    Position<M> getPositionForInstrument(N accountId, TradeableInstrument<M> instrument);
+    Position getPositionForInstrument(N accountId, TradeableInstrument instrument);
 
-    Collection<Position<M>> getPositionsForAccount(N accountId);
+    Collection<Position> getPositionsForAccount(N accountId);
 
-    boolean closePosition(N accountId, TradeableInstrument<M> instrument, double price);
+    boolean closePosition(N accountId, TradeableInstrument instrument, double price);
 
 }

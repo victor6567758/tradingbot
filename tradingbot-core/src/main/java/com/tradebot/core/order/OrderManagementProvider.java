@@ -5,20 +5,20 @@ import java.util.Collection;
 import com.tradebot.core.instrument.TradeableInstrument;
 
 
-public interface OrderManagementProvider<M, N, K> {
+public interface OrderManagementProvider<N, K> {
 
-    M placeOrder(Order<N, M> order, K accountId);
+    N placeOrder(Order<N> order, K accountId);
 
-    boolean modifyOrder(Order<N, M> order, K accountId);
+    boolean modifyOrder(Order<N> order, K accountId);
 
-    boolean closeOrder(M orderId, K accountId);
+    boolean closeOrder(N orderId, K accountId);
 
-    Collection<Order<N, M>> allPendingOrders();
+    Collection<Order<N>> allPendingOrders();
 
-    Collection<Order<N, M>> pendingOrdersForAccount(K accountId);
+    Collection<Order<N>> pendingOrdersForAccount(K accountId);
 
-    Order<N, M> pendingOrderForAccount(M orderId, K accountId);
+    Order<N> pendingOrderForAccount(N orderId, K accountId);
 
-    Collection<Order<N, M>> pendingOrdersForInstrument(TradeableInstrument<N> instrument);
+    Collection<Order<N>> pendingOrdersForInstrument(TradeableInstrument instrument);
 
 }

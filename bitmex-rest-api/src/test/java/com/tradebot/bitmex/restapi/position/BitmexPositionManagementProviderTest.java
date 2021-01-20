@@ -27,8 +27,8 @@ import org.junit.Test;
 
 public class BitmexPositionManagementProviderTest {
 
-    private static final TradeableInstrument<String> INSTRUMENT_XBTUSD = new TradeableInstrument<>("XBTUSD");
-    private static final TradeableInstrument<String> INSTRUMENT_XBTJPY = new TradeableInstrument<>("XBTJPY");
+    private static final TradeableInstrument INSTRUMENT_XBTUSD = new TradeableInstrument("XBTUSD", "XBTUSD");
+    private static final TradeableInstrument INSTRUMENT_XBTJPY = new TradeableInstrument("XBTJPY","XBTJPY");
 
     private final JSON json = new JSON();
     private final PositionApi positionApi = mock(PositionApi.class);
@@ -58,7 +58,7 @@ public class BitmexPositionManagementProviderTest {
     @Test
     public void testGetPositionForInstrument() {
         Position storedPosition = positions.stream().filter(n -> n.getSymbol().equals(INSTRUMENT_XBTUSD.getInstrument())).findAny().orElseThrow();
-        com.tradebot.core.position.Position<String> resolvedPosition =
+        com.tradebot.core.position.Position resolvedPosition =
             bitmexPositionManagementProviderSpy.getPositionForInstrument(storedPosition.getAccount().longValue(), INSTRUMENT_XBTUSD);
         assertThat(resolvedPosition.getUnits()).isEqualTo(storedPosition.getCurrentQty().longValue());
         assertThat(resolvedPosition.getInstrument().getInstrument()).isEqualTo(INSTRUMENT_XBTUSD.getInstrument());
@@ -70,7 +70,7 @@ public class BitmexPositionManagementProviderTest {
     public void testGetPositionsForAccount() {
         Position storedPositionXbtUsd =
             positions.stream().filter(n -> n.getSymbol().equals(INSTRUMENT_XBTUSD.getInstrument())).findAny().orElseThrow();
-        Collection<com.tradebot.core.position.Position<String>> allPositions =
+        Collection<com.tradebot.core.position.Position> allPositions =
             bitmexPositionManagementProviderSpy.getPositionsForAccount(storedPositionXbtUsd.getAccount().longValue());
 
         assertThat(allPositions.stream().anyMatch(n -> n.getInstrument().getInstrument().equals(INSTRUMENT_XBTUSD.getInstrument()))).isTrue();

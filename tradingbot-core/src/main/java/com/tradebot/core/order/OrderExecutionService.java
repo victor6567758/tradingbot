@@ -15,24 +15,24 @@ import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class OrderExecutionService<M, N, K> {
+public class OrderExecutionService<N, K> {
 
 
     private static final long SHUTDOWN_WAIT_TIME = 5000L;
 
-    private final AccountInfoService<K, N> accountInfoService;
-    private final OrderManagementProvider<M, N, K> orderManagementProvider;
+    private final AccountInfoService<K> accountInfoService;
+    private final OrderManagementProvider<N, K> orderManagementProvider;
     private final BaseTradingConfig baseTradingConfig;
-    private final PreOrderValidationService<M, N, K> preOrderValidationService;
-    private final CurrentPriceInfoProvider<N> currentPriceInfoProvider;
+    private final PreOrderValidationService<N, K> preOrderValidationService;
+    private final CurrentPriceInfoProvider currentPriceInfoProvider;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private volatile OrderExecutionServiceContext orderExecutionServiceContext;
 
-    public OrderExecutionService(AccountInfoService<K, N> accountInfoService,
-        OrderManagementProvider<M, N, K> orderManagementProvider,
+    public OrderExecutionService(AccountInfoService<K> accountInfoService,
+        OrderManagementProvider<N, K> orderManagementProvider,
         BaseTradingConfig baseTradingConfig,
-        PreOrderValidationService<M, N, K> preOrderValidationService,
-        CurrentPriceInfoProvider<N> currentPriceInfoProvider,
+        PreOrderValidationService<N, K> preOrderValidationService,
+        CurrentPriceInfoProvider currentPriceInfoProvider,
         OrderExecutionServiceContext orderExecutionServiceContext) {
 
         this.accountInfoService = accountInfoService;
@@ -48,11 +48,11 @@ public class OrderExecutionService<M, N, K> {
         CommonUtils.commonExecutorServiceShutdown(executorService, SHUTDOWN_WAIT_TIME);
     }
 
-    public Future<Boolean> submit(TradingDecision<N> decision) {
+    public Future<Boolean> submit(TradingDecision decision) {
         return executorService.submit(() -> processTradingDecision(decision));
     }
 
-    private boolean processTradingDecision(TradingDecision<N> decision) {
+    private boolean processTradingDecision(TradingDecision decision) {
         try {
             if (!preValidate(decision)) {
                 return false;
@@ -69,7 +69,7 @@ public class OrderExecutionService<M, N, K> {
                 return false;
             }
 
-            Order<N, M> order;
+            Order<N> order;
             if (decision.getLimitPrice() == 0.0) {
                 order = Order.buildMarketOrder(decision.getInstrument(), baseTradingConfig.getMaxAllowedQuantity(),
                     decision.getSignal(), decision.getTakeProfitPrice(), decision.getStopLossPrice());
@@ -79,7 +79,7 @@ public class OrderExecutionService<M, N, K> {
                     decision.getSignal(), decision.getLimitPrice(), decision.getTakeProfitPrice(), decision.getStopLossPrice());
             }
             orderExecutionServiceContext.fired();
-            M orderId = orderManagementProvider.placeOrder(order, accountId.get());
+            N orderId = orderManagementProvider.placeOrder(order, accountId.get());
 
             if (orderId != null) {
                 order.setOrderId(orderId);
@@ -93,12 +93,12 @@ public class OrderExecutionService<M, N, K> {
     }
 
 
-    private boolean preValidate(TradingDecision<N> decision) {
+    private boolean preValidate(TradingDecision decision) {
         if (TradingSignal.NONE != decision.getSignal() &&
             preOrderValidationService.checkInstrumentNotAlreadyTraded(decision.getInstrument()) &&
             preOrderValidationService.checkLimitsForCcy(decision.getInstrument(), decision.getSignal())) {
 
-            Price<N> currentPrice = currentPriceInfoProvider.getCurrentPricesForInstrument(decision.getInstrument());
+            Price currentPrice = currentPriceInfoProvider.getCurrentPricesForInstrument(decision.getInstrument());
 
             return preOrderValidationService.isInSafeZone(
                 decision.getSignal(),

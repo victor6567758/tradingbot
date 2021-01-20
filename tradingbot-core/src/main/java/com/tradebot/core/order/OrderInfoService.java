@@ -6,34 +6,34 @@ import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.utils.TradingUtils;
 
 //TODO: introduce a cache  like in TradeInfoService in order to avoid making expensive rest calls.
-public class OrderInfoService<M, N, K> {
+public class OrderInfoService<N, K> {
 
-    private final OrderManagementProvider<M, N, K> orderManagementProvider;
+    private final OrderManagementProvider<N, K> orderManagementProvider;
 
-    public OrderInfoService(OrderManagementProvider<M, N, K> orderManagementProvider) {
+    public OrderInfoService(OrderManagementProvider<N, K> orderManagementProvider) {
         this.orderManagementProvider = orderManagementProvider;
     }
 
-    public Collection<Order<N, M>> allPendingOrders() {
+    public Collection<Order<N>> allPendingOrders() {
         return this.orderManagementProvider.allPendingOrders();
     }
 
-    public Collection<Order<N, M>> pendingOrdersForAccount(K accountId) {
+    public Collection<Order<N>> pendingOrdersForAccount(K accountId) {
         return this.orderManagementProvider.pendingOrdersForAccount(accountId);
     }
 
-    public Collection<Order<N, M>> pendingOrdersForInstrument(TradeableInstrument<N> instrument) {
+    public Collection<Order<N>> pendingOrdersForInstrument(TradeableInstrument instrument) {
         return this.orderManagementProvider.pendingOrdersForInstrument(instrument);
     }
 
-    public Order<N, M> pendingOrderForAccount(M orderId, K accountId) {
+    public Order<N> pendingOrderForAccount(N orderId, K accountId) {
         return this.orderManagementProvider.pendingOrderForAccount(orderId, accountId);
     }
 
     public int findNetPositionCountForCurrency(String currency) {
-        Collection<Order<N, M>> allOrders = allPendingOrders();
+        Collection<Order<N>> allOrders = allPendingOrders();
         int positionCount = 0;
-        for (Order<N, M> order : allOrders) {
+        for (Order<N> order : allOrders) {
             positionCount += TradingUtils.getSign(order.getInstrument().getInstrument(), order.getSide(), currency);
         }
         return positionCount;

@@ -5,9 +5,9 @@ import java.util.Map;
 
 import com.tradebot.core.instrument.TradeableInstrument;
 
-public interface CurrentPriceInfoProvider<T> {
+public interface CurrentPriceInfoProvider {
 
-    Map<TradeableInstrument<T>, Price<T>> getCurrentPricesForInstruments(Collection<TradeableInstrument<T>> instruments);
+    Map<TradeableInstrument, Price> getCurrentPricesForInstruments(Collection<TradeableInstrument> instruments);
 
-    Price<T> getCurrentPricesForInstrument(TradeableInstrument<T> instrument);
+    Price getCurrentPricesForInstrument(TradeableInstrument instrument);
 }

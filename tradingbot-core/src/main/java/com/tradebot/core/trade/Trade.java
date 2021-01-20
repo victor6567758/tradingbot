@@ -7,12 +7,12 @@ import lombok.Getter;
 import org.joda.time.DateTime;
 
 @Getter
-public class Trade<M, N, K> {
+public class Trade<M, K> {
 
     private final M tradeId;
     private final long units;
     private final TradingSignal side;
-    private final TradeableInstrument<N> instrument;
+    private final TradeableInstrument instrument;
     private final DateTime tradeDate;
     private final double takeProfitPrice;
     private final double executionPrice;
@@ -24,7 +24,7 @@ public class Trade<M, N, K> {
         M tradeId,
         long units,
         TradingSignal side,
-        TradeableInstrument<N> instrument,
+        TradeableInstrument instrument,
         DateTime tradeDate,
         double takeProfitPrice,
         double executionPrice,
@@ -66,7 +66,7 @@ public class Trade<M, N, K> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        Trade<M, N, K> other = (Trade<M, N, K>) obj;
+        Trade<M, K> other = (Trade<M, K>) obj;
         if (accountId == null) {
             if (other.accountId != null) {
                 return false;

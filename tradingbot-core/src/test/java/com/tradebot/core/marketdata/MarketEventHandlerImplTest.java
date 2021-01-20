@@ -23,7 +23,7 @@ public class MarketEventHandlerImplTest {
 
 		@Subscribe
 		@AllowConcurrentEvents
-		public void processPayLoad(MarketDataPayLoad<String> payload) {
+		public void processPayLoad(MarketDataPayLoad payload) {
 			assertEquals(GBPUSD, payload.getInstrument().getInstrument());
 			assertEquals(BID, payload.getBidPrice(), TradingTestConstants.PRECISION);
 			assertEquals(ASK, payload.getAskPrice(), TradingTestConstants.PRECISION);
@@ -44,8 +44,8 @@ public class MarketEventHandlerImplTest {
 		for (int i = 1; i <= NUM_SUBSCRIBERS; i++) {
 			evtBus.register(new MarketDataSubscriber());
 		}
-		MarketEventCallback<String> callback = new MarketEventHandlerImpl<>(evtBus);
-		callback.onMarketEvent(new TradeableInstrument<>(GBPUSD), BID, ASK, DateTime.now());
+		MarketEventCallback callback = new MarketEventHandlerImpl(evtBus);
+		callback.onMarketEvent(new TradeableInstrument(GBPUSD, GBPUSD), BID, ASK, DateTime.now());
 		done.await();
 		assertThat(done.getCount()).isZero();
 	}

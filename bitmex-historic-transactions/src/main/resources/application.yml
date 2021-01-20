@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: Historical Transactions Downloader

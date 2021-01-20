@@ -36,27 +36,27 @@ public class OrderExecutionServiceTest<N> {
 
     private static final int ALLOWED_SUBMISSIONS = 20;
 
-    private final AccountInfoService<Long, N> accountInfoService = mock(AccountInfoService.class);
-    private final OrderManagementProvider<Long, N, Long> orderManagementProvider = mock(OrderManagementProvider.class);
+    private final AccountInfoService<Long> accountInfoService = mock(AccountInfoService.class);
+    private final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
     private final BaseTradingConfig baseTradingConfig = mock(BaseTradingConfig.class);
-    private final PreOrderValidationService<Long, N, Long> preOrderValidationService = mock(PreOrderValidationService.class);
-    private final CurrentPriceInfoProvider<N> currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
-    private final TradeableInstrument<N> gbpaud = new TradeableInstrument<>("GBP_AUD");
+    private final PreOrderValidationService<Long, Long> preOrderValidationService = mock(PreOrderValidationService.class);
+    private final CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
+    private final TradeableInstrument gbpaud = new TradeableInstrument("GBP_AUD", "GBP_AUD");
     private final TradingSignal signal = TradingSignal.SHORT;
-    private final TradingDecision<N> tradingDecision1 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21);
-    private final TradingDecision<N> tradingDecision2 = new TradingDecision<>(gbpaud, signal, 1.855, 2.21, 2.12);
+    private final TradingDecision tradingDecision1 = new TradingDecision(gbpaud, signal, 1.855, 2.21);
+    private final TradingDecision tradingDecision2 = new TradingDecision(gbpaud, signal, 1.855, 2.21, 2.12);
 
     @Before
     public void init() {
         when(preOrderValidationService.checkInstrumentNotAlreadyTraded(gbpaud)).thenReturn(true);
         when(preOrderValidationService.checkLimitsForCcy(gbpaud, signal)).thenReturn(true);
 
-        Collection<TradeableInstrument<N>> instruments = new ArrayList<>();
+        Collection<TradeableInstrument> instruments = new ArrayList<>();
         instruments.add(gbpaud);
-        Map<TradeableInstrument<N>, Price<N>> priceMap = new HashMap<>();
+        Map<TradeableInstrument, Price> priceMap = new HashMap<>();
         double bidPrice = 2.0557;
         double askPrice = 2.0562;
-        priceMap.put(gbpaud, new Price<N>(gbpaud, bidPrice, askPrice, DateTime.now()));
+        priceMap.put(gbpaud, new Price(gbpaud, bidPrice, askPrice, DateTime.now()));
 
         when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(instruments)))
             .thenReturn(priceMap);
@@ -88,7 +88,7 @@ public class OrderExecutionServiceTest<N> {
             }
         };
 
-        OrderExecutionService<Long, N, Long> service = new OrderExecutionService<>(
+        OrderExecutionService<Long, Long> service = new OrderExecutionService(
             accountInfoService,
             orderManagementProvider,
             baseTradingConfig,
@@ -134,7 +134,7 @@ public class OrderExecutionServiceTest<N> {
             }
         };
 
-        OrderExecutionService<Long, N, Long> service = new OrderExecutionService<>(
+        OrderExecutionService<Long, Long> service = new OrderExecutionService(
             accountInfoService,
             orderManagementProvider,
             baseTradingConfig,

@@ -15,16 +15,16 @@ import com.tradebot.core.instrument.TradeableInstrument;
 public class PipJumpCutOffCalculatorService<T> implements PipJumpCutOffCalculator<T> {
 
     // TODO: why locks as this Cache is thread safe ?
-    private final Cache<TradeableInstrument<T>, Double> offsetCache;
-    private final TradeableInstrument<T> refInstrument;
-    private final CurrentPriceInfoProvider<T> currentPriceInfoProvider;
+    private final Cache<TradeableInstrument, Double> offsetCache;
+    private final TradeableInstrument refInstrument;
+    private final CurrentPriceInfoProvider currentPriceInfoProvider;
     private final Double refInstrumentPip;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final InstrumentService<T> instrumentService;
+    private final InstrumentService instrumentService;
 
-    public PipJumpCutOffCalculatorService(TradeableInstrument<T> refInstrument,
-            CurrentPriceInfoProvider<T> currentPriceInfoProvider, Double refInstrumentPip,
-            InstrumentService<T> instrumentService) {
+    public PipJumpCutOffCalculatorService(TradeableInstrument refInstrument,
+            CurrentPriceInfoProvider currentPriceInfoProvider, Double refInstrumentPip,
+            InstrumentService instrumentService) {
         this.refInstrument = refInstrument;
         this.currentPriceInfoProvider = currentPriceInfoProvider;
         this.refInstrumentPip = refInstrumentPip;
@@ -33,10 +33,10 @@ public class PipJumpCutOffCalculatorService<T> implements PipJumpCutOffCalculato
     }
 
     @SuppressWarnings("unchecked")
-    private Double fetchSingleInstrumentPrice(TradeableInstrument<T> instrument) {
-        Map<TradeableInstrument<T>, Price<T>> priceMap = currentPriceInfoProvider
+    private Double fetchSingleInstrumentPrice(TradeableInstrument instrument) {
+        Map<TradeableInstrument, Price> priceMap = currentPriceInfoProvider
                 .getCurrentPricesForInstruments(Lists.newArrayList(instrument));
-        Price<T> price = priceMap.get(instrument);
+        Price price = priceMap.get(instrument);
         Double instrumentPrice = (price.getAskPrice() + price.getBidPrice()) / 2;
         Lock writeLock = this.lock.writeLock();
         try {
@@ -50,16 +50,16 @@ public class PipJumpCutOffCalculatorService<T> implements PipJumpCutOffCalculato
 
     @SuppressWarnings("unchecked")
     @Override
-    public Double calculatePipJumpCutOff(TradeableInstrument<T> instrument) {
+    public Double calculatePipJumpCutOff(TradeableInstrument instrument) {
         Double refInstrumentPrice = this.offsetCache.getIfPresent(refInstrument);
         Double instrumentPrice = this.offsetCache.getIfPresent(instrument);
         if (refInstrumentPrice == null && instrumentPrice == null) {
-            Map<TradeableInstrument<T>, Price<T>> priceMap = this.currentPriceInfoProvider
+            Map<TradeableInstrument, Price> priceMap = this.currentPriceInfoProvider
                     .getCurrentPricesForInstruments(Lists.newArrayList(refInstrument, instrument));
 
-            Price<T> refPrice = priceMap.get(refInstrument);
+            Price refPrice = priceMap.get(refInstrument);
             refInstrumentPrice = (refPrice.getAskPrice() + refPrice.getBidPrice()) / 2;
-            Price<T> price = priceMap.get(instrument);
+            Price price = priceMap.get(instrument);
             instrumentPrice = (price.getAskPrice() + price.getBidPrice()) / 2;
             Lock writeLock = this.lock.writeLock();
             try {

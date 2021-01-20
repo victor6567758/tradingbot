@@ -59,10 +59,10 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrders() {
-        Collection<com.tradebot.core.order.Order<String, String>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
+        Collection<com.tradebot.core.order.Order<String>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
         assertThat(pendingOrders).hasSize(1);
 
-        com.tradebot.core.order.Order<String, String> pendingOrder = pendingOrders.iterator().next();
+        com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.iterator().next();
         assertThat(pendingOrder.getOrderId()).isEqualTo(newOrder.getOrderID());
         assertThat(pendingOrder.getInstrument().getInstrument()).isEqualTo(newOrder.getSymbol());
         assertThat(pendingOrder.getSide()).isEqualTo(TradingSignalConvertible.fromString(newOrder.getSide()));
@@ -71,7 +71,7 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrdersForAccount() {
-        com.tradebot.core.order.Order<String, String> pendingOrder =
+        com.tradebot.core.order.Order<String> pendingOrder =
             bitmexOrderManagementProviderSpy.pendingOrderForAccount(newOrder.getOrderID(), newOrder.getAccount().longValue());
 
         assertThat(pendingOrder.getOrderId()).isEqualTo(newOrder.getOrderID());
@@ -81,11 +81,11 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrdersForInstrument() {
-        Collection<com.tradebot.core.order.Order<String, String>> pendingOrders =
-            bitmexOrderManagementProviderSpy.pendingOrdersForInstrument(new TradeableInstrument<String>(newOrder.getSymbol()));
+        Collection<com.tradebot.core.order.Order<String>> pendingOrders =
+            bitmexOrderManagementProviderSpy.pendingOrdersForInstrument(new TradeableInstrument(newOrder.getSymbol(), newOrder.getSymbol()));
         assertThat(pendingOrders).hasSize(1);
 
-        com.tradebot.core.order.Order<String, String> pendingOrder = pendingOrders.iterator().next();
+        com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.iterator().next();
         assertThat(pendingOrder.getOrderId()).isEqualTo(newOrder.getOrderID());
         assertThat(pendingOrder.getInstrument().getInstrument()).isEqualTo(newOrder.getSymbol());
         assertThat(pendingOrder.getSide()).isEqualTo(TradingSignalConvertible.fromString(newOrder.getSide()));

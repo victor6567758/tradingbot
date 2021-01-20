@@ -57,7 +57,7 @@ public class BitmexTradeManagementProviderTest {
 
     @Test
     public void testGetTradesForAccount() {
-        Collection<com.tradebot.core.trade.Trade<String, String, Long>> trades =
+        Collection<com.tradebot.core.trade.Trade<String, Long>> trades =
             bitmexTradeManagementProviderSpy.getTradesForAccount(DUMMY_ACCOUNT);
         assertThat(trades.size()).isGreaterThan(1);
     }

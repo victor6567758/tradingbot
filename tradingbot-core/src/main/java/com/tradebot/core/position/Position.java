@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class Position<T> {
-    private final TradeableInstrument<T> instrument;
+public class Position {
+    private final TradeableInstrument instrument;
     private final long units;
     private final TradingSignal side;
     private final double averagePrice;

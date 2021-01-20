@@ -38,7 +38,7 @@ public class BitmexHistoricMarketDataProviderTest {
         .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
         .toFormatter();
 
-    private static final TradeableInstrument<String> INSTRUMENT = new TradeableInstrument<>("XBTUSD");
+    private static final TradeableInstrument INSTRUMENT = new TradeableInstrument("XBTUSD", "XBTUSD");
     private static final BigDecimal HISTORY_DEPTH = BigDecimal.valueOf(100L);
 
     private final JSON json = new JSON();
@@ -109,7 +109,7 @@ public class BitmexHistoricMarketDataProviderTest {
 
     @Test
     public void testGetCandleSticks1M() {
-        List<CandleStick<String>> candles =
+        List<CandleStick> candles =
             bitmexHistoricMarketDataProviderSpy.getCandleSticks(INSTRUMENT, CandleStickGranularity.M1, HISTORY_DEPTH.intValue());
 
         assertThat(candles.size()).isEqualTo(HISTORY_DEPTH.intValue());
@@ -130,7 +130,7 @@ public class BitmexHistoricMarketDataProviderTest {
 
     @Test
     public void testGetCandleSticks1D() {
-        List<CandleStick<String>> candles =
+        List<CandleStick> candles =
             bitmexHistoricMarketDataProviderSpy.getCandleSticks(INSTRUMENT, CandleStickGranularity.D, HISTORY_DEPTH.intValue());
 
         assertThat(candles.size()).isEqualTo(HISTORY_DEPTH.intValue());
@@ -152,13 +152,13 @@ public class BitmexHistoricMarketDataProviderTest {
 
     @Test
     public void testGetCandleSticks1DFiltered() {
-        List<CandleStick<String>> candles =
+        List<CandleStick> candles =
             bitmexHistoricMarketDataProviderSpy.getCandleSticks(INSTRUMENT, CandleStickGranularity.D,
                 DATE_TIME_FORMATTER.parseDateTime("2020-10-20T00:00:00.000Z"),
                 DATE_TIME_FORMATTER.parseDateTime("2020-10-20T00:00:00.000Z"));
 
         assertThat(candles.size()).isEqualTo(1);
-        CandleStick<String> dayCandle = candles.get(0);
+        CandleStick dayCandle = candles.get(0);
 
         assertThat(dayCandle.getInstrument().getInstrument()).isEqualTo(INSTRUMENT.getInstrument());
         assertThat(dayCandle.getHighPrice()).isCloseTo(tradeBins1d20_10_2020.get(0).getHigh(), Offset.offset(0.00001));

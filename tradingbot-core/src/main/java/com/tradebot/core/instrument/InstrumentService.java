@@ -9,24 +9,24 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
-public class InstrumentService<T> {
+public class InstrumentService {
 
-    private final Map<String, TradeableInstrument<T>> instrumentMap;
+    private final Map<String, TradeableInstrument> instrumentMap;
 
-    public InstrumentService(InstrumentDataProvider<T> instrumentDataProvider) {
+    public InstrumentService(InstrumentDataProvider instrumentDataProvider) {
         Preconditions.checkNotNull(instrumentDataProvider);
 
-        instrumentMap = ImmutableMap.<String, TradeableInstrument<T>>builder().putAll(
+        instrumentMap = ImmutableMap.<String, TradeableInstrument>builder().putAll(
             instrumentDataProvider.getInstruments().stream()
                 .collect(Collectors.toMap(TradeableInstrument::getInstrument,
                     instrument -> instrument))).build();
     }
 
-    public Collection<TradeableInstrument<T>> getInstruments() {
+    public Collection<TradeableInstrument> getInstruments() {
         return this.instrumentMap.values();
     }
 
-    public Collection<TradeableInstrument<T>> getAllPairsWithCurrency(String currency) {
+    public Collection<TradeableInstrument> getAllPairsWithCurrency(String currency) {
         if (StringUtils.isEmpty(currency)) {
             return Collections.emptyList();
         }
@@ -37,10 +37,10 @@ public class InstrumentService<T> {
             .collect(Collectors.toList());
     }
 
-    public Double getPipForInstrument(TradeableInstrument<T> instrument) {
+    public Double getPipForInstrument(TradeableInstrument instrument) {
         Preconditions.checkNotNull(instrument);
 
-        TradeableInstrument<T> tradeableInstrument = instrumentMap.get(instrument.getInstrument());
+        TradeableInstrument tradeableInstrument = instrumentMap.get(instrument.getInstrument());
         return tradeableInstrument != null ? tradeableInstrument.getPip() : 1.0;
 
     }

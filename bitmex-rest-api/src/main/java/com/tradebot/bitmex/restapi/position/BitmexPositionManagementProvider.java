@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
-public class BitmexPositionManagementProvider implements PositionManagementProvider<String, Long> {
+public class BitmexPositionManagementProvider implements PositionManagementProvider<Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
@@ -36,7 +36,7 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
 
     @Override
     @SneakyThrows
-    public com.tradebot.core.position.Position<String> getPositionForInstrument(Long accountId, TradeableInstrument<String> instrument) {
+    public com.tradebot.core.position.Position getPositionForInstrument(Long accountId, TradeableInstrument instrument) {
         return getPositionApi().positionGet(null, null, null).stream()
             .filter(position -> position.getAccount().longValue() == accountId)
             .filter(position -> position.getSymbol().equals(instrument.getInstrument()))
@@ -45,7 +45,7 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
 
     @Override
     @SneakyThrows
-    public Collection<com.tradebot.core.position.Position<String>> getPositionsForAccount(Long accountId) {
+    public Collection<com.tradebot.core.position.Position> getPositionsForAccount(Long accountId) {
         return getPositionApi().positionGet(null, null, null).stream()
             .filter(position -> position.getAccount().longValue() == accountId)
             .map(BitmexPositionManagementProvider::toPosition).collect(Collectors.toList());
@@ -53,14 +53,14 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
 
     @Override
     @SneakyThrows
-    public boolean closePosition(Long accountId, TradeableInstrument<String> instrument, double price) {
+    public boolean closePosition(Long accountId, TradeableInstrument instrument, double price) {
         getOrderApi().orderClosePosition(instrument.getInstrument(), price <= 0 ? null : price);
         return true;
     }
 
-    private static com.tradebot.core.position.Position<String> toPosition(Position position) {
-        return new com.tradebot.core.position.Position<>(
-            new TradeableInstrument<>(position.getSymbol()),
+    private static com.tradebot.core.position.Position toPosition(Position position) {
+        return new com.tradebot.core.position.Position(
+            new TradeableInstrument(position.getSymbol(), position.getSymbol()),
             position.getCurrentQty().longValue(),
             position.getCurrentQty().longValue() > 0 ? TradingSignal.LONG : TradingSignal.SHORT,
             position.getAvgCostPrice()

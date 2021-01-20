@@ -4,7 +4,7 @@ package com.tradebot.core.instrument;
 import java.util.Collection;
 
 
-public interface InstrumentDataProvider<T> {
+public interface InstrumentDataProvider {
 
-    Collection<TradeableInstrument<T>> getInstruments();
+    Collection<TradeableInstrument> getInstruments();
 }

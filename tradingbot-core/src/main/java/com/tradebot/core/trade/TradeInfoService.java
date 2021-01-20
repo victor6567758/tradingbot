@@ -24,16 +24,16 @@ import org.apache.commons.collections4.MapUtils;
 
 @Slf4j
 @RequiredArgsConstructor
-public class TradeInfoService<M, N, K> {
+public class TradeInfoService<M, K> {
 
-    private final TradeManagementProvider<M, N, K> tradeManagementProvider;
+    private final TradeManagementProvider<M, K> tradeManagementProvider;
     private final AccountDataProvider<K> accountDataProvider;
 
-    private final ConcurrentMap<K, Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>>> tradesCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, Map<TradeableInstrument, Collection<Trade<M, K>>>> tradesCache = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
 
-    public Collection<K> findAllAccountsWithInstrumentTrades(TradeableInstrument<N> instrument) {
+    public Collection<K> findAllAccountsWithInstrumentTrades(TradeableInstrument instrument) {
         lock.readLock().lock();
         try {
             return tradesCache.keySet().stream()
@@ -73,10 +73,10 @@ public class TradeInfoService<M, N, K> {
         }
     }
 
-    public Collection<Trade<M, N, K>> getAllTrades() {
+    public Collection<Trade<M, K>> getAllTrades() {
         lock.readLock().lock();
         try {
-            Collection<Trade<M, N, K>> trades = new ArrayList<>();
+            Collection<Trade<M, K>> trades = new ArrayList<>();
             for (K accId : tradesCache.keySet()) {
                 trades.addAll(getTradesForAccount(accId));
             }
@@ -87,9 +87,9 @@ public class TradeInfoService<M, N, K> {
 
     }
 
-    public Collection<Trade<M, N, K>> getTradesForAccountAndInstrument(K accountId,
-        TradeableInstrument<N> instrument) {
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> tradesForAccount = tradesCache
+    public Collection<Trade<M, K>> getTradesForAccountAndInstrument(K accountId,
+        TradeableInstrument instrument) {
+        Map<TradeableInstrument, Collection<Trade<M, K>>> tradesForAccount = tradesCache
             .get(accountId);
         if (!MapUtils.isEmpty(tradesForAccount) && tradesForAccount
             .containsKey(instrument)) {
@@ -99,14 +99,14 @@ public class TradeInfoService<M, N, K> {
     }
 
 
-    public Collection<Trade<M, N, K>> getTradesForAccount(K accountId) {
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> tradesForAccount = tradesCache
+    public Collection<Trade<M, K>> getTradesForAccount(K accountId) {
+        Map<TradeableInstrument, Collection<Trade<M, K>>> tradesForAccount = tradesCache
             .get(accountId);
-        Collection<Trade<M, N, K>> trades = Lists.newArrayList();
+        Collection<Trade<M, K>> trades = Lists.newArrayList();
         if (MapUtils.isEmpty(tradesForAccount)) {
             return trades;
         }
-        for (Collection<Trade<M, N, K>> tradeLst : tradesForAccount.values()) {
+        for (Collection<Trade<M, K>> tradeLst : tradesForAccount.values()) {
             trades.addAll(tradeLst);
         }
         return trades;
@@ -114,16 +114,14 @@ public class TradeInfoService<M, N, K> {
 
 
     public void refreshTradesForAccount(K accountId) {
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> tradeMap = getTradesPerInstrumentForAccount(
-            accountId);
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> oldTradeMap = tradesCache
-            .get(accountId);
+        Map<TradeableInstrument, Collection<Trade<M, K>>> tradeMap = getTradesPerInstrumentForAccount(accountId);
+        Map<TradeableInstrument, Collection<Trade<M, K>>> oldTradeMap = tradesCache.get(accountId);
         oldTradeMap.clear();
         oldTradeMap.putAll(tradeMap);
     }
 
 
-    public boolean isTradeExistsForInstrument(TradeableInstrument<N> instrument) {
+    public boolean isTradeExistsForInstrument(TradeableInstrument instrument) {
         lock.readLock().lock();
         try {
             return tradesCache.keySet().stream()
@@ -134,12 +132,12 @@ public class TradeInfoService<M, N, K> {
     }
 
 
-    private Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> getTradesPerInstrumentForAccount(
+    private Map<TradeableInstrument, Collection<Trade<M, K>>> getTradesPerInstrumentForAccount(
         K accountId) {
-        Collection<Trade<M, N, K>> trades = tradeManagementProvider.getTradesForAccount(accountId);
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> tradeMap = Maps.newHashMap();
-        for (Trade<M, N, K> ti : trades) {
-            Collection<Trade<M, N, K>> tradeLst = null;
+        Collection<Trade<M, K>> trades = tradeManagementProvider.getTradesForAccount(accountId);
+        Map<TradeableInstrument, Collection<Trade<M, K>>> tradeMap = Maps.newHashMap();
+        for (Trade<M, K> ti : trades) {
+            Collection<Trade<M, K>> tradeLst = null;
             if (tradeMap.containsKey(ti.getInstrument())) {
                 tradeLst = tradeMap.get(ti.getInstrument());
             } else {
@@ -153,14 +151,14 @@ public class TradeInfoService<M, N, K> {
 
 
     private int findNetPositionCountForCurrency(String currency, K accountId) {
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> tradeMap = tradesCache
+        Map<TradeableInstrument, Collection<Trade<M, K>>> tradeMap = tradesCache
             .get(accountId);
         if (MapUtils.isEmpty(tradeMap)) {
             return 0;
         } else {
             int positionCtr = 0;
-            for (Collection<Trade<M, N, K>> trades : tradeMap.values()) {
-                for (Trade<M, N, K> tradeInfo : trades) {
+            for (Collection<Trade<M, K>> trades : tradeMap.values()) {
+                for (Trade<M, K> tradeInfo : trades) {
                     positionCtr += TradingUtils
                         .getSign(tradeInfo.getInstrument().getInstrument(), tradeInfo
                             .getSide(), currency);
@@ -172,8 +170,8 @@ public class TradeInfoService<M, N, K> {
     }
 
 
-    private boolean isTradeExistsForInstrument(TradeableInstrument<N> instrument, K accountId) {
-        Map<TradeableInstrument<N>, Collection<Trade<M, N, K>>> tradesForAccount =
+    private boolean isTradeExistsForInstrument(TradeableInstrument instrument, K accountId) {
+        Map<TradeableInstrument, Collection<Trade<M, K>>> tradesForAccount =
             tradesCache.get(accountId);
         if (MapUtils.isEmpty(tradesForAccount)) {
             return false;

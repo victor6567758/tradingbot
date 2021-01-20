@@ -13,16 +13,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class AccountInfoService<K, N> {
+public class AccountInfoService<K> {
 
     private final AccountDataProvider<K> accountDataProvider;
     private final BaseTradingConfig baseTradingConfig;
-    private final CurrentPriceInfoProvider<N> currentPriceInfoProvider;
+    private final CurrentPriceInfoProvider currentPriceInfoProvider;
     private final ProviderHelper<?> providerHelper;
 
 
     public AccountInfoService(AccountDataProvider<K> accountDataProvider,
-        CurrentPriceInfoProvider<N> currentPriceInfoProvider,
+        CurrentPriceInfoProvider currentPriceInfoProvider,
         BaseTradingConfig baseTradingConfig,
         ProviderHelper<?> providerHelper) {
 
@@ -72,7 +72,7 @@ public class AccountInfoService<K, N> {
     = 79.095 USD
      */
     @SuppressWarnings("unchecked")
-    public double calculateMarginForTrade(Account<K> accountInfo, TradeableInstrument<N> instrument,
+    public double calculateMarginForTrade(Account<K> accountInfo, TradeableInstrument instrument,
         int units) {
         String[] tokens = TradingUtils.splitInstrumentPair(instrument.getInstrument());
         String baseCurrency = tokens[0];
@@ -82,25 +82,25 @@ public class AccountInfoService<K, N> {
             String currencyPair = this.providerHelper
                 .fromIsoFormat(baseCurrency + accountInfo.getCurrency());
 
-            Map<TradeableInstrument<N>, Price<N>> priceInfoMap = this.currentPriceInfoProvider
+            Map<TradeableInstrument, Price> priceInfoMap = this.currentPriceInfoProvider
                 .getCurrentPricesForInstruments(
-                    Lists.newArrayList(new TradeableInstrument<N>(currencyPair)));
+                    Lists.newArrayList(new TradeableInstrument(currencyPair, currencyPair)));
             if (priceInfoMap.isEmpty()) {
                 /*this means we got the currency pair inverted*/
                 /*example when the home currency is GBP and instrument is USDJPY*/
                 currencyPair = providerHelper
                     .fromIsoFormat(accountInfo.getCurrency() + baseCurrency);
                 priceInfoMap = currentPriceInfoProvider.getCurrentPricesForInstruments(
-                    Lists.newArrayList(new TradeableInstrument<N>(currencyPair)));
+                    Lists.newArrayList(new TradeableInstrument(currencyPair, currencyPair)));
                 if (priceInfoMap.isEmpty()) {
                     // something else is wrong here
                     return Double.MAX_VALUE;
                 }
-                Price<N> priceInfo = priceInfoMap.values().iterator().next();
+                Price priceInfo = priceInfoMap.values().iterator().next();
                 /*take avg of bid and ask prices*/
                 price = 1.0 / ((priceInfo.getBidPrice() + priceInfo.getAskPrice()) / 2.0);
             } else {
-                Price<N> priceInfo = priceInfoMap.values().iterator().next();
+                Price priceInfo = priceInfoMap.values().iterator().next();
                 /*take avg of bid and ask prices*/
                 price = (priceInfo.getBidPrice() + priceInfo.getAskPrice()) / 2.0;
             }
@@ -110,7 +110,7 @@ public class AccountInfoService<K, N> {
     }
 
     public double calculateMarginForTrade(
-        K accountId, TradeableInstrument<N> instrument, int units) {
+        K accountId, TradeableInstrument instrument, int units) {
         return calculateMarginForTrade(getAccountInfo(accountId), instrument, units);
     }
 }

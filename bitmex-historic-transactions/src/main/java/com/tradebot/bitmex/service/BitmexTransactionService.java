@@ -35,7 +35,7 @@ public class BitmexTransactionService {
     private final BimexAccounRepository bitmexAccountRepository;
 
     @Getter(AccessLevel.PACKAGE)
-    private final TransactionDataProvider<String, Long, String> bitmexTransactiondataProvider =
+    private final TransactionDataProvider<String, Long> bitmexTransactiondataProvider =
         new BitmexTransactionDataProviderService();
 
     public void saveNewTransactions() {
@@ -48,12 +48,12 @@ public class BitmexTransactionService {
             Timestamp maxTransactionTime = bitmexTransactionRepository.getMaxTransactionTimeForAccount(bitmexAcc)
                 .orElse(null);
 
-            List<Transaction<String, Long, String>> newTransactions =
+            List<Transaction<String, Long>> newTransactions =
                 getBitmexTransactiondataProvider().getTransactionsGreaterThanDateTime(
                     maxTransactionTime != null ? new DateTime(maxTransactionTime) : null, account.getAccountId());
             log.info("Found {} new transactions for account {}", newTransactions.size(), account.getAccountId());
 
-            for (Transaction<String, Long, String> transaction : newTransactions) {
+            for (Transaction<String, Long> transaction : newTransactions) {
                 log.info("Transaction type {}, price {}", transaction.getTransactionType(), transaction.getPrice());
 
                 BitmexTransaction bitmexTransaction = fromTransaction(transaction);
@@ -65,7 +65,7 @@ public class BitmexTransactionService {
 
     }
 
-    private BitmexTransaction fromTransaction(Transaction<String, Long, String> transaction) {
+    private BitmexTransaction fromTransaction(Transaction<String, Long> transaction) {
         BitmexTransaction bitmexTransaction = new BitmexTransaction();
 
         bitmexTransaction.setInterest(transaction.getInterest());

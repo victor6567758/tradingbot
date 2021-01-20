@@ -21,9 +21,9 @@ public class OrderInfoServiceTest<N> {
 
 	@Test
 	public void netPositionCountForCurrencyTest() {
-		final OrderManagementProvider<Long, N, Long> orderManagementProvider = mock(OrderManagementProvider.class);
-		OrderInfoService<Long, N, Long> service = new OrderInfoService<Long, N, Long>(orderManagementProvider);
-		Collection<Order<N, Long>> orders = createOrders();
+		final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
+		OrderInfoService<Long, Long> service = new OrderInfoService<Long, Long>(orderManagementProvider);
+		Collection<Order<Long>> orders = createOrders();
 		when(orderManagementProvider.allPendingOrders()).thenReturn(orders);
 		assertEquals(0, service.findNetPositionCountForCurrency("EUR"));
 		assertEquals(2, service.findNetPositionCountForCurrency("JPY"));
@@ -38,28 +38,28 @@ public class OrderInfoServiceTest<N> {
 		service.pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2);
 		verify(orderManagementProvider, times(1)).pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2);
 
-		TradeableInstrument<N> usdchf = new TradeableInstrument<N>("USD_CHF");
+		TradeableInstrument usdchf = new TradeableInstrument("USD_CHF", "USD_CHF");
 		service.pendingOrdersForInstrument(usdchf);
 		verify(orderManagementProvider, times(1)).pendingOrdersForInstrument(usdchf);
 	}
 
-	private Collection<Order<N, Long>> createOrders() {
-		Collection<Order<N, Long>> orders = Lists.newArrayList();
+	private Collection<Order<Long>> createOrders() {
+		Collection<Order<Long>> orders = Lists.newArrayList();
 
-		Order<N, Long> order1 = mock(Order.class);
-		TradeableInstrument<N> eurjpy = new TradeableInstrument<N>("EUR_JPY");
+		Order<Long> order1 = mock(Order.class);
+		TradeableInstrument eurjpy = new TradeableInstrument("EUR_JPY","EUR_JPY");
 		when(order1.getInstrument()).thenReturn(eurjpy);
 		when(order1.getSide()).thenReturn(TradingSignal.SHORT);
 		orders.add(order1);
 
-		Order<N, Long> order2 = mock(Order.class);
-		TradeableInstrument<N> eurusd = new TradeableInstrument<N>("EUR_USD");
+		Order<Long> order2 = mock(Order.class);
+		TradeableInstrument eurusd = new TradeableInstrument("EUR_USD","EUR_USD");
 		when(order2.getInstrument()).thenReturn(eurusd);
 		when(order2.getSide()).thenReturn(TradingSignal.LONG);
 		orders.add(order2);
 
-		Order<N, Long> order3 = mock(Order.class);
-		TradeableInstrument<N> gbpjpy = new TradeableInstrument<N>("GBP_JPY");
+		Order<Long> order3 = mock(Order.class);
+		TradeableInstrument gbpjpy = new TradeableInstrument("GBP_JPY","GBP_JPY");
 		when(order3.getInstrument()).thenReturn(gbpjpy);
 		when(order3.getSide()).thenReturn(TradingSignal.SHORT);
 		orders.add(order3);

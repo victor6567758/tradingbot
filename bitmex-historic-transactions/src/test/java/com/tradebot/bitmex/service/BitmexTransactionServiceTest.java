@@ -58,7 +58,7 @@ public class BitmexTransactionServiceTest {
 
     private AccountDataProvider<Long> accountDataProviderMock;
 
-    private TransactionDataProvider<String, Long, String> transactionDataProviderMock;
+    private TransactionDataProvider<String, Long> transactionDataProviderMock;
 
     @Autowired
     private BimexAccounRepository bimexAccounRepository;
@@ -79,7 +79,7 @@ public class BitmexTransactionServiceTest {
         doReturn(createAccount1()).when(accountDataProviderMock).getLatestAccountsInfo();
 
         transactionDataProviderMock = mock(BitmexTransactionDataProviderService.class);
-        List<com.tradebot.core.account.transaction.Transaction<String, Long, String>> newTransactions =
+        List<com.tradebot.core.account.transaction.Transaction<String, Long>> newTransactions =
             transactions.stream()
                 .map(BitmexTransactionServiceTest::mapToTransaction)
                 .collect(Collectors.toList());
@@ -132,7 +132,7 @@ public class BitmexTransactionServiceTest {
         return Collections.singletonList(account);
     }
 
-    private static com.tradebot.core.account.transaction.Transaction<String, Long, String> mapToTransaction(Transaction transaction) {
+    private static com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {
         return new com.tradebot.core.account.transaction.Transaction<>(
             transaction.getTransactID(),
             BitmexUtils.findByStringMarker(BitmexTransactionTypeEvent.values(),

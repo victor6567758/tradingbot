@@ -33,7 +33,7 @@ public class AccountInfoServiceTest {
         when(baseTradingConfig.getMinAmountRequired()).thenReturn(200.00);
 
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-        AccountInfoService<Long, String> accInfoService = new AccountInfoService<>(accountDataProvider,
+        AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
             null, baseTradingConfig, null);
         List<Account<Long>> accounts = createAccounts();
 
@@ -50,12 +50,12 @@ public class AccountInfoServiceTest {
     public void marginRateWhenAccountCurrencyNominatedTest() {
         /*account currency CHF and calculate margin for GBPUSD, effectively using GBPCHF rate*/
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-        CurrentPriceInfoProvider<String> currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
+        CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
         ProviderHelper<?> providerHelper = mock(ProviderHelper.class);
-        AccountInfoService<Long, String> accInfoService = new AccountInfoService<>(accountDataProvider,
+        AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
             currentPriceInfoProvider, null, providerHelper);
-        TradeableInstrument<String> gbpusd = new TradeableInstrument<>("GBP_USD");
-        TradeableInstrument<String> gbpchf = new TradeableInstrument<>("GBP_CHF");
+        TradeableInstrument gbpusd = new TradeableInstrument("GBP_USD","GBP_USD");
+        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF","GBP_CHF");
         Account<Long> account = mock(Account.class);
 
         when(accountDataProvider.getLatestAccountInfo(TradingTestConstants.ACCOUNT_ID_1)).thenReturn(account);
@@ -63,8 +63,8 @@ public class AccountInfoServiceTest {
         when(account.getMarginRate()).thenReturn(MARGIN_RATE);
         when(providerHelper.fromIsoFormat(eq("GBPCHF"))).thenReturn(gbpchf.getInstrument());
 
-        Map<TradeableInstrument<String>, Price<String>> priceInfoMap = Maps.newHashMap();
-        priceInfoMap.put(gbpchf, new Price<String>(gbpchf, 1.4811, 1.4813, DateTime.now()));
+        Map<TradeableInstrument, Price> priceInfoMap = Maps.newHashMap();
+        priceInfoMap.put(gbpchf, new Price(gbpchf, 1.4811, 1.4813, DateTime.now()));
         when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(gbpchf)))).thenReturn(
             priceInfoMap);
 
@@ -78,13 +78,13 @@ public class AccountInfoServiceTest {
     public void marginRateWhenAccountCurrencyBaseTest() {
         /*account currency EUR and calculate margin for AUDUSD, effectively using AUDEUR rate*/
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-        CurrentPriceInfoProvider<String> currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
+        CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
         ProviderHelper<?> providerHelper = mock(ProviderHelper.class);
-        AccountInfoService<Long, String> accInfoService = new AccountInfoService<Long, String>(accountDataProvider,
+        AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
             currentPriceInfoProvider, null, providerHelper);
-        TradeableInstrument<String> audusd = new TradeableInstrument<>("AUD_USD");
-        TradeableInstrument<String> euraud = new TradeableInstrument<>("EUR_AUD");
-        TradeableInstrument<String> audeur = new TradeableInstrument<>("AUD_EUR");
+        TradeableInstrument audusd = new TradeableInstrument("AUD_USD","AUD_USD");
+        TradeableInstrument euraud = new TradeableInstrument("EUR_AUD", "EUR_AUD");
+        TradeableInstrument audeur = new TradeableInstrument("AUD_EUR", "AUD_EUR");
         Account<Long> account = mock(Account.class);
 
         when(accountDataProvider.getLatestAccountInfo(TradingTestConstants.ACCOUNT_ID_1)).thenReturn(account);
@@ -93,8 +93,8 @@ public class AccountInfoServiceTest {
         when(providerHelper.fromIsoFormat(eq("AUDEUR"))).thenReturn(audeur.getInstrument());
         when(providerHelper.fromIsoFormat(eq("EURAUD"))).thenReturn(euraud.getInstrument());
 
-        Map<TradeableInstrument<String>, Price<String>> priceInfoMap = Maps.newHashMap();
-        priceInfoMap.put(euraud, new Price<String>(euraud, 1.5636, 1.564, DateTime.now()));
+        Map<TradeableInstrument, Price> priceInfoMap = Maps.newHashMap();
+        priceInfoMap.put(euraud, new Price(euraud, 1.5636, 1.564, DateTime.now()));
         when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(audeur)))).thenReturn(
             Maps.newHashMap());
         when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(euraud)))).thenReturn(

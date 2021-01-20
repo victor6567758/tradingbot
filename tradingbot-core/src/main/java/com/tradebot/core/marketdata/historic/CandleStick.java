@@ -5,7 +5,7 @@ import lombok.Getter;
 import org.joda.time.DateTime;
 
 @Getter
-public class CandleStick<T> {
+public class CandleStick {
 
     /*All prices are average of bid and ask ,i.e (bid+ask)/2*/
     private final double openPrice;
@@ -13,7 +13,7 @@ public class CandleStick<T> {
     private final double lowPrice;
     private final double closePrice;
     private final DateTime eventDate;
-    private final TradeableInstrument<T> instrument;
+    private final TradeableInstrument instrument;
     private final CandleStickGranularity candleGranularity;
     private final String toStr;
     private final int hash;
@@ -24,7 +24,7 @@ public class CandleStick<T> {
         double lowPrice,
         double closePrice,
         DateTime eventDate,
-        TradeableInstrument<T> instrument,
+        TradeableInstrument instrument,
         CandleStickGranularity candleGranularity) {
         this.openPrice = openPrice;
         this.highPrice = highPrice;
@@ -60,7 +60,6 @@ public class CandleStick<T> {
     }
 
     @Override
-    @SuppressWarnings("unckecked")
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -71,7 +70,7 @@ public class CandleStick<T> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        CandleStick<?> other = (CandleStick<?>) obj;
+        CandleStick other = (CandleStick) obj;
         if (candleGranularity != other.candleGranularity) {
             return false;
         }

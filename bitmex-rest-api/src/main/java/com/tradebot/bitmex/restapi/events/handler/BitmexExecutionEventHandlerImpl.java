@@ -18,7 +18,7 @@ public class BitmexExecutionEventHandlerImpl implements
     EmailContentGenerator<BitmexExecution, BitmexExecutionEventPayload>,
     EventPayLoadToTweet<BitmexExecution, BitmexExecutionEventPayload> {
 
-    private final TradeInfoService<Long, String, Long> tradeInfoService;
+    private final TradeInfoService<Long, Long> tradeInfoService;
     private final long accountId;
 
     @Override
@@ -26,7 +26,6 @@ public class BitmexExecutionEventHandlerImpl implements
     @AllowConcurrentEvents
     public void handleEvent(BitmexExecutionEventPayload payLoad) {
         Preconditions.checkNotNull(payLoad);
-
         tradeInfoService.refreshTradesForAccount(accountId);
     }
 
