@@ -7,22 +7,24 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexInstrumentEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
+import com.tradebot.bitmex.restapi.events.payload.BitmexTradeBinEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexTradeEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.JsonEventPayLoad;
 import com.tradebot.bitmex.restapi.events.payload.ProcessedEventVisitor;
 import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
 import com.tradebot.bitmex.restapi.marketdata.BitmexCurrentPriceInfoProvider;
+import com.tradebot.bitmex.restapi.marketdata.historic.BitmexHistoricMarketDataProvider;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexInstrument;
 import com.tradebot.bitmex.restapi.model.BitmexOrder;
 import com.tradebot.bitmex.restapi.model.BitmexTrade;
+import com.tradebot.bitmex.restapi.model.BitmexTradeBin;
 import com.tradebot.bitmex.restapi.streaming.events.BitmexEventsStreamingService;
 import com.tradebot.bitmex.restapi.streaming.marketdata.BitmexMarketDataStreamingService;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.events.EventCallbackImpl;
-import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallbackImpl;
 import com.tradebot.core.instrument.InstrumentDataProvider;
@@ -33,12 +35,13 @@ import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.MarketDataPayLoad;
 import com.tradebot.core.marketdata.MarketEventCallback;
 import com.tradebot.core.marketdata.MarketEventHandlerImpl;
+import com.tradebot.core.marketdata.historic.CandleStick;
+import com.tradebot.core.marketdata.historic.CandleStickGranularity;
+import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.streaming.events.EventsStreamingService;
 import com.tradebot.core.streaming.marketdata.MarketDataStreamingService;
-import com.tradebot.service.event.EventPayLoadSink;
-import com.tradebot.service.event.MarketDataPayLoadSink;
-import com.tradebot.service.event.callback.EventPayLoadCallback;
 import com.tradebot.service.event.callback.MarketDataPayLoadSinkCallback;
+import com.tradebot.util.CacheCandlestick;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
@@ -61,17 +65,19 @@ public class BitmexTradingBot implements MarketDataPayLoadSinkCallback, Processe
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
-
     private final InstrumentDataProvider instrumentDataProvider = new BitmexInstrumentDataProviderService();
 
     private final InstrumentService instrumentService = new InstrumentService(instrumentDataProvider);
 
     private final CurrentPriceInfoProvider currentPriceInfoProvider = new BitmexCurrentPriceInfoProvider();
 
+    private final HistoricMarketDataProvider historicMarketDataProvider = new BitmexHistoricMarketDataProvider();
+
     private final BlockingQueue<TradingDecision> orderQueue = new LinkedBlockingQueue<>();
 
     private final Map<TradeableInstrument, Cache<DateTime, MarketDataPayLoad>> instrumentRecentPricesCache = new HashMap<>();
 
+    private final Map<TradeableInstrument, CacheCandlestick> cacheCandlestickMap = new HashMap<>();
 
     private final EventBus eventBus;
 
@@ -88,6 +94,8 @@ public class BitmexTradingBot implements MarketDataPayLoadSinkCallback, Processe
     private EventCallback<BitmexOrder> orderEventCallback;
 
     private EventCallback<BitmexTrade> tradeEventCallback;
+
+    private EventCallback<BitmexTradeBin> tradeBinEventCallback;
 
     private MarketDataStreamingService marketDataStreamingService;
 
@@ -111,21 +119,23 @@ public class BitmexTradingBot implements MarketDataPayLoadSinkCallback, Processe
 
         tradeEventCallback = new EventCallbackImpl<>(eventBus);
 
-        List<TradeableInstrument> instrumentList = resolveInstrumentList();
+        tradeBinEventCallback = new EventCallbackImpl<>(eventBus);
 
-        for (TradeableInstrument instrument : instrumentList) {
-            Cache<DateTime, MarketDataPayLoad> recentPricesCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getPriceExpiryMinutes(),
-                    TimeUnit.MINUTES).build();
-            instrumentRecentPricesCache.put(instrument, recentPricesCache);
-        }
+        Map<TradeableInstrument, List<CandleStickGranularity>> instruments = resolveInstrumentList();
+        initInternalCaches(instruments);
 
         marketDataStreamingService = new BitmexMarketDataStreamingService(
             marketEventCallback, eventBitmexCallback, heartBeatCallback,
-            instrumentList);
+            instruments.keySet());
 
         eventStreamingService = new BitmexEventsStreamingService(
-            eventJsonObjectCallback, executionEventCallback, orderEventCallback, tradeEventCallback, heartBeatCallback);
+            eventJsonObjectCallback,
+            executionEventCallback,
+            orderEventCallback,
+            tradeEventCallback,
+            tradeBinEventCallback,
+            heartBeatCallback,
+            instruments.keySet());
 
         marketDataStreamingService.init();
         marketDataStreamingService.startMarketDataStreaming();
@@ -133,6 +143,7 @@ public class BitmexTradingBot implements MarketDataPayLoadSinkCallback, Processe
         eventStreamingService.init();
         eventStreamingService.startEventsStreaming();
 
+        loadHistory(instruments);
     }
 
     @PreDestroy
@@ -141,30 +152,31 @@ public class BitmexTradingBot implements MarketDataPayLoadSinkCallback, Processe
         eventStreamingService.stopEventsStreaming();
     }
 
-
-    private List<TradeableInstrument> resolveInstrumentList() {
-        return bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradeableInstruments()
-            .stream()
-            .map( entry -> new TradeableInstrument(
-                (String)entry.get("instrument"),
-                (String)entry.get("instrumentId"),
-                (Double)entry.get("pip"),
-                new InstrumentPairInterestRate(
-                    (Double)entry.get("baseCurrencyBidInterestRate"),
-                    (Double)entry.get("baseCurrencyAskInterestRate"),
-                    (Double)entry.get("quoteCurrencyBidInterestRate"),
-                    (Double)entry.get("quoteCurrencyAskInterestRate")
-                ),
-                (String)entry.get("description")
-            )).collect(Collectors.toList());
-    }
-
     @Override
     public void onMarketEvent(MarketDataPayLoad marketDataPayLoad) {
-        if (instrumentRecentPricesCache.containsKey(marketDataPayLoad.getInstrument())) {
-            instrumentRecentPricesCache.get(marketDataPayLoad.getInstrument()).put(marketDataPayLoad.getEventDate(),
-                marketDataPayLoad);
+
+        Cache<DateTime, MarketDataPayLoad> cacheResolved = instrumentRecentPricesCache.get(marketDataPayLoad.getInstrument());
+        if (cacheResolved == null) {
+            throw new IllegalArgumentException(String.format("Not subscribed symbol %s", marketDataPayLoad.getInstrument()));
         }
+        cacheResolved.put(marketDataPayLoad.getEventDate(), marketDataPayLoad);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Tick data added to tick cache {}", marketDataPayLoad.getInstrument());
+        }
+
+//        CacheCandlestick cacheCandlestick = cacheCandlestickMap.get(marketDataPayLoad.getInstrument());
+//        if (cacheCandlestick == null) {
+//            if (log.isTraceEnabled()) {
+//                log.trace("Cache is not resolved for symbol {}", marketDataPayLoad.getInstrument());
+//            }
+//            return;
+//        }
+//
+//        cacheCandlestick.addTick(marketDataPayLoad);
+//        if (log.isTraceEnabled()) {
+//            log.trace("Tick data added to candle cache {}", marketDataPayLoad.getInstrument());
+//        }
     }
 
     @Override
@@ -201,4 +213,68 @@ public class BitmexTradingBot implements MarketDataPayLoadSinkCallback, Processe
             log.debug(event.getPayLoad().toString());
         }
     }
+
+    @Override
+    public void visit(BitmexTradeBinEventPayload event) {
+        if (log.isDebugEnabled()) {
+            log.debug(event.toString());
+        }
+    }
+
+    private void initInternalCaches(Map<TradeableInstrument, List<CandleStickGranularity>> instruments) {
+        for (TradeableInstrument instrument : instruments.keySet()) {
+            instrumentRecentPricesCache.put(instrument, CacheBuilder.newBuilder()
+                .expireAfterWrite(bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getPriceExpiryMinutes(),
+                    TimeUnit.MINUTES).build());
+        }
+
+        for (Map.Entry<TradeableInstrument, List<CandleStickGranularity>> entry : instruments.entrySet()) {
+
+            CacheCandlestick cacheCandlestick = new CacheCandlestick(entry.getKey(),
+                bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getPriceExpiryMinutes(),
+                entry.getValue());
+
+            cacheCandlestickMap.put(entry.getKey(), cacheCandlestick);
+        }
+    }
+
+    private void loadHistory(Map<TradeableInstrument, List<CandleStickGranularity>> instruments) {
+        for (Map.Entry<TradeableInstrument, List<CandleStickGranularity>> instrument : instruments.entrySet()) {
+            CacheCandlestick cacheCandlestick = cacheCandlestickMap.get(instrument.getKey());
+
+            for (CandleStickGranularity granularity : instrument.getValue()) {
+                List<CandleStick> history = historicMarketDataProvider.getCandleSticks(instrument.getKey(), granularity,
+                    DateTime.now().minus(bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getPriceExpiryMinutes()
+                        * 60 * 60 * 1000L),
+                    DateTime.now());
+
+                cacheCandlestick.addHistory(instrument.getKey(), history);
+            }
+        }
+    }
+
+    private Map<TradeableInstrument, List<CandleStickGranularity>> resolveInstrumentList() {
+        return bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradeableInstruments()
+            .stream()
+            .map(entry ->
+                new ImmutablePair<>(new TradeableInstrument(
+                    (String) entry.get("instrument"),
+                    (String) entry.get("instrumentId"),
+                    (Double) entry.get("pip"),
+                    new InstrumentPairInterestRate(
+                        (Double) entry.get("baseCurrencyBidInterestRate"),
+                        (Double) entry.get("baseCurrencyAskInterestRate"),
+                        (Double) entry.get("quoteCurrencyBidInterestRate"),
+                        (Double) entry.get("quoteCurrencyAskInterestRate")
+                    ),
+                    (String) entry.get("description")
+                ),
+                    ((List<String>) entry.get("cacheHistory")).stream()
+                        .map(CandleStickGranularity::valueOf).collect(Collectors.toList()))
+            ).collect(Collectors.toMap(
+                ImmutablePair::getLeft,
+                ImmutablePair::getRight));
+    }
+
+
 }

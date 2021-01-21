@@ -11,6 +11,7 @@ public enum TradeEvents implements Event {
     EVENT_INSTRUMENT,
     EVENT_ORDER,
     EVENT_TRADE,
+    EVENT_TRADE_BIN,
     EVENT_EXECUTION;
 
     @Override

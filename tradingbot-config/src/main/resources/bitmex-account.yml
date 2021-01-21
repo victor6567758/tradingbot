@@ -34,11 +34,21 @@ bitmex:
         baseCurrencyAskInterestRate: -1.0
         quoteCurrencyBidInterestRate: -1.0
         quoteCurrencyAskInterestRate: -1.0
-      - instrument: XBJUSD
-        description: XBJUSD
-        instrumentId: XBJUSD
+        cacheHistory:
+          - M1
+          - M5
+          - H1
+          - D
+      - instrument: XBTJPY
+        description: XBTJPY
+        instrumentId: XBTJPY
         pip: 0.0
         baseCurrencyBidInterestRate: -1.0
         baseCurrencyAskInterestRate: -1.0
         quoteCurrencyBidInterestRate: -1.0
         quoteCurrencyAskInterestRate: -1.0
+        cacheHistory:
+          - M1
+          - M5
+          - H1
+          - D

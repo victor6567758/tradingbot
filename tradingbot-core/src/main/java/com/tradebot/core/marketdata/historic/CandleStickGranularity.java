@@ -2,7 +2,7 @@
 package com.tradebot.core.marketdata.historic;
 
 public enum CandleStickGranularity {
-
+    S0(-1, "Dummy"),
     S5(5, "5 seconds"),
     S10(10, "10 seconds"),
     S15(15, "15 seconds"),
@@ -32,6 +32,7 @@ public enum CandleStickGranularity {
         this.granularityInSeconds = granularityInSeconds;
         this.label = label;
     }
+
 
     public long getGranularityInSeconds() {
         return granularityInSeconds;

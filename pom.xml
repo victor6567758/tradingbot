@@ -337,29 +337,29 @@
 <!--      </plugin>-->
 
 
-<!--      <plugin>-->
-<!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--        <configuration>-->
-<!--          <failsOnError>true</failsOnError>-->
-<!--        </configuration>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <configuration>-->
-<!--              <configLocation>checkstyle.xml</configLocation>-->
-<!--              <consoleOutput>true</consoleOutput>-->
-<!--              <encoding>UTF-8</encoding>-->
-<!--              <failsOnError>true</failsOnError>-->
-<!--            </configuration>-->
-<!--            <goals>-->
-<!--              <goal>check</goal>-->
-<!--            </goals>-->
-<!--            <id>Checking code style</id>-->
-<!--            <phase>validate</phase>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <version>${checkstyle-maven-plugin.version}</version>-->
-<!--      </plugin>-->
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <failsOnError>true</failsOnError>
+        </configuration>
+        <executions>
+          <execution>
+            <configuration>
+              <configLocation>checkstyle.xml</configLocation>
+              <consoleOutput>true</consoleOutput>
+              <encoding>UTF-8</encoding>
+              <failsOnError>true</failsOnError>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <id>Checking code style</id>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>${checkstyle-maven-plugin.version}</version>
+      </plugin>
 
     </plugins>
   </build>

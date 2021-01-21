@@ -2,7 +2,6 @@ package com.tradebot.bitmex.restapi.config;
 
 
 import com.tradebot.core.BaseTradingConfig;
-import com.tradebot.core.instrument.TradeableInstrument;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -45,6 +44,7 @@ public class BitmexAccountConfiguration {
 
     @Data
     public static class TradingConfiguration extends BaseTradingConfig {
+
         private String mailTo;
         private int priceExpiryMinutes;
         private List<Map<String, ?>> tradeableInstruments;

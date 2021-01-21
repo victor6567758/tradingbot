@@ -21,7 +21,7 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
 
     private static final String QUOTE = "quote";
     private static final String INSTRUMENT = "instrument";
-    public static final char QUOTE_DELIMITER = ':';
+    private static final char QUOTE_DELIMITER = ':';
 
     public BitmexMarketDataStreamingService(
         MarketEventCallback marketEventCallback,

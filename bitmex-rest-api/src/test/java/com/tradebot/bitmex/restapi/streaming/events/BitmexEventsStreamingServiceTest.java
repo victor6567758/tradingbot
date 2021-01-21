@@ -12,13 +12,17 @@ import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexOrder;
 import com.tradebot.bitmex.restapi.model.BitmexTrade;
+import com.tradebot.bitmex.restapi.model.BitmexTradeBin;
 import com.tradebot.bitmex.restapi.streaming.JettyCommunicationSocket;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatPayLoad;
+import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.After;
@@ -28,6 +32,11 @@ import org.mockito.ArgumentCaptor;
 
 @SuppressWarnings("unchecked")
 public class BitmexEventsStreamingServiceTest {
+
+    private static final Collection<TradeableInstrument> INSTRUMENTS = Arrays.asList(
+        new TradeableInstrument("XBTUSD", "XBTUSD"),
+        new TradeableInstrument("XBTJPY","XBTJPY")
+    );
 
     private JettyCommunicationSocket jettyCommunicationSocketSpy;
     private BitmexEventsStreamingService bitmexEventsStreamingServiceSpy;
@@ -50,6 +59,8 @@ public class BitmexEventsStreamingServiceTest {
     private EventCallback<BitmexExecution> executionEventCallbackSpy;
     private EventCallback<BitmexOrder> orderEventCallbackSpy;
     private EventCallback<BitmexTrade> tradeEventCallbackSpy;
+    private EventCallback<BitmexTradeBin> tradeEventBinCallbackSpy;
+
 
     // Must not be lambdas for correct Mockito work
     private final HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallback<Long>() {
@@ -77,6 +88,14 @@ public class BitmexEventsStreamingServiceTest {
 
         @Override
         public void onEvent(EventPayLoad<BitmexTrade> eventPayLoad) {
+
+        }
+    };
+    private final EventCallback<BitmexTradeBin> tradeEventBinCallback = new EventCallback<BitmexTradeBin>() {
+
+
+        @Override
+        public void onEvent(EventPayLoad<BitmexTradeBin> eventPayLoad) {
 
         }
     };
@@ -117,9 +136,18 @@ public class BitmexEventsStreamingServiceTest {
         executionEventCallbackSpy = spy(executionEventCallback);
         orderEventCallbackSpy = spy(orderEventCallback);
         tradeEventCallbackSpy = spy(tradeEventCallback);
+        tradeEventBinCallbackSpy = spy(tradeEventBinCallback);
 
-        bitmexEventsStreamingServiceSpy = spy(new BitmexEventsStreamingService(eventCallbackSpy, executionEventCallbackSpy, orderEventCallbackSpy, tradeEventCallbackSpy,
-            heartBeatCallbackSpy));
+        bitmexEventsStreamingServiceSpy = spy(new BitmexEventsStreamingService(
+            eventCallbackSpy,
+            executionEventCallbackSpy,
+            orderEventCallbackSpy,
+            tradeEventCallbackSpy,
+            tradeEventBinCallbackSpy,
+            heartBeatCallbackSpy,
+            INSTRUMENTS
+            )
+        );
         jettyCommunicationSocketSpy = spy(bitmexEventsStreamingServiceSpy.getJettyCommunicationSocket());
 
         doNothing().when(bitmexEventsStreamingServiceSpy).shutdown();

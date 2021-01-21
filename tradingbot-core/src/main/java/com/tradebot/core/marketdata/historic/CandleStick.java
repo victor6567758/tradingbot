@@ -26,6 +26,7 @@ public class CandleStick {
         DateTime eventDate,
         TradeableInstrument instrument,
         CandleStickGranularity candleGranularity) {
+
         this.openPrice = openPrice;
         this.highPrice = highPrice;
         this.lowPrice = lowPrice;

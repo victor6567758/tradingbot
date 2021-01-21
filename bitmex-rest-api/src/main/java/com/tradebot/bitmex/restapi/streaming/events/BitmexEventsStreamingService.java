@@ -1,19 +1,26 @@
 package com.tradebot.bitmex.restapi.streaming.events;
 
 import com.google.common.reflect.TypeToken;
+import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
+import com.tradebot.bitmex.restapi.events.payload.BitmexTradeBinEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexTradeEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.JsonEventPayLoad;
-import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexOrder;
 import com.tradebot.bitmex.restapi.model.BitmexResponse;
 import com.tradebot.bitmex.restapi.model.BitmexTrade;
+import com.tradebot.bitmex.restapi.model.BitmexTradeBin;
 import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
+import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.core.streaming.events.EventsStreamingService;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -26,19 +33,33 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     private static final String PUBLIC_NOTIFICATIONS = "publicNotifications";
     private static final String ORDER = "order";
     private static final String TRADE = "trade";
+    private static final String TRADE_BIN1M = "tradeBin1m";
+    private static final String TRADE_BIN5M = "tradeBin5m";
+    private static final String TRADE_BIN1H = "tradeBin1h";
+    private static final String TRADE_BIN1D = "tradeBin1d";
     private static final String EXECUTION = "execution";
+
+    private static final char QUOTE_DELIMITER = ':';
 
     public BitmexEventsStreamingService(
         EventCallback<JSONObject> eventCallback,
         EventCallback<BitmexExecution> executionEventCallback,
         EventCallback<BitmexOrder> orderEventCallback,
         EventCallback<BitmexTrade> tradeEventCallback,
-        HeartBeatCallback<Long> heartBeatCallback) {
+        EventCallback<BitmexTradeBin> tradeBinEventCallback,
+        HeartBeatCallback<Long> heartBeatCallback,
+        Collection<TradeableInstrument> instruments) {
+
         super(heartBeatCallback);
         this.eventCallback = eventCallback;
         this.executionEventCallback = executionEventCallback;
         this.orderEventCallback = orderEventCallback;
         this.tradeEventCallback = tradeEventCallback;
+        this.tradeBinEventCallback = tradeBinEventCallback;
+        this.instruments = instruments;
+
+        validRawInstruments =
+            instruments.stream().map(TradeableInstrument::getInstrument).collect(Collectors.toUnmodifiableSet());
 
         initMapping(new MappingFunction[]{
             new MappingFunction(this::processAnnouncementReply, ANNOUNCEMENT),
@@ -46,6 +67,12 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
             new MappingFunction(this::processPublicNotificationsReply, PUBLIC_NOTIFICATIONS),
             new MappingFunction(this::processOrder, ORDER),
             new MappingFunction(this::processTrade, TRADE),
+
+            new MappingFunction(this::processTradeBin1M, TRADE_BIN1M),
+            new MappingFunction(this::processTradeBin5M, TRADE_BIN5M),
+            new MappingFunction(this::processTradeBin1H, TRADE_BIN1H),
+            new MappingFunction(this::processTradeBin1D, TRADE_BIN1D),
+
             new MappingFunction(this::processExecution, EXECUTION)
         });
     }
@@ -54,6 +81,9 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     private final EventCallback<BitmexExecution> executionEventCallback;
     private final EventCallback<BitmexOrder> orderEventCallback;
     private final EventCallback<BitmexTrade> tradeEventCallback;
+    private final EventCallback<BitmexTradeBin> tradeBinEventCallback;
+    private final Collection<TradeableInstrument> instruments;
+    private final Set<String> validRawInstruments;
 
 
     @Override
@@ -77,7 +107,13 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(INSURANCE));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(PUBLIC_NOTIFICATIONS));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(ORDER));
+
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE_BIN1M));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE_BIN5M));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE_BIN1H));
+        jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE_BIN1D));
+
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(EXECUTION));
     }
 
@@ -87,7 +123,13 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(INSURANCE));
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(PUBLIC_NOTIFICATIONS));
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(ORDER));
+
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(TRADE));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(TRADE_BIN1M));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(TRADE_BIN5M));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(TRADE_BIN1H));
+        jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(TRADE_BIN1D));
+
         jettyCommunicationSocket.subscribe(buildUnSubscribeCommand(EXECUTION));
     }
 
@@ -124,12 +166,31 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         });
 
         for (BitmexTrade trade : trades.getData()) {
-            tradeEventCallback.onEvent(new BitmexTradeEventPayload(TradeEvents.EVENT_TRADE, trade));
+            if (validRawInstruments.contains(trade.getSymbol())) {
+                tradeEventCallback.onEvent(new BitmexTradeEventPayload(TradeEvents.EVENT_TRADE, trade));
 
-            if (log.isDebugEnabled()) {
-                log.debug("Parsed trade event: {}", trade.toString());
+                if (log.isDebugEnabled()) {
+                    log.debug("Parsed trade event: {}", trade.toString());
+                }
             }
         }
+    }
+
+    private void processTradeBin1M(String message) {
+
+        propagateTradeBin(message, CandleStickGranularity.M1);
+    }
+
+    private void processTradeBin5M(String message) {
+        propagateTradeBin(message, CandleStickGranularity.M5);
+    }
+
+    private void processTradeBin1H(String message) {
+        propagateTradeBin(message, CandleStickGranularity.H1);
+    }
+
+    private void processTradeBin1D(String message) {
+        propagateTradeBin(message, CandleStickGranularity.D);
     }
 
     private void processExecution(String message) {
@@ -141,6 +202,21 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
 
             if (log.isDebugEnabled()) {
                 log.debug("Parsed execution event: {}", execution.toString());
+            }
+        }
+    }
+
+    private void propagateTradeBin(String message, CandleStickGranularity granularity) {
+        BitmexResponse<BitmexTradeBin> tradeBins = parseMessage(message, new TypeToken<>() {
+        });
+
+        for (BitmexTradeBin tradeBin : tradeBins.getData()) {
+            if (validRawInstruments.contains(tradeBin.getSymbol())) {
+                tradeBinEventCallback.onEvent(new BitmexTradeBinEventPayload(TradeEvents.EVENT_TRADE_BIN, tradeBin, granularity));
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Parsed trade bin: {}", tradeBin.toString());
+                }
             }
         }
     }

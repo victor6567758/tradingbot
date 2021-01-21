@@ -15,7 +15,7 @@ public class BitmexOrder {
 
     private double orderQty;
 
-    private Double price;
+    private double price;
 
     //Valid options: Buy, Sell.
     private TradingSignal side;

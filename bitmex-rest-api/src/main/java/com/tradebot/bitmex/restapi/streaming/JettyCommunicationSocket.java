@@ -100,7 +100,11 @@ public class JettyCommunicationSocket {
         Future<Void> future = session.getRemote().sendStringByFuture(message);
         try {
             future.get(COMMAND_DELAY, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException exception) {
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new JettyCommunicationSocketException(interruptedException);
+        }
+        catch (ExecutionException | TimeoutException exception) {
             throw new JettyCommunicationSocketException(exception);
         }
     }

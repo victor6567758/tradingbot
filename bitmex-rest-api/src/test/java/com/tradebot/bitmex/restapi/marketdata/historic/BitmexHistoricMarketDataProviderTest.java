@@ -68,7 +68,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1m"),
             eq(true),
-            eq(BitmexUtils.getSymbol(INSTRUMENT)),
+            eq(INSTRUMENT.getInstrument()),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -81,7 +81,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1d"),
             eq(true),
-            eq(BitmexUtils.getSymbol(INSTRUMENT)),
+            eq(INSTRUMENT.getInstrument()),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -94,7 +94,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1d"),
             eq(true),
-            eq(BitmexUtils.getSymbol(INSTRUMENT)),
+            eq(INSTRUMENT.getInstrument()),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
