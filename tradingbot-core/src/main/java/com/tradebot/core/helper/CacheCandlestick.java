@@ -1,4 +1,4 @@
-package com.tradebot.util;
+package com.tradebot.core.helper;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -10,12 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
-import org.springframework.util.CollectionUtils;
-
 
 @Slf4j
 public class CacheCandlestick {
+
+    private static final String NOT_OF_CORRECT_GRANULARITY = "This candlestick %s is not of correct granularity";
+    private static final String NOT_OF_CORRECT_INSTRUMENT = "This candlestick %s is not of correct instrument %s";
+    private static final String NOT_OF_THE_SAME_GRANULARITY_AS = "This candlestick %s is not of the same granularity as %s";
 
     private final TradeableInstrument instrument;
     private final Map<CandleStickGranularity, Cache<DateTime, CandleStick>> cache = new EnumMap<>(CandleStickGranularity.class);
@@ -34,16 +37,29 @@ public class CacheCandlestick {
         this.instrument = instrument;
     }
 
-//    public void addTick(MarketDataPayLoad marketDataPayLoad) {
-//        for(Map.Entry<CandleStickGranularity, Cache<DateTime, CandleStick>> entry: cache.entrySet()) {
-//
-//        }
-//    }
+    public void addCandlestick(CandleStick candleStick) {
+        Cache<DateTime, CandleStick> cacheResolved = cache.get(candleStick.getCandleGranularity());
+        if (cacheResolved == null) {
+            throw new IllegalArgumentException(String.format(NOT_OF_CORRECT_GRANULARITY,
+                candleStick.getCandleGranularity()));
+        }
+
+        if (!candleStick.getInstrument().equals(instrument)) {
+            throw new IllegalArgumentException(String.format(NOT_OF_CORRECT_INSTRUMENT,
+                candleStick.toString(), instrument));
+        }
+
+        cacheResolved.put(candleStick.getEventDate(), candleStick);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Candlestick was added to cache {}", candleStick.toString());
+        }
+    }
 
     public Map<DateTime, CandleStick> getValuesForGranularity(CandleStickGranularity candleStickGranularity) {
         Cache<DateTime, CandleStick> cacheResolved = cache.get(candleStickGranularity);
         if (cacheResolved == null) {
-            throw new IllegalArgumentException(String.format("This candlestick %s is not of correct granularity",
+            throw new IllegalArgumentException(String.format(NOT_OF_CORRECT_GRANULARITY,
                 candleStickGranularity));
         }
 
@@ -59,26 +75,28 @@ public class CacheCandlestick {
         CandleStick candleStickFirst = newCandleSticks.get(0);
 
         if (!candleStickFirst.getInstrument().equals(instrument)) {
-            throw new IllegalArgumentException(String.format("This candlestick %s is not of correct instrument %s",
+            throw new IllegalArgumentException(String.format(NOT_OF_CORRECT_INSTRUMENT,
                 candleStickFirst.toString(), instrument));
         }
 
         Cache<DateTime, CandleStick> cacheResolved = cache.get(candleStickFirst.getCandleGranularity());
         if (cacheResolved == null) {
-            throw new IllegalArgumentException(String.format("This candlestick %s is not of correct granularity",
+            throw new IllegalArgumentException(String.format(NOT_OF_CORRECT_GRANULARITY,
                 candleStickFirst.toString()));
         }
 
         for (CandleStick candleStick : newCandleSticks) {
 
             if (candleStickFirst.getCandleGranularity() != candleStick.getCandleGranularity()) {
-                throw new IllegalArgumentException(String.format("This candlestick %s is not of the same granularity as %s",
+                throw new IllegalArgumentException(String.format(NOT_OF_THE_SAME_GRANULARITY_AS,
                     candleStickFirst.toString(), candleStick.toString()));
             }
 
             cacheResolved.put(candleStick.getEventDate(), candleStick);
+
+            if (log.isTraceEnabled()) {
+                log.trace("Historical candlestick was added to cache {}", candleStick.toString());
+            }
         }
     }
-
-
 }

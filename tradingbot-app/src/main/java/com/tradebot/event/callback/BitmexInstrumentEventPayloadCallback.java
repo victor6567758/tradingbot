@@ -1,4 +1,4 @@
-package com.tradebot.service.event.callback;
+package com.tradebot.event.callback;
 
 public class BitmexInstrumentEventPayloadCallback {
 

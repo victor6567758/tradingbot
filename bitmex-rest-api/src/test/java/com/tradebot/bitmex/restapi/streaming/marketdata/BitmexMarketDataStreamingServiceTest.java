@@ -21,6 +21,7 @@ import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatPayLoad;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.MarketEventCallback;
+import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -93,6 +94,13 @@ public class BitmexMarketDataStreamingServiceTest {
 
         @Override
         public void onMarketEvent(TradeableInstrument instrument, double bid, double ask, DateTime eventDate) {
+
+        }
+
+        @Override
+        public void onTradeBinEvent(TradeableInstrument instrument, CandleStickGranularity candleStickGranularity,
+            DateTime timestamp, double open, double high, double low,
+            double close, long volume) {
 
         }
     };

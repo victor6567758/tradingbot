@@ -1,4 +1,4 @@
-package com.tradebot.service.event;
+package com.tradebot.event;
 
 
 import com.google.common.eventbus.AllowConcurrentEvents;

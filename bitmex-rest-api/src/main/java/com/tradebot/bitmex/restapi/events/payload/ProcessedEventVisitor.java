@@ -6,5 +6,4 @@ public interface ProcessedEventVisitor {
     void visit(BitmexOrderEventPayload event);
     void visit(BitmexInstrumentEventPayload event);
     void visit(BitmexExecutionEventPayload event);
-    void visit(BitmexTradeBinEventPayload event);
 }

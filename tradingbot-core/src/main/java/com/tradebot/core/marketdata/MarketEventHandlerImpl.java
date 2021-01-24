@@ -1,10 +1,11 @@
 
 package com.tradebot.core.marketdata;
 
-import org.joda.time.DateTime;
-
 import com.google.common.eventbus.EventBus;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.marketdata.historic.CandleStick;
+import com.tradebot.core.marketdata.historic.CandleStickGranularity;
+import org.joda.time.DateTime;
 
 public class MarketEventHandlerImpl implements MarketEventCallback {
 
@@ -16,8 +17,21 @@ public class MarketEventHandlerImpl implements MarketEventCallback {
 
     @Override
     public void onMarketEvent(TradeableInstrument instrument, double bid, double ask, DateTime eventDate) {
-        MarketDataPayLoad payload = new MarketDataPayLoad(bid, ask, instrument, eventDate);
-        eventBus.post(payload);
+        eventBus.post(new MarketDataPayLoad(bid, ask, instrument, eventDate));
+    }
+
+    @Override
+    public void onTradeBinEvent(
+        TradeableInstrument instrument,
+        CandleStickGranularity candleStickGranularity,
+        DateTime timestamp,
+        double open,
+        double high,
+        double low,
+        double close,
+        long volume) {
+
+        eventBus.post(new CandleStick(open, high, low, close, timestamp, instrument, candleStickGranularity));
     }
 
 }

@@ -1,9 +1,9 @@
-package com.tradebot.service.event;
+package com.tradebot.event;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.tradebot.core.marketdata.MarketDataPayLoad;
-import com.tradebot.service.event.callback.MarketDataPayLoadSinkCallback;
+import com.tradebot.event.callback.MarketDataPayLoadSinkCallback;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 

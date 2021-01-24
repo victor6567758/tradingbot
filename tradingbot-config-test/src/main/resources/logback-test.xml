@@ -22,7 +22,7 @@
 
     <rollingPolicy
       class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${DEBUG_LOGS}/archived/happy-trader-2.0-%d{yyyy-MM-dd}.%i.log
+      <fileNamePattern>${DEBUG_LOGS}/archived/happy-trader-2.0-test-%d{yyyy-MM-dd}.%i.log
       </fileNamePattern>
       <timeBasedFileNamingAndTriggeringPolicy
         class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">

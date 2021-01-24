@@ -1,30 +1,35 @@
-package com.tradebot.util;
+package com.tradebot.stepdefs;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Test;
 
-public class CacheCandlestickTest {
+public class TradeBotAppDefinitions {
 
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss");
 
+    private final TradeableInstrument tradeableInstrument = new TradeableInstrument("USDJPY", "USDJPY");
 
-    @Test
-    public void addHistoryTest() {
-        TradeableInstrument tradeableInstrument = new TradeableInstrument("USDJPY", "USDJPY");
+    private CacheCandlestick cacheCandlestick;
 
-        CacheCandlestick cacheCandlestick = new CacheCandlestick(tradeableInstrument, 10,
+    @Given("^I have empty cache$")
+    public void i_have_empty_cache() throws Exception {
+        cacheCandlestick = new CacheCandlestick(tradeableInstrument, 10,
             Collections.singletonList(CandleStickGranularity.H1));
+    }
 
+    @When("^I added history$")
+    public void i_added_history() throws Exception {
         CandleStick candleStick1 = new CandleStick(1.0, 2.0, 0.5, 2.1, DATETIME_FORMATTER.parseDateTime("01/01/2020 01:00:00"),
             tradeableInstrument,
             CandleStickGranularity.H1);
@@ -37,9 +42,11 @@ public class CacheCandlestickTest {
             candleStick1,
             candleStick2
         ));
-
-        Map<DateTime, CandleStick> result = cacheCandlestick.getValuesForGranularity(CandleStickGranularity.H1);
-        assertThat(result.keySet()).containsExactlyInAnyOrder(candleStick1.getEventDate(), candleStick2.getEventDate());
-        assertThat(result.values()).containsExactlyInAnyOrder(candleStick1, candleStick2);
     }
+
+    @Then("^I will be able to read history$")
+    public void i_will_be_able_to_read_history() throws Exception {
+        Map<DateTime, CandleStick> result = cacheCandlestick.getValuesForGranularity(CandleStickGranularity.H1);
+    }
+
 }

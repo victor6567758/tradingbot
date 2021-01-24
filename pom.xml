@@ -58,6 +58,8 @@
     <hikary.version>3.4.5</hikary.version>
     <thymeleaf.version>2.4.2</thymeleaf.version>
 
+    <cucumber.version>6.9.1</cucumber.version>
+
   </properties>
 
   <dependencyManagement>
@@ -286,6 +288,20 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito-core.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-java</artifactId>
+        <version>${cucumber.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-junit</artifactId>
+        <version>${cucumber.version}</version>
         <scope>test</scope>
       </dependency>
 

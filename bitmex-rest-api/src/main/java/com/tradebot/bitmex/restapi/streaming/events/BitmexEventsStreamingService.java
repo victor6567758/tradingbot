@@ -4,7 +4,6 @@ import com.google.common.reflect.TypeToken;
 import com.tradebot.bitmex.restapi.events.TradeEvents;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
-import com.tradebot.bitmex.restapi.events.payload.BitmexTradeBinEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexTradeEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.JsonEventPayLoad;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
@@ -16,6 +15,7 @@ import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.marketdata.MarketEventCallback;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.core.streaming.events.EventsStreamingService;
 import java.util.Collection;
@@ -42,6 +42,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     private static final char QUOTE_DELIMITER = ':';
 
     public BitmexEventsStreamingService(
+        MarketEventCallback marketEventCallback,
         EventCallback<JSONObject> eventCallback,
         EventCallback<BitmexExecution> executionEventCallback,
         EventCallback<BitmexOrder> orderEventCallback,
@@ -51,6 +52,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         Collection<TradeableInstrument> instruments) {
 
         super(heartBeatCallback);
+        this.marketEventCallback = marketEventCallback;
         this.eventCallback = eventCallback;
         this.executionEventCallback = executionEventCallback;
         this.orderEventCallback = orderEventCallback;
@@ -77,6 +79,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         });
     }
 
+    private final MarketEventCallback marketEventCallback;
     private final EventCallback<JSONObject> eventCallback;
     private final EventCallback<BitmexExecution> executionEventCallback;
     private final EventCallback<BitmexOrder> orderEventCallback;
@@ -212,8 +215,17 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
 
         for (BitmexTradeBin tradeBin : tradeBins.getData()) {
             if (validRawInstruments.contains(tradeBin.getSymbol())) {
-                tradeBinEventCallback.onEvent(new BitmexTradeBinEventPayload(TradeEvents.EVENT_TRADE_BIN, tradeBin, granularity));
 
+                marketEventCallback.onTradeBinEvent(
+                    new TradeableInstrument(tradeBin.getSymbol(), tradeBin.getSymbol()),
+                    granularity,
+                    tradeBin.getTimestamp(),
+                    tradeBin.getOpen(),
+                    tradeBin.getHigh(),
+                    tradeBin.getLow(),
+                    tradeBin.getClose(),
+                    tradeBin.getVolume()
+                );
                 if (log.isDebugEnabled()) {
                     log.debug("Parsed trade bin: {}", tradeBin.toString());
                 }

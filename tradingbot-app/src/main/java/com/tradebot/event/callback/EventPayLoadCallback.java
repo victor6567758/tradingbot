@@ -1,4 +1,4 @@
-package com.tradebot.service.event.callback;
+package com.tradebot.event.callback;
 
 import com.tradebot.bitmex.restapi.events.payload.JsonEventPayLoad;
 

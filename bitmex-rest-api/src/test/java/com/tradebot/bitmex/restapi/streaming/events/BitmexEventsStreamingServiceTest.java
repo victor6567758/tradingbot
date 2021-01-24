@@ -19,10 +19,13 @@ import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatPayLoad;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.marketdata.MarketEventCallback;
+import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import org.joda.time.DateTime;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.After;
@@ -60,6 +63,8 @@ public class BitmexEventsStreamingServiceTest {
     private EventCallback<BitmexOrder> orderEventCallbackSpy;
     private EventCallback<BitmexTrade> tradeEventCallbackSpy;
     private EventCallback<BitmexTradeBin> tradeEventBinCallbackSpy;
+
+    private MarketEventCallback marketEventCallbackSpy;
 
 
     // Must not be lambdas for correct Mockito work
@@ -108,6 +113,21 @@ public class BitmexEventsStreamingServiceTest {
         }
     };
 
+    private final MarketEventCallback marketEventCallback = new MarketEventCallback() {
+
+        @Override
+        public void onMarketEvent(TradeableInstrument instrument, double bid, double ask, DateTime eventDate) {
+
+        }
+
+        @Override
+        public void onTradeBinEvent(TradeableInstrument instrument, CandleStickGranularity candleStickGranularity,
+            DateTime timestamp, double open, double high, double low,
+            double close, long volume) {
+
+        }
+    };
+
     @Before
     public void init() throws IOException {
 
@@ -137,8 +157,10 @@ public class BitmexEventsStreamingServiceTest {
         orderEventCallbackSpy = spy(orderEventCallback);
         tradeEventCallbackSpy = spy(tradeEventCallback);
         tradeEventBinCallbackSpy = spy(tradeEventBinCallback);
+        marketEventCallbackSpy = spy(marketEventCallback);
 
         bitmexEventsStreamingServiceSpy = spy(new BitmexEventsStreamingService(
+            marketEventCallbackSpy,
             eventCallbackSpy,
             executionEventCallbackSpy,
             orderEventCallbackSpy,

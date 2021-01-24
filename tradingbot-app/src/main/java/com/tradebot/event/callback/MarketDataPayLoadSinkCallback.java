@@ -1,4 +1,4 @@
-package com.tradebot.service.event.callback;
+package com.tradebot.event.callback;
 
 import com.tradebot.core.marketdata.MarketDataPayLoad;
 
