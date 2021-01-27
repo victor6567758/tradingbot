@@ -1,46 +1,41 @@
 package com.tradebot.core.account;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import lombok.Getter;
 
 @Getter
 public class Account<T> {
 
-    private final double totalBalance;
-    private final double unrealisedPnl;
-    private final double realisedPnl;
-    private final double marginUsed;
-    private final double marginAvailable;
-    private final double netAssetValue;
+    private final BigDecimal totalBalance;
+    private final BigDecimal unrealisedPnl;
+    private final BigDecimal realisedPnl;
+    private final BigDecimal marginUsed;
+    /*The leverage offered on this account. for e.g. 0.05, 0.1 etc*/
+    private final BigDecimal marginRate;
+    private final BigDecimal marginAvailable;
     private final long openTrades;
     private final String currency;
     private final T accountId;
     private final String toStr;
+
     /*The amount available to trade as a fraction of total amount*/
-    private final double amountAvailableRatio;
-    /*The leverage offered on this account. for e.g. 0.05, 0.1 etc*/
-    private final double marginRate;
+    private final BigDecimal amountAvailableRatio;
+    private final BigDecimal netAssetValue;
+
     private final int hash;
 
-    public Account(
-        double totalBalance,
-        double marginAvailable,
-        String currency,
-        T accountId,
-        double marginRate) {
-
-        this(totalBalance, 0, 0, 0, marginAvailable, 0, currency, accountId, marginRate);
-    }
 
     public Account(
-        double totalBalance,
-        double unrealisedPnl,
-        double realisedPnl,
-        double marginUsed,
-        double marginAvailable,
+        BigDecimal totalBalance,
+        BigDecimal unrealisedPnl,
+        BigDecimal realisedPnl,
+        BigDecimal marginUsed,
+        BigDecimal marginAvailable,
         long openTrades,
         String currency,
         T accountId,
-        double marginRate) {
+        BigDecimal marginRate) {
 
         this.totalBalance = totalBalance;
         this.unrealisedPnl = unrealisedPnl;
@@ -50,9 +45,12 @@ public class Account<T> {
         this.openTrades = openTrades;
         this.currency = currency;
         this.accountId = accountId;
-        this.amountAvailableRatio = this.marginAvailable / this.totalBalance;
-        this.netAssetValue = this.marginUsed + this.marginAvailable;
         this.marginRate = marginRate;
+
+        this.amountAvailableRatio = this.marginAvailable.divide(this.totalBalance, 3, RoundingMode.HALF_UP);
+        this.netAssetValue = this.marginUsed.add(this.marginAvailable);
+
+
         this.hash = calcHashCode();
         toStr = String.format("Currency=%s,NAV=%5.2f,Total Balance=%5.2f, UnrealisedPnl=%5.2f, "
                 + "RealisedPnl=%5.2f, MarginUsed=%5.2f, MarginAvailable=%5.2f,"

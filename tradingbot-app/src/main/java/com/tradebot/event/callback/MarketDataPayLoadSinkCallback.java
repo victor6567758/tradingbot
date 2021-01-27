@@ -1,8 +1,8 @@
 package com.tradebot.event.callback;
 
-import com.tradebot.core.marketdata.MarketDataPayLoad;
+import com.tradebot.core.marketdata.Price;
 
 public interface MarketDataPayLoadSinkCallback {
 
-    void onMarketEvent(MarketDataPayLoad marketDataPayLoad);
+    void onMarketEvent(Price price);
 }

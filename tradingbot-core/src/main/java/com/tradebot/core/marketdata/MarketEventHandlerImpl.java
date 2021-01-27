@@ -17,7 +17,7 @@ public class MarketEventHandlerImpl implements MarketEventCallback {
 
     @Override
     public void onMarketEvent(TradeableInstrument instrument, double bid, double ask, DateTime eventDate) {
-        eventBus.post(new MarketDataPayLoad(bid, ask, instrument, eventDate));
+        eventBus.post(new Price(instrument, bid, ask, eventDate));
     }
 
     @Override

@@ -18,6 +18,7 @@ bitmex:
     pass: changeme
 
   tradingConfiguration:
+    accountId: 1111111
     minReserveRatio: 1
     minAmountRequired: 1
     maxAllowedQuantity: 1
@@ -26,6 +27,7 @@ bitmex:
     mailTo: victorofff@gmail.com
     priceExpiryMinutes: 20
     tradeableInstruments:
+
       - instrument: XBTUSD
         description: XBTUSD
         instrumentId: XBTUSD
@@ -39,6 +41,12 @@ bitmex:
           - M5
           - H1
           - D
+
+        algParameters:
+          priceEnd: 34403.0
+          x: 0.02
+          linesNum: 11
+
       - instrument: XBTJPY
         description: XBTJPY
         instrumentId: XBTJPY
@@ -52,3 +60,8 @@ bitmex:
           - M5
           - H1
           - D
+
+        algParameters:
+          priceEnd: 3500000.0
+          x: 0.02
+          linesNum: 10

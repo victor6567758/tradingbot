@@ -1,14 +1,17 @@
 package com.tradebot.bitmex.restapi.account;
 
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
+import com.tradebot.bitmex.restapi.generated.api.PositionApi;
 import com.tradebot.bitmex.restapi.generated.api.UserApi;
 import com.tradebot.bitmex.restapi.generated.model.Margin;
+import com.tradebot.bitmex.restapi.generated.model.Position;
 import com.tradebot.bitmex.restapi.generated.model.Wallet;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import lombok.AccessLevel;
@@ -28,6 +31,12 @@ public class BitmexAccountDataProviderService implements AccountDataProvider<Lon
             bitmexAccountConfiguration.getBitmex().getApi().getSecret())
     );
 
+    @Getter(AccessLevel.PACKAGE)
+    private final PositionApi positionApi = new PositionApi(
+        new ApiClientAuthorizeable(bitmexAccountConfiguration.getBitmex().getApi().getKey(),
+            bitmexAccountConfiguration.getBitmex().getApi().getSecret())
+    );
+
     @Override
     @SneakyThrows
     public Account<Long> getLatestAccountInfo(final Long accountId) {
@@ -43,12 +52,22 @@ public class BitmexAccountDataProviderService implements AccountDataProvider<Lon
     private Account<Long> getUserAccount() throws ApiException {
         Wallet wallet = getUserApi().userGetWallet(bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency());
         Margin margin = getUserApi().userGetMargin(wallet.getCurrency());
+
+        long totalOpenPositions = getPositionApi().positionGet(null, null, null)
+            .stream().filter(Position::isIsOpen)
+            .map(position -> position.getCurrentQty().longValue())
+            .mapToLong(value -> value).sum();
+
         return new Account<>(
-            wallet.getAmount().doubleValue(),
-            margin.getMarginBalance().doubleValue(),
+            margin.getAmount(),
+            margin.getUnrealisedPnl(),
+            margin.getRealisedPnl(),
+            BigDecimal.ZERO,
+            margin.getAvailableMargin(),
+            totalOpenPositions,
             wallet.getCurrency(),
             wallet.getAccount().longValue(),
-            margin.getMarginLeverage());
+            BigDecimal.valueOf(margin.getMarginBalancePcnt()));
     }
 
 }

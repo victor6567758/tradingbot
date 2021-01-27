@@ -2,8 +2,10 @@ package com.tradebot.core;
 
 import com.tradebot.core.instrument.TradeableInstrument;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class TradingDecision {
     private final TradingSignal signal;
     // private final double bidPriceAtDecision, askPriceAtDecision;

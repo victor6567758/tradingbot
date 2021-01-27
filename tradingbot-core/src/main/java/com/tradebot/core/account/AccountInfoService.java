@@ -42,19 +42,19 @@ public class AccountInfoService<K> {
 
     public Collection<K> findAccountsToTrade() {
         return getAllAccounts().stream()
-            .sorted(Comparator.comparingDouble(Account::getMarginAvailable)).filter(
+            .sorted(Comparator.comparingDouble(account -> account.getMarginAvailable().doubleValue())).filter(
                 account ->
-                    account.getAmountAvailableRatio() >= baseTradingConfig.getMinReserveRatio()
-                        && account.getNetAssetValue() >= baseTradingConfig.getMinAmountRequired()
+                    account.getAmountAvailableRatio().doubleValue() >= baseTradingConfig.getMinReserveRatio()
+                        && account.getNetAssetValue().doubleValue() >= baseTradingConfig.getMinAmountRequired()
             ).map(Account::getAccountId).collect(Collectors.toList());
     }
 
     public Optional<K> findAccountToTrade() {
         return getAllAccounts().stream()
-            .sorted(Comparator.comparingDouble(Account::getMarginAvailable)).filter(
+            .sorted(Comparator.comparingDouble(account -> account.getMarginAvailable().doubleValue())).filter(
                 account ->
-                    account.getAmountAvailableRatio() >= baseTradingConfig.getMinReserveRatio()
-                        && account.getNetAssetValue() >= baseTradingConfig.getMinAmountRequired()
+                    account.getAmountAvailableRatio().doubleValue() >= baseTradingConfig.getMinReserveRatio()
+                        && account.getNetAssetValue().doubleValue() >= baseTradingConfig.getMinAmountRequired()
             ).map(Account::getAccountId).findFirst();
     }
 
@@ -106,7 +106,7 @@ public class AccountInfoService<K> {
             }
 
         }
-        return price * units * accountInfo.getMarginRate();
+        return price * units * accountInfo.getMarginRate().doubleValue();
     }
 
     public double calculateMarginForTrade(

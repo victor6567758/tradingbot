@@ -23,7 +23,7 @@ public class MarketEventHandlerImplTest {
 
 		@Subscribe
 		@AllowConcurrentEvents
-		public void processPayLoad(MarketDataPayLoad payload) {
+		public void processPayLoad(Price payload) {
 			assertEquals(GBPUSD, payload.getInstrument().getInstrument());
 			assertEquals(BID, payload.getBidPrice(), TradingTestConstants.PRECISION);
 			assertEquals(ASK, payload.getAskPrice(), TradingTestConstants.PRECISION);

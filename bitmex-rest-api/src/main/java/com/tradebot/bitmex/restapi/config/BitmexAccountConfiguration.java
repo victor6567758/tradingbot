@@ -45,9 +45,11 @@ public class BitmexAccountConfiguration {
     @Data
     public static class TradingConfiguration extends BaseTradingConfig {
 
+        private Long accountId;
         private String mailTo;
         private int priceExpiryMinutes;
         private List<Map<String, ?>> tradeableInstruments;
+        private Map<String, String> algParameters;
     }
 
     private Bitmex bitmex;

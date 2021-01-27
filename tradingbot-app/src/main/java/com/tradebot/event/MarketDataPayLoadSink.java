@@ -2,7 +2,7 @@ package com.tradebot.event;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
-import com.tradebot.core.marketdata.MarketDataPayLoad;
+import com.tradebot.core.marketdata.Price;
 import com.tradebot.event.callback.MarketDataPayLoadSinkCallback;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -19,8 +19,8 @@ public class MarketDataPayLoadSink {
 
     @Subscribe
     @AllowConcurrentEvents
-    public void onMarketEvent(MarketDataPayLoad marketDataPayLoad) {
-        marketDataPayLoadSinkCallback.onMarketEvent(marketDataPayLoad);
+    public void onMarketEvent(Price price) {
+        marketDataPayLoadSinkCallback.onMarketEvent(price);
     }
 
 }
