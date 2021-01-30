@@ -57,8 +57,8 @@
     <postgresql.version>42.2.18</postgresql.version>
     <hikary.version>3.4.5</hikary.version>
     <thymeleaf.version>2.4.2</thymeleaf.version>
-
     <cucumber.version>6.9.1</cucumber.version>
+    <modelmapper.version>2.3.9</modelmapper.version>
 
   </properties>
 

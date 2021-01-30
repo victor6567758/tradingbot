@@ -1,11 +1,18 @@
 package com.tradebot.response;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
+import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@RequiredArgsConstructor
+@ToString
+@Getter
+@Setter
+@NoArgsConstructor
 public class GridContextResponse {
-    private final List<Double> mesh;
-    private final double oneLotPrice;
-    private final String symbol;
+
+    private Set<Double> mesh;
+    private String symbol;
+    private double oneLotPrice;
 }
