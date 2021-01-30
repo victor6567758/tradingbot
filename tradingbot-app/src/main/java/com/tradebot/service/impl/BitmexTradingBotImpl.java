@@ -1,6 +1,7 @@
 package com.tradebot.service.impl;
 
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
@@ -10,12 +11,16 @@ import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
+import com.tradebot.response.GridContextResponse;
 import com.tradebot.service.BitmexTradingBot;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -45,29 +50,45 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
     @Getter
     @Setter
     @ToString
+    @RequiredArgsConstructor
     private static class TradingContext {
 
+        private final TradeableInstrument tradeableInstrument;
         private final Map<BigDecimal, TradingDecision> tradingGrid = new TreeMap<>();
         private double oneLotPrice;
     }
 
-    private Map<TradeableInstrument, InitialContext> contextMap;
-    private Map<TradeableInstrument, TradingContext> tradingContextMap;
+    private Map<TradeableInstrument, InitialContext> initialContextMap;
+
+    private Map<TradeableInstrument, TradingContext> tradingContextMap = new HashMap<>();
+    private final Cache<DateTime, TradingContext> tradingContextCache;
+    private final ReadWriteLock tradingContextMapLock = new ReentrantReadWriteLock();
 
     public BitmexTradingBotImpl(EventBus eventBus) {
         super(eventBus);
+        tradingContextCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradingSolutionsDepthMin(),
+                TimeUnit.MINUTES).build();
     }
 
     @PostConstruct
     public void initialize() {
         super.initialize();
-
-        updateAccountDetails();
+        initializeDetails();
     }
 
     @PreDestroy
     public void deinitialize() {
         super.deinitialize();
+    }
+
+    public List<GridContextResponse> getLastContextList() {
+        tradingContextMapLock.readLock().lock();
+        try {
+
+        } finally {
+            tradingContextMapLock.readLock().unlock();
+        }
     }
 
     public void onTradeSolution(CandleStick candleStick, CacheCandlestick cacheCandlestick) {
@@ -78,27 +99,35 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
         Account<Long> account = accountDataProviderService.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
             .getTradingConfiguration().getAccountId());
 
-        TradingContext tradingContext = tradingContextMap.get(candleStick.getInstrument());
-        if (tradingContext == null) {
-            throw new IllegalArgumentException(String.format("Cannot find symbol %s", candleStick.getInstrument()));
-        }
-
-        InitialContext initialContext = contextMap.get(candleStick.getInstrument());
+        InitialContext initialContext = initialContextMap.get(candleStick.getInstrument());
         if (initialContext == null) {
             throw new IllegalArgumentException(String.format("Cannot find symbol %s", candleStick.getInstrument()));
         }
 
-        tradingContext.getTradingGrid().clear();
-        double currentPrice = candleStick.getClosePrice();
-        double priceStep = (initialContext.getPriceEnd() - currentPrice) / initialContext.getLinesNum();
+        tradingContextMapLock.writeLock().lock();
+        try {
+            TradingContext tradingContext = new TradingContext(candleStick.getInstrument());
 
-        for (int i = 0; i < initialContext.getLinesNum(); i++) {
-            tradingContext.getTradingGrid().put(BigDecimal.valueOf(currentPrice), new TradingDecision(candleStick.getInstrument(), TradingSignal.LONG));
-            currentPrice += priceStep;
+            tradingContext.getTradingGrid().clear();
+            double currentPrice = candleStick.getClosePrice();
+            double priceStep = (initialContext.getPriceEnd() - currentPrice) / initialContext.getLinesNum();
+
+            for (int i = 0; i < initialContext.getLinesNum(); i++) {
+                tradingContext.getTradingGrid().put(BigDecimal.valueOf(currentPrice), new TradingDecision(candleStick.getInstrument(), TradingSignal.LONG));
+                currentPrice += priceStep;
+            }
+
+            tradingContext.setOneLotPrice(account.getTotalBalance().doubleValue() / initialContext.getLinesNum());
+            tradingContextMap.put(candleStick.getInstrument(), tradingContext);
+            tradingContextCache.put(candleStick.getEventDate(), tradingContext);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Trading setup is done: {}", tradingContext.toString());
+            }
+        } finally {
+            tradingContextMapLock.writeLock().unlock();
         }
 
-        tradingContext.setOneLotPrice(account.getTotalBalance().doubleValue() / initialContext.getLinesNum());
-        log.info("Trading setup is done: {}", tradingContext.toString());
     }
 
     @Override
@@ -109,9 +138,9 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
     }
 
 
-    private void updateAccountDetails() {
+    private void initializeDetails() {
 
-        contextMap = algParameters.entrySet()
+        initialContextMap = algParameters.entrySet()
             .stream()
             .map(
                 entry -> new ImmutablePair<>(entry.getKey(),
@@ -123,11 +152,6 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             ).collect(Collectors.toUnmodifiableMap(
                 ImmutablePair::getLeft,
                 ImmutablePair::getRight));
-
-        Map<TradeableInstrument, TradingContext> tradingContextMapLocal = new HashMap<>();
-        contextMap.keySet().forEach(n -> tradingContextMapLocal.put(n, new TradingContext()));
-
-        tradingContextMap = Collections.unmodifiableMap(tradingContextMapLocal);
     }
 
 

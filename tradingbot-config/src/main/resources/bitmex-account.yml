@@ -25,6 +25,7 @@ bitmex:
     maxAllowedNetContracts: 1
     max10yrWmaOffset: 1
     mailTo: victorofff@gmail.com
+    tradingSolutionsDepthMin: 20
     priceExpiryMinutes: 20
     tradeableInstruments:
 

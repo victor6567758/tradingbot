@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: happy-trader
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: happy-trader-2-configmap
+  namespace: happy-trader
+data:
+  PROD_REAL_LOG_PATH: /root/logs
+  PROD_REAL_LOG_LEVEL: DEBUG
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: happy-trader-2
+  name: happy-trader-2
+  namespace: happy-trader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: happy-trader-2
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: happy-trader-2
+    spec:
+      containers:
+        - image: dockerzzzzzzzzzzzz123/trading-bot-2.0:latest
+          name: happy-trader-2
+          imagePullPolicy: ""
+          resources: {}
+          envFrom:
+            - configMapRef:
+                name: happy-trader-2-configmap
+          ports:
+            - containerPort: 8090
+          volumeMounts:
+            - name: happy-trader-2-mount
+              mountPath: /root/logs
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+        - name: happy-trader-2-mount
+          hostPath:
+            path: /hosthome/tmp/mounted-k8s
+            type: DirectoryOrCreate
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: happy-trader-2-service
+  namespace: happy-trader
+spec:
+  ports:
+    - name: broker
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+  selector:
+    app: happy-trader-2
+  sessionAffinity: None
+  type: LoadBalancer

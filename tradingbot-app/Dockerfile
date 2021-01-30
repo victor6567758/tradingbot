@@ -1,23 +1,26 @@
-FROM azul/zulu-openjdk-alpine:11
+FROM openjdk:11
 MAINTAINER Victor Zoubok <victorofff@gmail.com>
 
 ENV SPRING_OUTPUT_ANSI_ENABLED=ALWAYS \
-    APP_SLEEP=0 \
+    APP_SLEEP=0  \
     JAVA_OPTS="" \
     RUN_ARGS=""
 
-VOLUME /tmp
-
-# Add a user admin to run our application so that it doesn't need to run as root
-RUN adduser -D -s /bin/sh admin
-WORKDIR /home/admin
-
+#RUN addgroup --system trader
+#RUN adduser --system trader --ingroup trader
+#WORKDIR /home/trader
+WORKDIR /root
 COPY entrypoint.sh entrypoint.sh
-RUN chmod 755 entrypoint.sh && chown admin:admin entrypoint.sh
-USER admin
 
-ADD target/tradingbot-app-0.0.1-SNAPSHOT-jar-with-dependencies.jar tradingbot-app-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+RUN chmod 755 entrypoint.sh
 
-ENTRYPOINT ["./entrypoint.sh"]
+#RUN chown trader:trader entrypoint.sh
+#USER trader:trader
+
+ADD target/tradingbot-app-0.0.1-SNAPSHOT.jar tradingbot-app-0.0.1-SNAPSHOT.jar
 
 EXPOSE 8090
+
+#HEALTHCHECK --interval=60s --timeout=4s CMD curl --fail http://localhost:8090/ || exit 1
+ENTRYPOINT ["./entrypoint.sh"]
+

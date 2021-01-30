@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <property name="PROD_LOGS" value="/home/viktor/work/tradingbot/logs" />
+  <property name="PROD_LOGS" value="${PROD_LOG_PATH}" />
 
   <appender name="Console"
     class="ch.qos.logback.core.ConsoleAppender">
@@ -31,7 +31,7 @@
     </rollingPolicy>
   </appender>
 
-  <logger name="com.tradebot" level="DEBUG" additivity="false">
+  <logger name="com.tradebot" level="${PROD_LOG_LEVEL}" additivity="false">
     <appender-ref ref="Console"/>
     <appender-ref ref="RollingFile" />
   </logger>
