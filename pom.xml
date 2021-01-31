@@ -59,6 +59,7 @@
     <thymeleaf.version>2.4.2</thymeleaf.version>
     <cucumber.version>6.9.1</cucumber.version>
     <modelmapper.version>2.3.9</modelmapper.version>
+    <org.json.version>20201115</org.json.version>
 
   </properties>
 
@@ -98,6 +99,12 @@
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
         <version>${snakeyaml.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>${org.json.version}</version>
       </dependency>
 
 

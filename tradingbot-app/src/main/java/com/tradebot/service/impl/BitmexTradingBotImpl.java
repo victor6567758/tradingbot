@@ -12,7 +12,9 @@ import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.response.GridContextResponse;
+import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.service.BitmexTradingBot;
+import com.tradebot.util.GeneralConst;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,10 +38,13 @@ import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.config.Configuration;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+
 public class BitmexTradingBotImpl extends BitmexTradingBot {
 
     private static final String CONTEXT_NOT_FOUND_FOR_SYMBOL_S = "Trading context not found for symbol %s";
@@ -69,15 +74,17 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
     private final Map<TradeableInstrument, TradingContext> tradingContextMap = new HashMap<>();
     private final Cache<DateTime, TradingContext> tradingContextCache;
     private final ReadWriteLock tradingContextMapLock = new ReentrantReadWriteLock();
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     private Map<TradeableInstrument, InitialContext> initialContextMap;
 
-    public BitmexTradingBotImpl(EventBus eventBus, ModelMapper modelMapper) {
+    public BitmexTradingBotImpl(EventBus eventBus, ModelMapper modelMapper, SimpMessagingTemplate simpMessagingTemplate) {
         super(eventBus);
         tradingContextCache = CacheBuilder.newBuilder()
             .expireAfterWrite(bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradingSolutionsDepthMin(),
                 TimeUnit.MINUTES).build();
         this.modelMapper = modelMapper;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     @PostConstruct
@@ -174,6 +181,8 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             tradingContextMap.put(candleStick.getInstrument(), tradingContext);
             tradingContextCache.put(candleStick.getEventDate(), tradingContext);
 
+            sendTradeConfig(tradingContext);
+
             if (log.isDebugEnabled()) {
                 log.debug("Trading setup is done: {}", tradingContext.toString());
             }
@@ -190,7 +199,6 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
         }
     }
 
-
     private void initializeDetails() {
         initialContextMap = algParameters.entrySet()
             .stream()
@@ -204,6 +212,15 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             ).collect(Collectors.toUnmodifiableMap(
                 ImmutablePair::getLeft,
                 ImmutablePair::getRight));
+    }
+
+    private void sendTradeConfig(TradingContext tradingContext) {
+        try {
+            simpMessagingTemplate.convertAndSend(GeneralConst.WS_TOPIC + GeneralConst.WS_TOPIC_PUBLISH_TRADE_CONFIG,
+                new DataResponseMessage<>(modelMapper.map(tradingContext, GridContextResponse.class)));
+        } catch (MessagingException messagingException) {
+            log.error("Error sending data to websockets", messagingException);
+        }
     }
 
 

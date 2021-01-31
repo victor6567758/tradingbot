@@ -1,7 +1,30 @@
 <html>
-<head><title>Home Page</title></head>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, internal-scale=1.0">
+    <title>Trading</title>
+    <link rel="stylesheet" href="home.css">
+    </link>
+</head>
+
 <body>
-<h1>Hello !</h1>
-<p>Welcome to <span th:text="${appName}">Our App</span></p>
+    <p>Welcome to <span th:text="${appName}">Our App</span></p>
+    <header>
+        <label for="pair">Trade Pair</label>
+        <select id="pair">
+            <option>XBTUSD</option>
+            <option>XBTJPY</option>
+        </select>
+    </header>
+
+    <div>
+        <div id="chart">Chart</div>
+        <div class="tradeconfig-container"></div>
+    </div>    
+
+    
+    <script src="home.js"></script>
 </body>
+
 </html>
