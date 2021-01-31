@@ -28,7 +28,6 @@ bitmex:
     tradingSolutionsDepthMin: 20
     priceExpiryMinutes: 20
     tradeableInstruments:
-
       - instrument: XBTUSD
         description: XBTUSD
         instrumentId: XBTUSD
@@ -42,17 +41,15 @@ bitmex:
           - M5
           - H1
           - D
-
         algParameters:
           priceEnd: 34403.0
           x: 0.02
           linesNum: 11
-
       - instrument: XBTJPY
         description: XBTJPY
         instrumentId: XBTJPY
         pip: 0.0
-        baseCurrencyBidInterestRate: -1.0`1422`   WA
+        baseCurrencyBidInterestRate: -1.0
         baseCurrencyAskInterestRate: -1.0
         quoteCurrencyBidInterestRate: -1.0
         quoteCurrencyAskInterestRate: -1.0
@@ -61,7 +58,6 @@ bitmex:
           - M5
           - H1
           - D
-
         algParameters:
           priceEnd: 3500000.0
           x: 0.02

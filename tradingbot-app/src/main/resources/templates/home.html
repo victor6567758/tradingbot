@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, internal-scale=1.0">
     <title>Trading</title>
-    <link rel="stylesheet" href="home.css">
-    </link>
+    <link th:href = "@{/static/home.css}" rel="stylesheet">
+
 </head>
 
 <body>
@@ -46,7 +46,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="home.js"></script>
+    <script type="text/javascript" th:src="@{/static/home.js}"></script>
 </body>
 
 </html>

@@ -61,6 +61,9 @@
     <modelmapper.version>2.3.9</modelmapper.version>
     <org.json.version>20201115</org.json.version>
 
+    <bootstrap.webjar.version>4.6.0</bootstrap.webjar.version>
+    <jquery.webjar.version>3.5.1</jquery.webjar.version>
+
   </properties>
 
   <dependencyManagement>
@@ -124,6 +127,19 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-thymeleaf</artifactId>
         <version>${thymeleaf.version}</version>
+      </dependency>
+
+      <!-- webjar bootstrap and jquery dependencies -->
+      <dependency>
+        <groupId>org.webjars</groupId>
+        <artifactId>bootstrap</artifactId>
+        <version>${bootstrap.webjar.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.webjars</groupId>
+        <artifactId>jquery</artifactId>
+        <version>${jquery.webjar.version}</version>
       </dependency>
 
       <dependency>

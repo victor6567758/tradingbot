@@ -1,10 +1,19 @@
 
 const WA_API = "ws://localhost:8090/websocket";
+const REST_API = "http://localhost:8090/signal";
 var stompClient = null;
+
+setSymbolList();
 
 window.addEventListener('resize', () => {
 
 });
+
+function setSymbolList() {
+    fetch(`${REST_API}/symbols`)
+    .then(resp => resp.json)
+    .then(symbolList => console.log(symbolList));
+}
 
 function streamTradingConfig() {
     const tradeConfigSocket = new WebSocket(`${WA_API}`);
@@ -19,10 +28,10 @@ function connect() {
     stompClient.onConnect = stompClient.subscribe('/topic/tradeconfig', message => console.log(message))
     stompClient.onWebsocketClose = () => stompClient.deactivate();
     stompClient.activate();
-  }
+}
 
-  function disconnect() {
+function disconnect() {
     if (stompClient !== null) {
-      stompClient.deactivate();
+        stompClient.deactivate();
     }
-  }
+}
