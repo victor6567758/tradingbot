@@ -52,7 +52,7 @@ bitmex:
         description: XBTJPY
         instrumentId: XBTJPY
         pip: 0.0
-        baseCurrencyBidInterestRate: -1.0
+        baseCurrencyBidInterestRate: -1.0`1422`   WA
         baseCurrencyAskInterestRate: -1.0
         quoteCurrencyBidInterestRate: -1.0
         quoteCurrencyAskInterestRate: -1.0
