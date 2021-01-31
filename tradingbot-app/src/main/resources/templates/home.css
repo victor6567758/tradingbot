@@ -3,5 +3,13 @@ body {
 }
 
 .wrapper {
-    
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    height: 80vh;
+}
+
+.tradeconfig-container_header, .tradeconfig {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: center;
 }
