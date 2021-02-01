@@ -11,7 +11,7 @@ window.addEventListener('resize', () => {
 
 function setSymbolList() {
     fetch(`${REST_API}/symbols`)
-    .then(resp => resp.json)
+    .then(resp => resp.json())
     .then(symbolList => console.log(symbolList));
 }
 

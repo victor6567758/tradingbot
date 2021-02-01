@@ -36,7 +36,7 @@
     <appender-ref ref="RollingFile" />
   </logger>
 
-  <root level="WARN">
+  <root level="INFO">
     <appender-ref ref="RollingFile" />
     <appender-ref ref="Console" />
   </root>

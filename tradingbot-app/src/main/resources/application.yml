@@ -9,3 +9,6 @@ server:
 spring:
   application:
     name: Main Trading Application
+
+thymeleaf:
+    cache: false
