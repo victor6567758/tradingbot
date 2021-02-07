@@ -77,7 +77,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
 
     private final ModelMapper modelMapper;
     private final Map<TradeableInstrument, TradingContext> tradingContextMap = new HashMap<>();
-    private final Cache<DateTime, TradingContext> tradingContextCache;
+    private final Cache<Long, TradingContext> tradingContextCache;
     private final ReadWriteLock tradingContextMapLock = new ReentrantReadWriteLock();
     private final SimpMessagingTemplate simpMessagingTemplate;
 
@@ -187,8 +187,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             tradingContext.setOneLotPrice(account.getTotalBalance().doubleValue() / initialContext.getLinesNum());
             tradingContextMap.put(candleStick.getInstrument(), tradingContext);
 
-            tradingContextCache.put(candleStick.getEventDate(), tradingContext);
-
+            tradingContextCache.put(System.currentTimeMillis(), tradingContext);
             sendTradeConfig(tradingContext);
 
             if (log.isDebugEnabled()) {
