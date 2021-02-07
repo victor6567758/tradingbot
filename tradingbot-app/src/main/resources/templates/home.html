@@ -1,4 +1,4 @@
-<html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta charset="UTF-8">
@@ -13,32 +13,24 @@
     <header>
         <label for="pair">Trade Pair</label>
         <select id="pair">
-            <option>XBTUSD</option>
-            <option>XBTJPY</option>
+            <option th:each="symbol : ${symbolList}"
+                    th:value="${symbol}" th:text="${symbol}"></option>
         </select>
     </header>
 
     <div class="wrapper">
-        <div id="chart">Chart</div>
+        <div id="chart"></div>
 
         <div class="tradeconfig-container">
+            <label for="lastContextdateTime">Last context Time</label>
+            <div id="lastContextdateTime">N/A</div>
+            
             <div class="tradeconfig-container_header">
                 <div>Mesh Level</div>
-                <div>Volume</div>
+                <div>Order Volume</div>
             </div>
-            <div class="tradeconfig-container_list">
-                <div class="tradeconfig">
-                    <div class="price">0.1</div>
-                    <div class="volume">1</div>
-                </div>
-                <div class="tradeconfig">
-                    <div class="price">0.1</div>
-                    <div class="volume">2</div>
-                </div>
-                <div class="tradeconfig">
-                    <div class="price">0.3</div>
-                    <div class="volume">3</div>
-                </div>
+            <div class="tradeconfig-container_list" id="configList">
+                <span>N/A</span>
             </div>
         </div>
     </div>
@@ -46,6 +38,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+    <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+
     <script type="text/javascript" th:src="@{/home.js}"></script>
 </body>
 

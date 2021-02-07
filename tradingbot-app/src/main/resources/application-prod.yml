@@ -1,0 +1,6 @@
+thymeleaf:
+  cache: true
+
+spring:
+  devtools:
+    add-properties: false

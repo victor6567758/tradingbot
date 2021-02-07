@@ -1,0 +1,1 @@
+java -DPROD_LOG_PATH=c:\tmp\logs\happy-trader\ -DPROD_LOG_LEVEL=DEBUG -jar target\tradingbot-app-0.0.1-SNAPSHOT.jar

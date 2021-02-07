@@ -1,5 +1,22 @@
 package com.tradebot.service.impl;
 
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
@@ -15,18 +32,6 @@ import com.tradebot.response.GridContextResponse;
 import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.service.BitmexTradingBot;
 import com.tradebot.util.GeneralConst;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -68,6 +73,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
         private final TradeableInstrument tradeableInstrument;
         private final Map<BigDecimal, TradingDecision> tradingGrid = new TreeMap<>();
         private double oneLotPrice;
+        private final DateTime datetime;
     }
 
     private final ModelMapper modelMapper;
@@ -78,10 +84,12 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
 
     private Map<TradeableInstrument, InitialContext> initialContextMap;
 
-    public BitmexTradingBotImpl(EventBus eventBus, ModelMapper modelMapper, SimpMessagingTemplate simpMessagingTemplate) {
+    public BitmexTradingBotImpl(EventBus eventBus, ModelMapper modelMapper,
+        SimpMessagingTemplate simpMessagingTemplate) {
         super(eventBus);
         tradingContextCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradingSolutionsDepthMin(),
+            .expireAfterWrite(
+                bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradingSolutionsDepthMin(),
                 TimeUnit.MINUTES).build();
         this.modelMapper = modelMapper;
         this.simpMessagingTemplate = simpMessagingTemplate;
@@ -103,7 +111,8 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
         tradingContextMapLock.readLock().lock();
         try {
             return tradingContextMap.entrySet().stream()
-                .map(entry -> new ImmutablePair<>(entry.getKey().getInstrument(), modelMapper.map(entry.getValue(), GridContextResponse.class)))
+                .map(entry -> new ImmutablePair<>(entry.getKey().getInstrument(),
+                    modelMapper.map(entry.getValue(), GridContextResponse.class)))
                 .collect(Collectors.toUnmodifiableMap(
                     ImmutablePair::getLeft,
                     ImmutablePair::getRight));
@@ -112,39 +121,41 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
         }
     }
 
-    public GridContextResponse getLastContextList(String symbol) {
+    public Optional<GridContextResponse> getLastContextList(String symbol) {
         tradingContextMapLock.readLock().lock();
         try {
             TradingContext tradingContext = tradingContextMap.get(new TradeableInstrument(symbol, symbol));
             if (tradingContext == null) {
-                throw new IllegalArgumentException(String.format(CONTEXT_NOT_FOUND_FOR_SYMBOL_S, symbol));
+                return Optional.empty();
             }
-            return modelMapper.map(tradingContext, GridContextResponse.class);
+            return Optional.of(modelMapper.map(tradingContext, GridContextResponse.class));
         } finally {
             tradingContextMapLock.readLock().unlock();
         }
     }
 
-    public Map<DateTime, GridContextResponse> getContextHistory(String symbol) {
+    public Set<GridContextResponse> getContextHistory(String symbol) {
         TradingContext tradingContext = tradingContextMap.get(new TradeableInstrument(symbol, symbol));
         if (tradingContext == null) {
-            throw new IllegalArgumentException(String.format(CONTEXT_NOT_FOUND_FOR_SYMBOL_S, symbol));
+            return Collections.emptySet();
         }
 
-        return tradingContextCache.asMap().entrySet().stream()
-            .filter(entry -> entry.getValue().getTradeableInstrument().getInstrument().equals(symbol))
-            .map(entry -> new ImmutablePair<>(entry.getKey(), modelMapper.map(entry.getValue(), GridContextResponse.class)))
-            .collect(Collectors.toUnmodifiableMap(
-                ImmutablePair::getLeft,
-                ImmutablePair::getRight));
+        return tradingContextCache.asMap().values().stream()
+            .filter(entry -> entry.getTradeableInstrument().getInstrument().equals(symbol))
+            .map(context -> modelMapper.map(tradingContext, GridContextResponse.class))
+            .collect(
+                Collectors.toCollection(
+                    () -> new TreeSet<>(Comparator.comparingLong(GridContextResponse::getDatetime))
+                ));
     }
 
-    public Map<DateTime, GridContextResponse> getContextHistory() {
-        return tradingContextCache.asMap().entrySet().stream()
-            .map(entry -> new ImmutablePair<>(entry.getKey(), modelMapper.map(entry.getValue(), GridContextResponse.class)))
-            .collect(Collectors.toUnmodifiableMap(
-                ImmutablePair::getLeft,
-                ImmutablePair::getRight));
+    public Set<GridContextResponse> getContextHistory() {
+        return tradingContextCache.asMap().values().stream()
+            .map(tradingContext -> modelMapper.map(tradingContext, GridContextResponse.class))
+            .collect(
+                Collectors.toCollection(
+                    () -> new TreeSet<>(Comparator.comparingLong(GridContextResponse::getDatetime))
+                ));
     }
 
     public Set<String> getAllSymbols() {
@@ -166,14 +177,15 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
 
         tradingContextMapLock.writeLock().lock();
         try {
-            TradingContext tradingContext = new TradingContext(candleStick.getInstrument());
+            TradingContext tradingContext = new TradingContext(candleStick.getInstrument(), candleStick.getEventDate());
 
             tradingContext.getTradingGrid().clear();
             double currentPrice = candleStick.getClosePrice();
             double priceStep = (initialContext.getPriceEnd() - currentPrice) / initialContext.getLinesNum();
 
             for (int i = 0; i < initialContext.getLinesNum(); i++) {
-                tradingContext.getTradingGrid().put(BigDecimal.valueOf(currentPrice), new TradingDecision(candleStick.getInstrument(), TradingSignal.LONG));
+                tradingContext.getTradingGrid().put(BigDecimal.valueOf(currentPrice),
+                    new TradingDecision(candleStick.getInstrument(), TradingSignal.LONG));
                 currentPrice += priceStep;
             }
 
@@ -229,6 +241,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             .setFieldMatchingEnabled(true)
             .setFieldAccessLevel(Configuration.AccessLevel.PRIVATE);
 
+        Converter<DateTime, Long> dateTimeConverter = mappingContext -> mappingContext.getSource().getMillis();
         Converter<TradeableInstrument, String> locationCodeConverter = context -> context.getSource().getInstrument();
         Converter<Map<BigDecimal, TradingDecision>, Set<Double>> tradeDecisionMapConverter =
             context -> {
@@ -241,6 +254,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             protected void configure() {
                 using(locationCodeConverter).map(source.getTradeableInstrument()).setSymbol(null);
                 using(tradeDecisionMapConverter).map(source.getTradingGrid()).setMesh(null);
+                using(dateTimeConverter).map(source.getDatetime()).setDatetime(-1L);
             }
         });
     }
