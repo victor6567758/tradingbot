@@ -63,6 +63,7 @@
 
     <bootstrap.webjar.version>4.6.0</bootstrap.webjar.version>
     <jquery.webjar.version>3.5.1</jquery.webjar.version>
+    <webjar.locator.version>0.40</webjar.locator.version>
 
   </properties>
 
@@ -146,6 +147,12 @@
         <artifactId>commons-lang3</artifactId>
         <groupId>org.apache.commons</groupId>
         <version>${apache.common.version}</version>
+      </dependency>
+
+      <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>webjars-locator</artifactId>
+            <version>${webjar.locator.version}</version>
       </dependency>
 
       <dependency>
