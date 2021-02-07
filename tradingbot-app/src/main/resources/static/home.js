@@ -126,7 +126,7 @@ function startTradingEventStreaming() {
 }
 
 function populateConfigurationList(parsedMessage) {
-    $('#lastContextdateTime').val(new Date(parsedMessage).toISOString());
+    $('#lastContextdateTime').val(new Date(parsedMessage.datetime).toISOString());
 
     $('#configList').empty();
     parsedMessage.mesh.forEach((item) => {

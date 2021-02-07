@@ -1,7 +1,6 @@
 package com.tradebot.service.impl;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -135,14 +134,10 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
     }
 
     public Set<GridContextResponse> getContextHistory(String symbol) {
-        TradingContext tradingContext = tradingContextMap.get(new TradeableInstrument(symbol, symbol));
-        if (tradingContext == null) {
-            return Collections.emptySet();
-        }
 
         return tradingContextCache.asMap().values().stream()
             .filter(entry -> entry.getTradeableInstrument().getInstrument().equals(symbol))
-            .map(context -> modelMapper.map(tradingContext, GridContextResponse.class))
+            .map(context -> modelMapper.map(context, GridContextResponse.class))
             .collect(
                 Collectors.toCollection(
                     () -> new TreeSet<>(Comparator.comparingLong(GridContextResponse::getDatetime))
@@ -191,6 +186,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
 
             tradingContext.setOneLotPrice(account.getTotalBalance().doubleValue() / initialContext.getLinesNum());
             tradingContextMap.put(candleStick.getInstrument(), tradingContext);
+
             tradingContextCache.put(candleStick.getEventDate(), tradingContext);
 
             sendTradeConfig(tradingContext);
