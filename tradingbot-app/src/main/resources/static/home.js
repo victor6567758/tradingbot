@@ -56,9 +56,9 @@ $(document).ready(function () {
     getTradingEventsHistory();
 
     $('#pair').on('change', () => {
-
+        
+        lastConfigUpdateTime_ = null;
         deinitChart();
-
         getTradingEventsHistory();
     });
 
