@@ -10,6 +10,8 @@
 
 <body>
     <p>Welcome to <span th:text="${appName}">Our App</span></p>
+    <div>Active profile(s)</div>
+    <div th:each="activeProfile : ${activeProfiles}" th:text="${activeProfile}"></div>
     <header>
         <label for="pair">Trade Pair</label>
         <select id="pair">

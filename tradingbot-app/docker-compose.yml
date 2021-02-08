@@ -1,0 +1,23 @@
+version: '3'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  trading-bot:
+    image:
+      dockerzzzzzzzzzzzz123/trading-bot-2.0:latest
+    build: .
+    ports:
+      - "8090:8090"
+    networks:
+      - app-tier
+    container_name: trading-bot-2.0
+    volumes:
+      - /tmp/logs/happy-trader-prod:/tmp/logs
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PROD_REAL_LOG_LEVEL: DEBUG
+      PROD_REAL_LOG_PATH: /tmp/logs
+

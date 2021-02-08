@@ -1,12 +1,13 @@
 #!/bin/bash
 DOCKER_IMAGE=trading-bot-2.0
 GUEST_PROD_REAL_LOG_PATH=/root/logs
-HOST_PROD_REAL_LOG_PATH=/tmp/logs2/ht2-mapped
+HOST_PROD_REAL_LOG_PATH=/tmp/logs/happy-trader-prod
 GUEST_PROD_REAL_LOG_LEVEL=DEBUG
 
 docker run \
   -e PROD_REAL_LOG_PATH=${GUEST_PROD_REAL_LOG_PATH} \
   -e PROD_REAL_LOG_LEVEL=${GUEST_PROD_REAL_LOG_LEVEL}\
+  -e "SPRING_PROFILES_ACTIVE=prod"  \
   -v ${HOST_PROD_REAL_LOG_PATH}:${GUEST_PROD_REAL_LOG_PATH} \
   --rm --name ${DOCKER_IMAGE} \
   -p 8090:8090 \

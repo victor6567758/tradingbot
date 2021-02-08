@@ -1,8 +1,11 @@
 package com.tradebot.controller.mvc;
 
 import com.tradebot.service.impl.BitmexTradingBotImpl;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +16,8 @@ public class HomeMvcController {
 
     private final BitmexTradingBotImpl bitmexTradingBot;
 
+    private final Environment environment;
+
     @Value("${spring.application.name}")
     private String appName;
 
@@ -20,6 +25,8 @@ public class HomeMvcController {
     public String homePage(Model model) {
         model.addAttribute("appName", appName);
         model.addAttribute("symbolList", bitmexTradingBot.getAllSymbols());
+        model.addAttribute("activeProfiles", Stream.of(environment.getActiveProfiles()).collect(Collectors.toList()));
+
         return "home";
     }
 
