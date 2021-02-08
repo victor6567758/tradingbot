@@ -9,8 +9,22 @@ let stompClient_ = null;
 let chart_ = null;
 
 let indicatorSerieses_ = null;
+let candleStickSeries_ = null;
+
+let lastConfigUpdateTime_ = null;
+let lastConfigUpdateTimer_ = null;
 
 $(document).ready(function () {
+
+    lastConfigUpdateTimer_ = setInterval(() => {
+        if (lastConfigUpdateTime_ != null) {
+            let elapsed = new Date().getTime() - lastConfigUpdateTime_;
+            var seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+
+            $('#lastServerUpdate').html(seconds);
+        }
+        
+    }, 5000);
 
     chart_ = LightweightCharts.createChart(document.getElementById('chart'), {
         layout: {
@@ -28,6 +42,13 @@ $(document).ready(function () {
         crosshair: {
             mode: LightweightCharts.CrosshairMode.Normal,
         },
+        localization: {
+            dateFormat: 'dd/MM/yyyy',
+        },
+        timeScale: {
+            timeVisible: true,
+            secondsVisible: true,
+        },
     });
 
 
@@ -35,23 +56,17 @@ $(document).ready(function () {
     getTradingEventsHistory();
 
     $('#pair').on('change', () => {
-        $('#lastContextdateTime').html('N/A');
-        $('#configList').html('<span>N/A</span>');
 
-        if (indicatorSerieses_ != null) {
-            deinitIndicatorSeries();
-        }
+        deinitChart();
+
         getTradingEventsHistory();
     });
-
-
 
     $(window).bind('resize', function () {
         adjustChartSize();
     });
 
     adjustChartSize();
-
 
 });
 
@@ -108,12 +123,14 @@ function startTradingEventStreaming() {
 
 
     stompClient_.onConnect = frame => {
-        console.log('Connected: ' + frame);
+        console.log('WS connected: ' + frame);
         stompClient_.subscribe('/topic/tradeconfig', message => {
             let parsedMessage = JSON.parse(message.body).message;
             console.log("WS message received", parsedMessage);
 
             if ($("#pair").val() == parsedMessage.symbol) {
+
+                lastConfigUpdateTime_ = new Date().getTime();
                 populateConfigurationList(parsedMessage);
                 populateChartWithConfigMessage(parsedMessage);
             }
@@ -121,12 +138,16 @@ function startTradingEventStreaming() {
         });
     };
 
-    stompClient_.onWebsocketClose = () => stompClient_.deactivate();
+    stompClient_.onWebsocketClose = () => {
+        onsole.log('WS Disconnected');
+        stompClient_.deactivate();
+        deinitChart();
+    }
     stompClient_.activate();
 }
 
 function populateConfigurationList(parsedMessage) {
-    $('#lastContextdateTime').val(new Date(parsedMessage.datetime).toISOString());
+    $('#lastContextdateTime').html(new Date(parsedMessage.candleResponse.dateTime).toISOString());
 
     $('#configList').empty();
     parsedMessage.mesh.forEach((item) => {
@@ -140,42 +161,73 @@ function populateConfigurationList(parsedMessage) {
     });
 }
 
-function deinitIndicatorSeries() {
-    indicatorSerieses_.forEach(series => {
-        chart_.removeSeries(series);
-    });
-    indicatorSerieses_ = null;
-}
+function deinitChart() {
+    $('#LastServerUpdate').html('N/A');
+    $('#lastContextdateTime').html('N/A');
+    $('#configList').html('<span>N/A</span>');
 
-function initIndicatorSeries(size) {
-
-    indicatorSerieses_ = [];
-
-    for (let i = 0; i < size; i++) {
-        const candlestickSeries = chart_.addLineSeries({
-            color: '#f48fb1',
-            lineStyle: 0,
-            lineWidth: 1,
-            crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 6,
-            crosshairMarkerBorderColor: '#ffffff',
-            crosshairMarkerBackgroundColor: '#2296f3',
-            lineType: 1,
+    if (indicatorSerieses_ != null) {
+        indicatorSerieses_.forEach(series => {
+            chart_.removeSeries(series);
         });
-
-        indicatorSerieses_.push(candlestickSeries);
+        indicatorSerieses_ = null;
     }
 
+    if (candleStickSeries_ != null) {
+        chart_.removeSeries(candleStickSeries_);
+        candleStickSeries_ = null;
+    }
 }
+
+function initChart(size) {
+    if (indicatorSerieses_ == null) {
+        indicatorSerieses_ = [];
+
+        for (let i = 0; i < size; i++) {
+            const candlestickSeries = chart_.addLineSeries({
+                color: '#f48fb1',
+                lineStyle: 0,
+                lineWidth: 1,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 6,
+                crosshairMarkerBorderColor: '#ffffff',
+                crosshairMarkerBackgroundColor: '#2296f3',
+                lineType: 1,
+            });
+
+            indicatorSerieses_.push(candlestickSeries);
+        }
+    }
+
+    if (candleStickSeries_ == null) {
+        candleStickSeries_ = chart_.addCandlestickSeries({
+            upColor: '#11AA11',
+            downColor: '#AA1111',
+            borderUpColor: '#11AA11',
+            borderDownColor: '#AA1111',
+            wickUpColor: '#11AA11',
+            wickDownColor: '#AA1111',
+        });
+    }
+}
+
 
 function populateChartWithConfigMessage(parsedMessage) {
-    if (indicatorSerieses_ == null) {
-        initIndicatorSeries(parsedMessage.mesh.length);
-    }
+    initChart(parsedMessage.mesh.length);
+
+    let timeStamp = parsedMessage.candleResponse.dateTime / 1000;
 
     for (let i = 0; i < parsedMessage.mesh.length; i++) {
-        indicatorSerieses_[i].update({ time: parsedMessage.datetime / 1000, value: parsedMessage.mesh[i] });
+        indicatorSerieses_[i].update({ time: timeStamp, value: parsedMessage.mesh[i] });
     }
+
+    candleStickSeries_.update({
+        time: timeStamp,
+        open: parsedMessage.candleResponse.open,
+        high: parsedMessage.candleResponse.high,
+        low: parsedMessage.candleResponse.low,
+        close: parsedMessage.candleResponse.close
+    });
 
 }
 

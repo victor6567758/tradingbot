@@ -1,5 +1,21 @@
 package com.tradebot.service.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.eventbus.EventBus;
+import com.tradebot.core.TradingDecision;
+import com.tradebot.core.TradingSignal;
+import com.tradebot.core.account.Account;
+import com.tradebot.core.helper.CacheCandlestick;
+import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.marketdata.Price;
+import com.tradebot.core.marketdata.historic.CandleStick;
+import com.tradebot.core.marketdata.historic.CandleStickGranularity;
+import com.tradebot.response.CandleResponse;
+import com.tradebot.response.GridContextResponse;
+import com.tradebot.response.websocket.DataResponseMessage;
+import com.tradebot.service.BitmexTradingBot;
+import com.tradebot.util.GeneralConst;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,25 +28,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.eventbus.EventBus;
-import com.tradebot.core.TradingDecision;
-import com.tradebot.core.TradingSignal;
-import com.tradebot.core.account.Account;
-import com.tradebot.core.helper.CacheCandlestick;
-import com.tradebot.core.instrument.TradeableInstrument;
-import com.tradebot.core.marketdata.Price;
-import com.tradebot.core.marketdata.historic.CandleStick;
-import com.tradebot.core.marketdata.historic.CandleStickGranularity;
-import com.tradebot.response.GridContextResponse;
-import com.tradebot.response.websocket.DataResponseMessage;
-import com.tradebot.service.BitmexTradingBot;
-import com.tradebot.util.GeneralConst;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -72,7 +71,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
         private final TradeableInstrument tradeableInstrument;
         private final Map<BigDecimal, TradingDecision> tradingGrid = new TreeMap<>();
         private double oneLotPrice;
-        private final DateTime datetime;
+        private final CandleStick candleStick;
     }
 
     private final ModelMapper modelMapper;
@@ -140,7 +139,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             .map(context -> modelMapper.map(context, GridContextResponse.class))
             .collect(
                 Collectors.toCollection(
-                    () -> new TreeSet<>(Comparator.comparingLong(GridContextResponse::getDatetime))
+                    () -> new TreeSet<>(Comparator.comparingLong(value -> value.getCandleResponse().getDateTime()))
                 ));
     }
 
@@ -149,7 +148,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             .map(tradingContext -> modelMapper.map(tradingContext, GridContextResponse.class))
             .collect(
                 Collectors.toCollection(
-                    () -> new TreeSet<>(Comparator.comparingLong(GridContextResponse::getDatetime))
+                    () -> new TreeSet<>(Comparator.comparingLong(value -> value.getCandleResponse().getDateTime()))
                 ));
     }
 
@@ -172,7 +171,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
 
         tradingContextMapLock.writeLock().lock();
         try {
-            TradingContext tradingContext = new TradingContext(candleStick.getInstrument(), candleStick.getEventDate());
+            TradingContext tradingContext = new TradingContext(candleStick.getInstrument(), candleStick);
 
             tradingContext.getTradingGrid().clear();
             double currentPrice = candleStick.getClosePrice();
@@ -236,7 +235,16 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             .setFieldMatchingEnabled(true)
             .setFieldAccessLevel(Configuration.AccessLevel.PRIVATE);
 
-        Converter<DateTime, Long> dateTimeConverter = mappingContext -> mappingContext.getSource().getMillis();
+        Converter<CandleStick, CandleResponse> candleStickConverter = context -> {
+            CandleStick candleStick = context.getSource();
+            return new CandleResponse(
+                candleStick.getOpenPrice(),
+                candleStick.getHighPrice(),
+                candleStick.getLowPrice(),
+                candleStick.getClosePrice(),
+                candleStick.getEventDate().getMillis()
+            );
+        };
         Converter<TradeableInstrument, String> locationCodeConverter = context -> context.getSource().getInstrument();
         Converter<Map<BigDecimal, TradingDecision>, Set<Double>> tradeDecisionMapConverter =
             context -> {
@@ -249,7 +257,7 @@ public class BitmexTradingBotImpl extends BitmexTradingBot {
             protected void configure() {
                 using(locationCodeConverter).map(source.getTradeableInstrument()).setSymbol(null);
                 using(tradeDecisionMapConverter).map(source.getTradingGrid()).setMesh(null);
-                using(dateTimeConverter).map(source.getDatetime()).setDatetime(-1L);
+                using(candleStickConverter).map(source.getCandleStick()).setCandleResponse(null);
             }
         });
     }
