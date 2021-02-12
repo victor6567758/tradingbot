@@ -3,6 +3,7 @@ package com.tradebot.bitmex.restapi.marketdata;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.QuoteApi;
 import com.tradebot.bitmex.restapi.generated.model.Quote;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.instrument.TradeableInstrument;
@@ -16,7 +17,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -47,19 +47,25 @@ public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider 
         return getCurrentQuote(instrument);
     }
 
-    @SneakyThrows
     private Price getCurrentQuote(TradeableInstrument instrument) {
-        List<Quote> quotes = getQuoteApi().quoteGet(BitmexUtils.getSymbol(instrument), null, null, BigDecimal.ONE, null, true, null, null);
-        if (quotes.size() > 1) {
-            log.warn("More than 1 quote returned");
-        }
 
-        Quote quote = quotes.get(0);
-        return new Price(
-            new TradeableInstrument(quote.getSymbol(), quote.getSymbol()),
-            quote.getBidPrice(),
-            quote.getAskPrice(),
-            quote.getTimestamp()
-        );
+        try {
+            List<Quote> quotes = getQuoteApi().quoteGet(BitmexUtils.getSymbol(instrument), null, null, BigDecimal.ONE, null, true, null, null);
+            if (quotes.size() > 1) {
+                log.warn("More than 1 quote returned");
+            }
+
+            Quote quote = quotes.get(0);
+            return new Price(
+                new TradeableInstrument(quote.getSymbol(), quote.getSymbol()),
+                quote.getBidPrice(),
+                quote.getAskPrice(),
+                quote.getTimestamp()
+            );
+
+        } catch (
+            ApiException apiException) {
+            throw new IllegalArgumentException(apiException);
+        }
     }
 }

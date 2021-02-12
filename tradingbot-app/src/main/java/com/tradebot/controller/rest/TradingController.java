@@ -1,16 +1,18 @@
 package com.tradebot.controller.rest;
 
+import com.tradebot.response.GridContextResponse;
+import com.tradebot.service.BitmexTradingBot;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.tradebot.response.GridContextResponse;
-import com.tradebot.service.impl.BitmexTradingBotImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController()
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TradingController {
 
-    private final BitmexTradingBotImpl bitmexTradingBot;
+    private final BitmexTradingBot bitmexTradingBot;
 
     @GetMapping("/last")
     public Map<String, GridContextResponse> getLastContextList() {
@@ -46,5 +48,15 @@ public class TradingController {
         return bitmexTradingBot.getAllSymbols();
     }
 
+    @PutMapping("/reset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetTradingContext() {
+        bitmexTradingBot.resetTradingContext();
+    }
 
+    @PutMapping("/setTradeEnabled/{enabled}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void setTradeEnabled(@PathVariable boolean enabled) {
+        bitmexTradingBot.setTradesEnabled(enabled);
+    }
 }

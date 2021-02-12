@@ -1,5 +1,6 @@
 package com.tradebot.bitmex.restapi.trade;
 
+import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.TradeApi;
 import com.tradebot.bitmex.restapi.generated.model.Trade;
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -41,31 +41,39 @@ public class BitmexTradeManagementProvider implements TradeManagementProvider<St
     }
 
     @Override
-    @SneakyThrows
     public com.tradebot.core.trade.Trade<String, Long> getTradeForAccount(String tradeId, Long accountId) {
+
         return getAllTrades().stream()
             .filter(trade -> trade.getTrdMatchID().equals(tradeId))
             .map(trade -> convertTo(accountId, trade))
             .findAny().orElseThrow();
+
     }
 
     @Override
-    @SneakyThrows
     public Collection<com.tradebot.core.trade.Trade<String, Long>> getTradesForAccount(Long accountId) {
+
         return getAllTrades().stream().map(trade -> convertTo(accountId, trade)).collect(Collectors.toList());
+
     }
 
-    private List<Trade> getAllTrades() throws ApiException {
-        return getTradeApi().tradeGet(
-            null,
-            null,
-            null,
-            BigDecimal.valueOf(bitmexAccountConfiguration.getBitmex().getApi().getTradesDepth()),
-            BigDecimal.ZERO,
-            true,
-            null,
-            null
-        );
+    private List<Trade> getAllTrades() {
+        try {
+            return getTradeApi().tradeGet(
+                null,
+                null,
+                null,
+                BigDecimal.valueOf(bitmexAccountConfiguration.getBitmex().getApi().getTradesDepth()),
+                BigDecimal.ZERO,
+                true,
+                null,
+                null
+            );
+
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
     private com.tradebot.core.trade.Trade<String, Long> convertTo(Long accountId, Trade trade) {

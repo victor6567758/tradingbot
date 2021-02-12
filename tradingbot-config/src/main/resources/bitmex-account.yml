@@ -45,6 +45,7 @@ bitmex:
           priceEnd: 34403.0
           x: 0.02
           linesNum: 11
+          orderPosUnits: 1
       - instrument: XBTJPY
         description: XBTJPY
         instrumentId: XBTJPY
@@ -62,3 +63,4 @@ bitmex:
           priceEnd: 3500000.0
           x: 0.02
           linesNum: 10
+          orderPosUnits: 1

@@ -20,6 +20,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler  {
     @ExceptionHandler(RuntimeException.class)
     protected ResponseEntity<Object> handleRemainingExceptions(
         RuntimeException runTimeException, WebRequest request) {
+        log.error("API error", runTimeException);
         return buildResponseEntity(
             new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, UNEXPECTED_EXCEPTION, runTimeException));
     }

@@ -2,6 +2,7 @@ package com.tradebot.bitmex.restapi.utils;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import com.google.gson.Gson;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
@@ -20,6 +21,7 @@ import java.util.Map;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,7 +49,13 @@ public class ApiClientAuthorizeable extends ApiClient {
         final String url = buildUrl(path, queryParams, collectionQueryParams);
         final Request.Builder reqBuilder = new Request.Builder().url(url);
 
-        updateHeaders(headerParams, method, url, body);
+        if (body != null) {
+            throw new IllegalArgumentException("API restriction, body has to be setup from form parameters map");
+        }
+
+        String bodyContent = CollectionUtils.isEmpty(formParams) ? null : new Gson().toJson(formParams);
+
+        updateHeaders(headerParams, method, url, bodyContent);
         processHeaderParams(headerParams, reqBuilder);
 
         String contentType = headerParams.get("Content-Type");
@@ -56,14 +64,14 @@ public class ApiClientAuthorizeable extends ApiClient {
             contentType = "application/json";
         }
 
+        if (!"application/json".equals(contentType)) {
+            throw new IllegalArgumentException("API restriction, only application/json is allowed");
+        }
+
         RequestBody reqBody;
         if (!HttpMethod.permitsRequestBody(method)) {
             reqBody = null;
-        } else if ("application/x-www-form-urlencoded".equals(contentType)) {
-            reqBody = buildRequestBodyFormEncoding(formParams);
-        } else if ("multipart/form-data".equals(contentType)) {
-            reqBody = buildRequestBodyMultipart(formParams);
-        } else if (body == null) {
+        } else if (bodyContent == null) {
             if ("DELETE".equals(method)) {
                 // allow calling DELETE without sending a request body
                 reqBody = null;
@@ -72,7 +80,7 @@ public class ApiClientAuthorizeable extends ApiClient {
                 reqBody = RequestBody.create(MediaType.parse(contentType), "");
             }
         } else {
-            reqBody = serialize(body, contentType);
+            reqBody = serialize(bodyContent.getBytes(StandardCharsets.UTF_8), contentType);
         }
 
         Request request;

@@ -1,5 +1,6 @@
 package com.tradebot.bitmex.restapi.instrument;
 
+import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.InstrumentApi;
 import com.tradebot.bitmex.restapi.generated.model.Instrument;
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -35,35 +35,42 @@ public class BitmexInstrumentDataProviderService implements InstrumentDataProvid
 
 
     @Override
-    @SneakyThrows
     public Collection<TradeableInstrument> getInstruments() {
+
         List<Instrument> instruments = getAllInstruments();
         return instruments.stream().map(BitmexInstrumentDataProviderService::toTradeableInstrument).collect(Collectors.toList());
+
     }
 
-    private List<Instrument> getAllInstruments() throws ApiException {
-        List<Instrument> allInstruments = new ArrayList<>();
-        BigDecimal position = BigDecimal.ZERO;
-        while (true) {
-            List<Instrument> chunk = getInstrumentApi().instrumentGet(
-                null,
-                null,
-                null,
-                CHUNK_SIZE,
-                position,
-                true,
-                null,
-                null
-            );
+    private List<Instrument> getAllInstruments() {
+        try {
+            List<Instrument> allInstruments = new ArrayList<>();
+            BigDecimal position = BigDecimal.ZERO;
+            while (true) {
+                List<Instrument> chunk = getInstrumentApi().instrumentGet(
+                    null,
+                    null,
+                    null,
+                    CHUNK_SIZE,
+                    position,
+                    true,
+                    null,
+                    null
+                );
 
-            if (CollectionUtils.isEmpty(chunk)) {
-                break;
+                if (CollectionUtils.isEmpty(chunk)) {
+                    break;
+                }
+                allInstruments.addAll(chunk);
+                position = position.add(CHUNK_SIZE);
             }
-            allInstruments.addAll(chunk);
-            position = position.add(CHUNK_SIZE);
-        }
 
-        return allInstruments;
+            return allInstruments;
+
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
     private static TradeableInstrument toTradeableInstrument(Instrument instrument) {

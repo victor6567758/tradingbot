@@ -1,6 +1,6 @@
 package com.tradebot.controller.mvc;
 
-import com.tradebot.service.impl.BitmexTradingBotImpl;
+import com.tradebot.service.BitmexTradingBot;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class HomeMvcController {
 
-    private final BitmexTradingBotImpl bitmexTradingBot;
+    private final BitmexTradingBot bitmexTradingBot;
 
     private final Environment environment;
 

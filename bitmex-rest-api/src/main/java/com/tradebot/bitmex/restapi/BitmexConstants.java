@@ -43,4 +43,6 @@ public final class BitmexConstants {
     public static final String CLOSE_TRADE = "Close Trade";
     public static final String TRAILING_STOP = "Trailing Stop";
     public static final String DAILYFX_CALENDAR_URL = "http://www.dailyfx.com/files/Calendar-%tm-%td-%tY.csv";
+
+    public static final String BITMEX_FAILURE = "Bitmex API failure %s";
 }

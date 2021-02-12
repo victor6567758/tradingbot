@@ -11,28 +11,30 @@ import static org.mockito.Mockito.when;
 
 import com.tradebot.core.BaseTradingConfig;
 import com.tradebot.core.TradingDecision;
+import com.tradebot.core.TradingDecision.SrcDecison;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.account.AccountInfoService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
+import com.tradebot.core.utils.CommonConsts;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.checkerframework.checker.units.qual.A;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 @SuppressWarnings("unchecked")
-public class OrderExecutionServiceTest<N> {
+public class OrderExecutionServiceImplTest<N> {
 
     private static final int ALLOWED_SUBMISSIONS = 20;
 
@@ -43,8 +45,16 @@ public class OrderExecutionServiceTest<N> {
     private final CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
     private final TradeableInstrument gbpaud = new TradeableInstrument("GBP_AUD", "GBP_AUD");
     private final TradingSignal signal = TradingSignal.SHORT;
-    private final TradingDecision tradingDecision1 = new TradingDecision(gbpaud, signal, 1.855, 2.21);
-    private final TradingDecision tradingDecision2 = new TradingDecision(gbpaud, signal, 1.855, 2.21, 2.12);
+
+    private final TradingDecision tradingDecision1 = TradingDecision.builder()
+        .signal(signal).instrument(gbpaud).tradeSource(SrcDecison.OTHER).limitPrice(1.855).stopPrice(2.21).units(1L)
+        .takeProfitPrice(CommonConsts.INVALID_PRICE).stopLossPrice(CommonConsts.INVALID_PRICE)
+        .build();
+
+    private final TradingDecision tradingDecision2 = TradingDecision.builder()
+        .signal(signal).instrument(gbpaud).tradeSource(SrcDecison.OTHER).limitPrice(1.855).stopPrice(2.21).units(1L)
+        .takeProfitPrice(2.12).stopLossPrice(CommonConsts.INVALID_PRICE)
+        .build();
 
     @Before
     public void init() {
@@ -88,7 +98,7 @@ public class OrderExecutionServiceTest<N> {
             }
         };
 
-        OrderExecutionService<Long, Long> service = new OrderExecutionService(
+        OrderExecutionServiceImpl<Long,Long> service = new OrderExecutionServiceImpl<>(
             accountInfoService,
             orderManagementProvider,
             baseTradingConfig,
@@ -97,14 +107,11 @@ public class OrderExecutionServiceTest<N> {
             orderExecutionServiceContext);
 
 
+        Future<List<Order<Long>>> futureTask1 = service.submit(tradingDecision1);
+        Future<List<Order<Long>>> futureTask2 = service.submit(tradingDecision2);
 
-
-
-        Future<Boolean> futureTask1 = service.submit(tradingDecision1);
-        Future<Boolean> futureTask2 = service.submit(tradingDecision2);
-
-        assertThat(futureTask1.get()).isTrue();
-        assertThat(futureTask2.get()).isTrue();
+        assertThat(futureTask1.get()).isNotEmpty();
+        assertThat(futureTask2.get()).isNotEmpty();
 
         verify(orderManagementProvider, times(2))
             .placeOrder(any(Order.class), eq(TradingTestConstants.ACCOUNT_ID_1));
@@ -117,7 +124,7 @@ public class OrderExecutionServiceTest<N> {
 
         OrderExecutionServiceContext orderExecutionServiceContext = new OrderExecutionServiceContext() {
 
-            private AtomicInteger counter = new AtomicInteger(ALLOWED_SUBMISSIONS);
+            private final AtomicInteger counter = new AtomicInteger(ALLOWED_SUBMISSIONS);
 
             @Override
             public void fired() {
@@ -134,7 +141,7 @@ public class OrderExecutionServiceTest<N> {
             }
         };
 
-        OrderExecutionService<Long, Long> service = new OrderExecutionService(
+        OrderExecutionServiceImpl<Long, Long> service = new OrderExecutionServiceImpl<>(
             accountInfoService,
             orderManagementProvider,
             baseTradingConfig,
@@ -143,12 +150,12 @@ public class OrderExecutionServiceTest<N> {
             orderExecutionServiceContext);
 
         for (int i = 0; i < ALLOWED_SUBMISSIONS; i++) {
-            Future<Boolean> future = service.submit(tradingDecision1);
-            assertThat(future.get()).isTrue();
+            Future<List<Order<Long>>> future = service.submit(tradingDecision1);
+            assertThat(future.get()).isNotEmpty();
         }
 
-        Future<Boolean> future = service.submit(tradingDecision1);
-        assertThat(future.get()).isFalse();
+        Future<List<Order<Long>>> future = service.submit(tradingDecision1);
+        assertThat(future.get()).isEmpty();
 
         service.shutdown();
     }

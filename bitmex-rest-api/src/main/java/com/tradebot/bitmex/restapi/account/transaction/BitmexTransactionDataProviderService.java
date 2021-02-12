@@ -1,5 +1,6 @@
 package com.tradebot.bitmex.restapi.account.transaction;
 
+import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.BitmexTransactionTypeEvent;
 import com.tradebot.bitmex.restapi.generated.api.UserApi;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 
@@ -30,18 +30,20 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
 
 
     @Override
-    @SneakyThrows
     public com.tradebot.core.account.transaction.Transaction<String, Long> getTransaction(String transactionId, Long accountId) {
+
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
             .filter(transaction -> transaction.getTransactID().equals(transactionId))
             .findAny().map(BitmexTransactionDataProviderService::mapToTransaction).orElseThrow();
+
+
     }
 
     @Override
-    @SneakyThrows
     public List<com.tradebot.core.account.transaction.Transaction<String, Long>> getTransactionsGreaterThanDateTime(
         DateTime dateTime, Long accountId) {
+
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
             .filter(transaction -> {
@@ -53,10 +55,11 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
             })
             .map(BitmexTransactionDataProviderService::mapToTransaction)
             .collect(Collectors.toList());
+
+
     }
 
     @Override
-    @SneakyThrows
     public List<com.tradebot.core.account.transaction.Transaction<String, Long>> getTransactionsGreaterThanId(
         String minTransactionId, Long accountId) {
 
@@ -65,12 +68,20 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
             .filter(transaction -> transaction.getTransactID().compareTo(minTransactionId) > 0)
             .map(BitmexTransactionDataProviderService::mapToTransaction)
             .collect(Collectors.toList());
+
     }
 
-    private List<Transaction> getAllTransaction() throws ApiException {
-        return getUserApi().userGetWalletHistory(
-            bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency(),
-            (double) bitmexAccountConfiguration.getBitmex().getApi().getTransactionsDepth(), 0.0);
+    private List<Transaction> getAllTransaction() {
+
+        try {
+            return getUserApi().userGetWalletHistory(
+                bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency(),
+                (double) bitmexAccountConfiguration.getBitmex().getApi().getTransactionsDepth(), 0.0);
+
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
     private static com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {

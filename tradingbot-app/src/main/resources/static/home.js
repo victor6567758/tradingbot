@@ -62,13 +62,32 @@ $(document).ready(function () {
         getTradingEventsHistory();
     });
 
+    //    button click
+    $("#btnReset").button().click(() => {
+        resetTradingContext();
+
+        lastConfigUpdateTime_ = null;
+        deinitChart();
+        getTradingEventsHistory();
+
+    });    
+
     $(window).bind('resize', function () {
         adjustChartSize();
     });
 
     adjustChartSize();
 
+    
+
 });
+
+async function resetTradingContext() {
+    await fetch(`${REST_API}/reset`, {
+        method: 'PUT',
+        body: null
+    });
+}
 
 function adjustChartSize() {
     if (chart_ != null) {

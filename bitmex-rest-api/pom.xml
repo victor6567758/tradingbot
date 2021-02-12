@@ -162,14 +162,16 @@
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>io.swagger</groupId>
         <artifactId>swagger-codegen-maven-plugin</artifactId>
-        <version>2.4.16</version>
+        <version>2.4.17</version>
         <executions>
           <execution>
             <goals>
@@ -192,11 +194,16 @@
               <configOptions>
                 <dateLibrary>joda</dateLibrary>
                 <sourceFolder>restclient</sourceFolder>
+                <library>okhttp-gson</library>
               </configOptions>
+              <!--<configHelp>true</configHelp>-->
             </configuration>
           </execution>
         </executions>
       </plugin>
+
+
+
     </plugins>
   </build>
 

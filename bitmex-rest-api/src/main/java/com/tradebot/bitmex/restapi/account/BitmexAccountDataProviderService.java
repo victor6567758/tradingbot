@@ -1,5 +1,6 @@
 package com.tradebot.bitmex.restapi.account;
 
+import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.PositionApi;
 import com.tradebot.bitmex.restapi.generated.api.UserApi;
@@ -16,7 +17,6 @@ import java.util.Collection;
 import java.util.Collections;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -38,36 +38,41 @@ public class BitmexAccountDataProviderService implements AccountDataProvider<Lon
     );
 
     @Override
-    @SneakyThrows
     public Account<Long> getLatestAccountInfo(final Long accountId) {
         return getUserAccount();
     }
 
     @Override
-    @SneakyThrows
     public Collection<Account<Long>> getLatestAccountsInfo() {
         return Collections.singletonList(getUserAccount());
     }
 
-    private Account<Long> getUserAccount() throws ApiException {
-        Wallet wallet = getUserApi().userGetWallet(bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency());
-        Margin margin = getUserApi().userGetMargin(wallet.getCurrency());
+    private Account<Long> getUserAccount() {
 
-        long totalOpenPositions = getPositionApi().positionGet(null, null, null)
-            .stream().filter(Position::isIsOpen)
-            .map(position -> position.getCurrentQty().longValue())
-            .mapToLong(value -> value).sum();
+        try {
+            Wallet wallet = getUserApi().userGetWallet(bitmexAccountConfiguration.getBitmex().getApi().getMainCurrency());
+            Margin margin = getUserApi().userGetMargin(wallet.getCurrency());
 
-        return new Account<>(
-            margin.getAmount(),
-            margin.getUnrealisedPnl(),
-            margin.getRealisedPnl(),
-            BigDecimal.ZERO,
-            margin.getAvailableMargin(),
-            totalOpenPositions,
-            wallet.getCurrency(),
-            wallet.getAccount().longValue(),
-            BigDecimal.valueOf(margin.getMarginBalancePcnt()));
+            long totalOpenPositions = getPositionApi().positionGet(null, null, null)
+                .stream().filter(Position::isIsOpen)
+                .map(position -> position.getCurrentQty().longValue())
+                .mapToLong(value -> value).sum();
+
+            return new Account<>(
+                margin.getAmount(),
+                margin.getUnrealisedPnl(),
+                margin.getRealisedPnl(),
+                BigDecimal.ZERO,
+                margin.getAvailableMargin(),
+                totalOpenPositions,
+                wallet.getCurrency(),
+                wallet.getAccount().longValue(),
+                BigDecimal.valueOf(margin.getMarginBalancePcnt()));
+
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
 }

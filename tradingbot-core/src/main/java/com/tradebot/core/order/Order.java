@@ -16,10 +16,11 @@ public class Order<N> {
     private final long units;
     private final TradingSignal side;
     private final OrderType type;
-    private final double takeProfit;
-    private final double stopLoss;
     private final double price;
     private final double stopPrice;
+
+    private final double takeProfit;
+    private final double stopLoss;
 
     @Setter
     private N orderId;

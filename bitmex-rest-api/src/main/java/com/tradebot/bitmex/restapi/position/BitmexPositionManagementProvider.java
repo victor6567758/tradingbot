@@ -1,9 +1,11 @@
 package com.tradebot.bitmex.restapi.position;
 
+import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.api.PositionApi;
 import com.tradebot.bitmex.restapi.generated.model.Position;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingSignal;
@@ -13,7 +15,6 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -35,35 +36,51 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
     );
 
     @Override
-    @SneakyThrows
     public com.tradebot.core.position.Position getPositionForInstrument(Long accountId, TradeableInstrument instrument) {
-        return getPositionApi().positionGet(null, null, null).stream()
-            .filter(position -> position.getAccount().longValue() == accountId)
-            .filter(position -> position.getSymbol().equals(instrument.getInstrument()))
-            .map(BitmexPositionManagementProvider::toPosition).findAny().orElseThrow();
+        try {
+            return getPositionApi().positionGet(null, null, null).stream()
+                .filter(position -> position.getAccount().longValue() == accountId)
+                .filter(position -> position.getSymbol().equals(instrument.getInstrument()))
+                .map(BitmexPositionManagementProvider::toPosition).findAny().orElseThrow();
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
     @Override
-    @SneakyThrows
     public Collection<com.tradebot.core.position.Position> getPositionsForAccount(Long accountId) {
-        return getPositionApi().positionGet(null, null, null).stream()
-            .filter(position -> position.getAccount().longValue() == accountId)
-            .map(BitmexPositionManagementProvider::toPosition).collect(Collectors.toList());
+        try {
+            return getPositionApi().positionGet(null, null, null).stream()
+                .filter(position -> position.getAccount().longValue() == accountId)
+                .map(BitmexPositionManagementProvider::toPosition).collect(Collectors.toList());
+
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
     @Override
-    @SneakyThrows
     public boolean closePosition(Long accountId, TradeableInstrument instrument, double price) {
-        getOrderApi().orderClosePosition(instrument.getInstrument(), price <= 0 ? null : price);
-        return true;
+        try {
+            getOrderApi().orderClosePosition(instrument.getInstrument(), price <= 0 ? null : price);
+            return true;
+
+        } catch (ApiException apiException) {
+            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
+                apiException.getResponseBody()), apiException);
+        }
     }
 
     private static com.tradebot.core.position.Position toPosition(Position position) {
+
         return new com.tradebot.core.position.Position(
             new TradeableInstrument(position.getSymbol(), position.getSymbol()),
             position.getCurrentQty().longValue(),
             position.getCurrentQty().longValue() > 0 ? TradingSignal.LONG : TradingSignal.SHORT,
             position.getAvgCostPrice()
         );
+
     }
 }
