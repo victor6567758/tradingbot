@@ -74,8 +74,8 @@ public class PipJumpCutOffCalculatorService<T> implements PipJumpCutOffCalculato
         } else if (instrumentPrice == null) {
             instrumentPrice = fetchSingleInstrumentPrice(instrument);
         }
-        double pipRef = this.instrumentService.getPipForInstrument(refInstrument);
-        double pip = this.instrumentService.getPipForInstrument(instrument);
+        double pipRef = this.instrumentService.getTickSizeForInstrument(refInstrument);
+        double pip = this.instrumentService.getTickSizeForInstrument(instrument);
         return ((instrumentPrice * pipRef) / (refInstrumentPrice * pip)) * refInstrumentPip;
     }
 

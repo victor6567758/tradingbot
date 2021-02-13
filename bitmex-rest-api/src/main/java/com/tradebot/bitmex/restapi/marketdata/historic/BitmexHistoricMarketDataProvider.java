@@ -7,6 +7,7 @@ import com.tradebot.bitmex.restapi.generated.model.TradeBin;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -23,6 +24,12 @@ import org.joda.time.DateTime;
 public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvider {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+
+    private final InstrumentService instrumentService;
+
+    public BitmexHistoricMarketDataProvider(InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
 
     @Getter(AccessLevel.PACKAGE)
     private final TradeApi tradeApi = new TradeApi(
@@ -79,14 +86,14 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
         }
     }
 
-    private static CandleStick toCandleStick(TradeBin tradeBin, CandleStickGranularity granularity) {
+    private CandleStick toCandleStick(TradeBin tradeBin, CandleStickGranularity granularity) {
         return new CandleStick(
             tradeBin.getOpen(),
             tradeBin.getHigh(),
             tradeBin.getLow(),
             tradeBin.getClose(),
             tradeBin.getTimestamp(),
-            new TradeableInstrument(tradeBin.getSymbol(), tradeBin.getSymbol()),
+            instrumentService.resolveTradeableInstrument(tradeBin.getSymbol()),
             granularity
         );
     }

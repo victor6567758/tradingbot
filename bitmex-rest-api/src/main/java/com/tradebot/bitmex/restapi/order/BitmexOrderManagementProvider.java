@@ -6,7 +6,6 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.model.Order;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
-import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
 import com.tradebot.bitmex.restapi.model.OrderStatus;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
@@ -17,7 +16,6 @@ import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.utils.CommonConsts;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +29,11 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
 
-    private final InstrumentService instrumentService = new InstrumentService(new BitmexInstrumentDataProviderService());
+    private final InstrumentService instrumentService;
+
+    public BitmexOrderManagementProvider(InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
 
     @Getter(AccessLevel.PACKAGE)
     private final OrderApi orderApi = new OrderApi(
@@ -43,16 +45,15 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
     @Override
     public String placeOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
 
-
         try {
             Order newOrder = getOrderApi().orderNew(
                 order.getInstrument().getInstrument(), // symbol
                 TradingSignalConvertible.toString(order.getSide()), // side
                 null, // simpleOrderQty
                 BigDecimal.valueOf(order.getUnits()), // orderQty
-                order.getPrice() > 0 ? roundPrice(order.getInstrument(), order.getPrice()) : null, // price
+                order.getPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getPrice()) : null, // price
                 BigDecimal.valueOf(0), // displayQty
-                order.getStopPrice() > 0 ? roundPrice(order.getInstrument(), order.getStopPrice()) : null, // stopPx
+                order.getStopPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getStopPrice()) : null, // stopPx
                 null, // clOrdID
                 null, // clOrdLinkID
                 null, // pegOffsetValue
@@ -84,8 +85,8 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 BigDecimal.valueOf(order.getUnits()),
                 null,
                 null,
-                order.getPrice() > 0 ? roundPrice(order.getInstrument(), order.getPrice()) : null, // price
-                order.getStopPrice() > 0 ? roundPrice(order.getInstrument(), order.getStopPrice()) : null, // stopPx
+                order.getPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getPrice()) : null, // price
+                order.getStopPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getStopPrice()) : null, // stopPx
                 null,
                 null
             );
@@ -198,12 +199,5 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
         return convertedOrder;
     }
 
-    private static double roundPrice(TradeableInstrument instrument, double price) {
-        if (price < 0) {
-            throw new IllegalArgumentException("Invalid price");
-        }
 
-        BigDecimal result = BigDecimal.valueOf(price).setScale(instrument.getScale(), RoundingMode.HALF_EVEN);
-        return result.doubleValue();
-    }
 }

@@ -30,7 +30,7 @@ public class Transaction<M, N> {
         M transactionId,
         Event transactionType,
         N accountId,
-        String instrument,
+        TradeableInstrument instrument,
         Long units,
         TradingSignal side,
         DateTime transactionTime,
@@ -42,7 +42,7 @@ public class Transaction<M, N> {
         this.transactionId = transactionId;
         this.transactionType = transactionType;
         this.accountId = accountId;
-        this.instrument = new TradeableInstrument(instrument, instrument);
+        this.instrument = instrument;
         this.units = units;
         this.side = side;
         this.transactionTime = transactionTime;

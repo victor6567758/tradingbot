@@ -15,6 +15,8 @@ import com.tradebot.bitmex.restapi.generated.api.TradeApi;
 import com.tradebot.bitmex.restapi.generated.model.Trade;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
+import com.tradebot.core.instrument.InstrumentService;
+import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -31,14 +33,22 @@ public class BitmexTradeManagementProviderTest {
 
     private List<Trade> trades;
     private BitmexTradeManagementProvider bitmexTradeManagementProviderSpy;
+    private InstrumentService instrumentServiceSpy;
 
     @Before
     public void init() throws IOException, ApiException {
-        bitmexTradeManagementProviderSpy = spy(new BitmexTradeManagementProvider());
 
         trades = json.deserialize(Resources.toString(Resources.getResource("tradesAll.json"), StandardCharsets.UTF_8),
             new TypeToken<List<Trade>>() {
             }.getType());
+
+        instrumentServiceSpy = mock(InstrumentService.class);
+        trades.forEach(trade -> {
+            TradeableInstrument instrument =
+                new TradeableInstrument(trade.getSymbol(), trade.getSymbol(), 0.5, null, null, BigDecimal.valueOf(1L), null, null);
+            doReturn(instrument).when(instrumentServiceSpy).resolveTradeableInstrument(instrument.getInstrument());
+        });
+        bitmexTradeManagementProviderSpy = spy(new BitmexTradeManagementProvider(instrumentServiceSpy));
 
         when(tradeApi.tradeGet(
             isNull(),

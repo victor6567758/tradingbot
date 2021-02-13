@@ -3,6 +3,8 @@ package com.tradebot.bitmex.restapi.streaming.marketdata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -19,6 +21,7 @@ import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.events.EventPayLoad;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatPayLoad;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.MarketEventCallback;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -45,7 +48,6 @@ public class BitmexMarketDataStreamingServiceTest {
 
     private static final TradeableInstrument INSTRUMENTS_XBTUSD = INSTRUMENTS.stream().filter(n -> "XBTUSD".equals(n.getInstrument())).findAny().orElseThrow();
     private static final TradeableInstrument INSTRUMENTS_XBTJPY = INSTRUMENTS.stream().filter(n -> "XBTJPY".equals(n.getInstrument())).findAny().orElseThrow();
-
 
     private static final Gson GSON = BitmexJsonBuilder.buildJson();
 
@@ -75,6 +77,7 @@ public class BitmexMarketDataStreamingServiceTest {
     private HeartBeatCallback<Long> heartBeatCallbackSpy;
     private EventCallback<BitmexInstrument> bitmexInstrumentEventCallbackSpy;
     private MarketEventCallback marketEventCallbackSpy;
+    private InstrumentService instrumentServiceSpy;
 
     // Must not be lambdas for correct Mockito work
     private final HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallback<Long>() {
@@ -156,11 +159,16 @@ public class BitmexMarketDataStreamingServiceTest {
         bitmexInstrumentEventCallbackSpy = spy(bitmexInstrumentEventCallback);
         marketEventCallbackSpy = spy(marketEventCallback);
 
+        instrumentServiceSpy = mock(InstrumentService.class);
+        doReturn(INSTRUMENTS_XBTUSD).when(instrumentServiceSpy).resolveTradeableInstrument(INSTRUMENTS_XBTUSD.getInstrument());
+        doReturn(INSTRUMENTS_XBTJPY).when(instrumentServiceSpy).resolveTradeableInstrument(INSTRUMENTS_XBTJPY.getInstrument());
+
         bitmexMarketDataStreamingService2Spy = spy(new BitmexMarketDataStreamingService(
             marketEventCallbackSpy,
             bitmexInstrumentEventCallbackSpy,
             heartBeatCallbackSpy,
-            INSTRUMENTS
+            INSTRUMENTS,
+            instrumentServiceSpy
         ));
         jettyCommunicationSocketSpy = spy(bitmexMarketDataStreamingService2Spy.getJettyCommunicationSocket());
 

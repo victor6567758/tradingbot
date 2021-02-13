@@ -16,6 +16,7 @@ import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.model.OrderStatus;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,16 +28,30 @@ import org.junit.Test;
 
 public class BitmexOrderManagementProviderTest {
 
+    private static final TradeableInstrument XBTUSD_INSTR =
+        new TradeableInstrument("XBTUSD", "XBTUSD", 0.5, null, null, BigDecimal.valueOf(1L), null, null);
+    private static final TradeableInstrument XBTJPY_INSTR =
+        new TradeableInstrument("XBTJPY", "XBTJPY", 100, null, null, BigDecimal.valueOf(1L), null, null);
+
+
     private final JSON json = new JSON();
     private final OrderApi orderApi = mock(OrderApi.class);
 
     private List<Order> orders;
     private Order newOrder;
     private BitmexOrderManagementProvider bitmexOrderManagementProviderSpy;
+    private InstrumentService instrumentServiceSpy;
+
+
 
     @Before
     public void init() throws IOException, ApiException {
-        bitmexOrderManagementProviderSpy = spy(new BitmexOrderManagementProvider());
+        instrumentServiceSpy = mock(InstrumentService.class);
+        doReturn(XBTUSD_INSTR).when(instrumentServiceSpy).resolveTradeableInstrument(XBTUSD_INSTR.getInstrument());
+        doReturn(XBTJPY_INSTR).when(instrumentServiceSpy).resolveTradeableInstrument(XBTJPY_INSTR.getInstrument());
+
+
+        bitmexOrderManagementProviderSpy = spy(new BitmexOrderManagementProvider(instrumentServiceSpy));
         orders = json.deserialize(Resources.toString(Resources.getResource("ordersAll.json"), StandardCharsets.UTF_8),
             new TypeToken<List<Order>>() {
             }.getType());

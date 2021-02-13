@@ -9,6 +9,7 @@ import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingSignal;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.position.PositionManagementProvider;
 import java.util.Collection;
@@ -22,6 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 public class BitmexPositionManagementProvider implements PositionManagementProvider<Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+
+    private final InstrumentService instrumentService;
+
+    public BitmexPositionManagementProvider(InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
+
 
     @Getter(AccessLevel.PACKAGE)
     private final PositionApi positionApi = new PositionApi(
@@ -41,7 +49,7 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
             return getPositionApi().positionGet(null, null, null).stream()
                 .filter(position -> position.getAccount().longValue() == accountId)
                 .filter(position -> position.getSymbol().equals(instrument.getInstrument()))
-                .map(BitmexPositionManagementProvider::toPosition).findAny().orElseThrow();
+                .map(this::toPosition).findAny().orElseThrow();
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
@@ -53,7 +61,7 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
         try {
             return getPositionApi().positionGet(null, null, null).stream()
                 .filter(position -> position.getAccount().longValue() == accountId)
-                .map(BitmexPositionManagementProvider::toPosition).collect(Collectors.toList());
+                .map(this::toPosition).collect(Collectors.toList());
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -73,10 +81,10 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
         }
     }
 
-    private static com.tradebot.core.position.Position toPosition(Position position) {
+    private com.tradebot.core.position.Position toPosition(Position position) {
 
         return new com.tradebot.core.position.Position(
-            new TradeableInstrument(position.getSymbol(), position.getSymbol()),
+            instrumentService.resolveTradeableInstrument(position.getSymbol()),
             position.getCurrentQty().longValue(),
             position.getCurrentQty().longValue() > 0 ? TradingSignal.LONG : TradingSignal.SHORT,
             position.getAvgCostPrice()

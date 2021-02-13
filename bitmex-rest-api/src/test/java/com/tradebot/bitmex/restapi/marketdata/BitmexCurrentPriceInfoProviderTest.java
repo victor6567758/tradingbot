@@ -15,6 +15,7 @@ import com.tradebot.bitmex.restapi.generated.model.Quote;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.Price;
 import java.io.IOException;
@@ -37,17 +38,21 @@ public class BitmexCurrentPriceInfoProviderTest {
         .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
         .toFormatter();
 
-    private static final TradeableInstrument INSTRUMENT = new TradeableInstrument("XBTUSD", "XBTUSD");
+    private static final TradeableInstrument INSTRUMENT =
+        new TradeableInstrument("XBTUSD", "XBTUSD", 0.5, null, null, BigDecimal.valueOf(1L), null, null);
     private final JSON json = new JSON();
     private final QuoteApi quoteApi = mock(QuoteApi.class);
 
     private BitmexCurrentPriceInfoProvider bitmexCurrentPriceInfoProviderSpy;
     private List<Quote> quotes;
+    private InstrumentService instrumentServiceSpy;
 
     @Before
     public void init() throws ApiException, IOException {
 
-        bitmexCurrentPriceInfoProviderSpy = spy(new BitmexCurrentPriceInfoProvider());
+        instrumentServiceSpy = mock(InstrumentService.class);
+        doReturn(INSTRUMENT).when(instrumentServiceSpy).resolveTradeableInstrument(INSTRUMENT.getInstrument());
+        bitmexCurrentPriceInfoProviderSpy = spy(new BitmexCurrentPriceInfoProvider(instrumentServiceSpy));
 
         quotes = json.deserialize(Resources.toString(Resources.getResource("currentPrice.json"), StandardCharsets.UTF_8),
             new TypeToken<List<Quote>>() {

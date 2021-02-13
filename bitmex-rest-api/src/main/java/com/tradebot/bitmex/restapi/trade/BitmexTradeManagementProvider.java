@@ -8,7 +8,7 @@ import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
-import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.trade.TradeManagementProvider;
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -23,6 +23,12 @@ import org.apache.commons.lang3.NotImplementedException;
 public class BitmexTradeManagementProvider implements TradeManagementProvider<String, Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+
+    private final InstrumentService instrumentService;
+
+    public BitmexTradeManagementProvider(InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
 
     @Getter(AccessLevel.PACKAGE)
     private final TradeApi tradeApi = new TradeApi(
@@ -81,7 +87,7 @@ public class BitmexTradeManagementProvider implements TradeManagementProvider<St
             trade.getTrdMatchID(),
             trade.getSize().longValue(),
             TradingSignalConvertible.fromString(trade.getSide()),
-            new TradeableInstrument(trade.getSymbol(), trade.getSymbol()),
+            instrumentService.resolveTradeableInstrument(trade.getSymbol()),
             trade.getTimestamp(),
             0.0,
             trade.getPrice(),

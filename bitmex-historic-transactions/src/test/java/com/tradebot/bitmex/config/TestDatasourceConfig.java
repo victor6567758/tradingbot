@@ -1,9 +1,14 @@
 package com.tradebot.bitmex.config;
 
+import com.tradebot.bitmex.restapi.account.transaction.BitmexTransactionDataProviderService;
+import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
+import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.instrument.InstrumentService;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -16,6 +21,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 public class TestDatasourceConfig {
+
+    private final InstrumentService instrumentService;
+
+    public TestDatasourceConfig(@Lazy InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
+
     @Bean
     public DataSource dataSource() {
         EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
@@ -42,5 +54,15 @@ public class TestDatasourceConfig {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(entityManagerFactory);
         return transactionManager;
+    }
+
+    @Bean
+    public InstrumentService instrumentService() {
+        return new InstrumentService(new BitmexInstrumentDataProviderService());
+    }
+
+    @Bean
+    public TransactionDataProvider<String, Long> transactionDataProvider() {
+        return new BitmexTransactionDataProviderService(instrumentService);
     }
 }

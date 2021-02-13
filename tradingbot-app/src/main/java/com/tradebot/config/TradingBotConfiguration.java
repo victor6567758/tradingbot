@@ -12,9 +12,16 @@ import com.tradebot.core.order.OrderManagementProvider;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 public class TradingBotConfiguration {
+
+    private final InstrumentService instrumentService;
+
+    public TradingBotConfiguration(@Lazy InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
 
     @Bean
     public EventBus eventBus() {
@@ -38,11 +45,11 @@ public class TradingBotConfiguration {
 
     @Bean
     public HistoricMarketDataProvider historicMarketDataProvider() {
-        return new BitmexHistoricMarketDataProvider();
+        return new BitmexHistoricMarketDataProvider(instrumentService);
     }
 
     @Bean
     public OrderManagementProvider<String, Long> orderManagementProvider() {
-        return new BitmexOrderManagementProvider();
+        return new BitmexOrderManagementProvider(instrumentService);
     }
 }

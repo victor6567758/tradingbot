@@ -51,4 +51,44 @@ public class BitmexUtils {
                 ccy));
     }
 
+    public static double roundPrice(TradeableInstrument instrument, double price) {
+        if (price < 0) {
+            throw new IllegalArgumentException("Invalid price");
+        }
+
+        double tickSize = instrument.getTickSize();
+        double curPrice = price;
+        int scale = instrument.getScale();
+
+        while (scale > 0) {
+            tickSize *= 10;
+            curPrice *= 10;
+
+            scale--;
+        }
+
+        long longPrice = (long) curPrice;
+        long longTickSize = (long) tickSize;
+
+        double resultPrice = closestDividableNumber(longPrice, longTickSize);
+        while (scale < instrument.getScale()) {
+            resultPrice /= 10;
+            scale++;
+        }
+
+        return resultPrice;
+    }
+
+    public static long closestDividableNumber(long n, long m) {
+        long q = n / m;
+        long n1 = m * q;
+        long n2 = (n * m) > 0 ? (m * (q + 1)) : (m * (q - 1));
+
+        if (Math.abs(n - n1) < Math.abs(n - n2)) {
+            return n1;
+        }
+
+        return n2;
+    }
+
 }

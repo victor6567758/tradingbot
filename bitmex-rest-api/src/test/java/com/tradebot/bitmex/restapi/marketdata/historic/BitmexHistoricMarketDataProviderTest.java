@@ -15,7 +15,7 @@ import com.tradebot.bitmex.restapi.generated.api.TradeApi;
 import com.tradebot.bitmex.restapi.generated.model.TradeBin;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
-import com.tradebot.bitmex.restapi.utils.BitmexUtils;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -38,12 +38,16 @@ public class BitmexHistoricMarketDataProviderTest {
         .append(ISODateTimeFormat.dateTime().getPrinter(), ISODateTimeFormat.dateOptionalTimeParser().getParser())
         .toFormatter();
 
-    private static final TradeableInstrument INSTRUMENT = new TradeableInstrument("XBTUSD", "XBTUSD");
+    private static final TradeableInstrument XBTUSD_INSTR =
+        new TradeableInstrument("XBTUSD", "XBTUSD", 0.5, null, null, BigDecimal.valueOf(1L), null, null);
+
     private static final BigDecimal HISTORY_DEPTH = BigDecimal.valueOf(100L);
 
     private final JSON json = new JSON();
     private final TradeApi tradeApi = mock(TradeApi.class);
     private BitmexHistoricMarketDataProvider bitmexHistoricMarketDataProviderSpy;
+    private InstrumentService instrumentServiceSpy;
+
     private List<TradeBin> tradeBins1d;
     private List<TradeBin> tradeBins1m;
     private List<TradeBin> tradeBins1d20_10_2020;
@@ -51,7 +55,10 @@ public class BitmexHistoricMarketDataProviderTest {
     @Before
     public void init() throws ApiException, IOException {
 
-        bitmexHistoricMarketDataProviderSpy = spy(new BitmexHistoricMarketDataProvider());
+        instrumentServiceSpy = mock(InstrumentService.class);
+        doReturn(XBTUSD_INSTR).when(instrumentServiceSpy).resolveTradeableInstrument(XBTUSD_INSTR.getInstrument());
+
+        bitmexHistoricMarketDataProviderSpy = spy(new BitmexHistoricMarketDataProvider(instrumentServiceSpy));
 
         tradeBins1d = json.deserialize(Resources.toString(Resources.getResource("tradeBulkReply1d.json"), StandardCharsets.UTF_8),
             new TypeToken<List<TradeBin>>() {
@@ -68,7 +75,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1m"),
             eq(true),
-            eq(INSTRUMENT.getInstrument()),
+            eq(XBTUSD_INSTR.getInstrument()),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -81,7 +88,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1d"),
             eq(true),
-            eq(INSTRUMENT.getInstrument()),
+            eq(XBTUSD_INSTR.getInstrument()),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -94,7 +101,7 @@ public class BitmexHistoricMarketDataProviderTest {
         when(tradeApi.tradeGetBucketed(
             eq("1d"),
             eq(true),
-            eq(INSTRUMENT.getInstrument()),
+            eq(XBTUSD_INSTR.getInstrument()),
             isNull(),
             isNull(),
             eq(HISTORY_DEPTH),
@@ -110,10 +117,10 @@ public class BitmexHistoricMarketDataProviderTest {
     @Test
     public void testGetCandleSticks1M() {
         List<CandleStick> candles =
-            bitmexHistoricMarketDataProviderSpy.getCandleSticks(INSTRUMENT, CandleStickGranularity.M1, HISTORY_DEPTH.intValue());
+            bitmexHistoricMarketDataProviderSpy.getCandleSticks(XBTUSD_INSTR, CandleStickGranularity.M1, HISTORY_DEPTH.intValue());
 
         assertThat(candles.size()).isEqualTo(HISTORY_DEPTH.intValue());
-        assertThat(candles.stream().map(n -> n.getInstrument().getInstrument()).distinct().filter(n -> INSTRUMENT.getInstrument().equals(n))
+        assertThat(candles.stream().map(n -> n.getInstrument().getInstrument()).distinct().filter(n -> XBTUSD_INSTR.getInstrument().equals(n))
             .count()).isEqualTo(1);
 
         assertThat(candles.stream().map(CandleStick::getEventDate).max(Comparator.naturalOrder()).get())
@@ -131,10 +138,10 @@ public class BitmexHistoricMarketDataProviderTest {
     @Test
     public void testGetCandleSticks1D() {
         List<CandleStick> candles =
-            bitmexHistoricMarketDataProviderSpy.getCandleSticks(INSTRUMENT, CandleStickGranularity.D, HISTORY_DEPTH.intValue());
+            bitmexHistoricMarketDataProviderSpy.getCandleSticks(XBTUSD_INSTR, CandleStickGranularity.D, HISTORY_DEPTH.intValue());
 
         assertThat(candles.size()).isEqualTo(HISTORY_DEPTH.intValue());
-        assertThat(candles.stream().map(n -> n.getInstrument().getInstrument()).distinct().filter(n -> INSTRUMENT.getInstrument().equals(n))
+        assertThat(candles.stream().map(n -> n.getInstrument().getInstrument()).distinct().filter(n -> XBTUSD_INSTR.getInstrument().equals(n))
             .count()).isEqualTo(1);
 
         assertThat(candles.stream().map(CandleStick::getEventDate).max(Comparator.naturalOrder()).get())
@@ -153,14 +160,14 @@ public class BitmexHistoricMarketDataProviderTest {
     @Test
     public void testGetCandleSticks1DFiltered() {
         List<CandleStick> candles =
-            bitmexHistoricMarketDataProviderSpy.getCandleSticks(INSTRUMENT, CandleStickGranularity.D,
+            bitmexHistoricMarketDataProviderSpy.getCandleSticks(XBTUSD_INSTR, CandleStickGranularity.D,
                 DATE_TIME_FORMATTER.parseDateTime("2020-10-20T00:00:00.000Z"),
                 DATE_TIME_FORMATTER.parseDateTime("2020-10-20T00:00:00.000Z"));
 
         assertThat(candles.size()).isEqualTo(1);
         CandleStick dayCandle = candles.get(0);
 
-        assertThat(dayCandle.getInstrument().getInstrument()).isEqualTo(INSTRUMENT.getInstrument());
+        assertThat(dayCandle.getInstrument().getInstrument()).isEqualTo(XBTUSD_INSTR.getInstrument());
         assertThat(dayCandle.getHighPrice()).isCloseTo(tradeBins1d20_10_2020.get(0).getHigh(), Offset.offset(0.00001));
         assertThat(dayCandle.getLowPrice()).isCloseTo(tradeBins1d20_10_2020.get(0).getLow(), Offset.offset(0.00001));
         assertThat(dayCandle.getOpenPrice()).isCloseTo(tradeBins1d20_10_2020.get(0).getOpen(), Offset.offset(0.00001));

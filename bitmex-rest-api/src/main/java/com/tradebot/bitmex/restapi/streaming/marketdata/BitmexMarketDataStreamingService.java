@@ -9,6 +9,7 @@ import com.tradebot.bitmex.restapi.model.BitmexResponse;
 import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.MarketEventCallback;
 import com.tradebot.core.streaming.marketdata.MarketDataStreamingService;
@@ -23,16 +24,20 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
     private static final String INSTRUMENT = "instrument";
     private static final char QUOTE_DELIMITER = ':';
 
+    private final InstrumentService instrumentService;
+
     public BitmexMarketDataStreamingService(
         MarketEventCallback marketEventCallback,
         EventCallback<BitmexInstrument> instrumentEventCallback,
         HeartBeatCallback<Long> heartBeatCallback,
-        Collection<TradeableInstrument> instruments) {
+        Collection<TradeableInstrument> instruments,
+        InstrumentService instrumentService) {
         super(heartBeatCallback);
 
         this.marketEventCallback = marketEventCallback;
         this.instrumentEventCallback = instrumentEventCallback;
         this.instruments = instruments;
+        this.instrumentService = instrumentService;
 
         initMapping(
             new MappingFunction[]{
@@ -90,7 +95,7 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
 
         for (BitmexQuote quote : quotes.getData()) {
             marketEventCallback.onMarketEvent(
-                new TradeableInstrument(quote.getSymbol(), quote.getSymbol()),
+                instrumentService.resolveTradeableInstrument(quote.getSymbol()),
                 quote.getBidPrice(),
                 quote.getAskPrice(),
                 quote.getTimestamp()

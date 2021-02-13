@@ -14,7 +14,10 @@ import com.tradebot.bitmex.restapi.generated.api.UserApi;
 import com.tradebot.bitmex.restapi.generated.model.Transaction;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
+import com.tradebot.core.instrument.InstrumentService;
+import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
@@ -24,15 +27,22 @@ import org.junit.Test;
 
 public class BitmexTransactionDataProviderServiceTest {
 
+    private static final TradeableInstrument XBTUSD_INSTR =
+        new TradeableInstrument("XBTUSD", "XBTUSD", 0.5, null, null, BigDecimal.valueOf(1L), null, null);
+
     private final JSON json = new JSON();
     private final UserApi userApi = mock(UserApi.class);
     private BitmexTransactionDataProviderService bitmexTransactionDataProviderServiceSpy;
+    private InstrumentService instrumentServiceSpy;
     private List<Transaction> transactions;
 
     @Before
     public void init() throws ApiException, IOException {
 
-        bitmexTransactionDataProviderServiceSpy = spy(new BitmexTransactionDataProviderService());
+        instrumentServiceSpy = mock(InstrumentService.class);
+        doReturn(XBTUSD_INSTR).when(instrumentServiceSpy).resolveTradeableInstrument(XBTUSD_INSTR.getInstrument());
+
+        bitmexTransactionDataProviderServiceSpy = spy(new BitmexTransactionDataProviderService(instrumentServiceSpy));
 
         transactions = json.deserialize(Resources.toString(Resources.getResource("transactionsReply.json"), StandardCharsets.UTF_8),
             new TypeToken<List<Transaction>>() {

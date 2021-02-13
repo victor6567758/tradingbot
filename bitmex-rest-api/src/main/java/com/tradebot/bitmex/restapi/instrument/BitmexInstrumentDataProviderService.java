@@ -79,7 +79,10 @@ public class BitmexInstrumentDataProviderService implements InstrumentDataProvid
             instrument.getSymbol(),
             instrument.getTickSize(),
             null,
-            instrument.getSymbol()
+            instrument.getSymbol(),
+            instrument.getLotSize(),
+            instrument.getMultiplier(),
+            instrument.getPositionCurrency()
         );
     }
 }

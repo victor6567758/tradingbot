@@ -11,26 +11,34 @@ public class TradeableInstrument {
     private final String instrument;
     private final String description;
     private final String instrumentId;
-    private final double pip;
+    private final double tickSize;
     private final int scale;
+    private final BigDecimal lotSize;
+    private final BigDecimal multiplier;
+    private final String positionCurrency;
     private final int hash;
     private final InstrumentPairInterestRate instrumentPairInterestRate;
 
     public TradeableInstrument(String instrument, String instrumentId) {
-        this(instrument, instrumentId, 0.0, null, instrument);
+        this(instrument, instrumentId, 0.0, null, instrument, null, null, null);
     }
-
 
     public TradeableInstrument(
         String instrument,
         String instrumentId,
-        double pip,
+        double tickSize,
         InstrumentPairInterestRate instrumentPairInterestRate,
-        String description) {
+        String description,
+        BigDecimal lotSize,
+        BigDecimal multiplier,
+        String positionCurrency) {
 
         this.instrument = instrument;
-        this.pip = pip;
-        this.scale = BigDecimal.valueOf(pip).scale();
+        this.tickSize = tickSize;
+        this.scale = BigDecimal.valueOf(tickSize).scale();
+        this.lotSize = lotSize;
+        this.multiplier = multiplier;
+        this.positionCurrency = positionCurrency;
         this.instrumentPairInterestRate = instrumentPairInterestRate;
         this.instrumentId = instrumentId;
         this.description = description;

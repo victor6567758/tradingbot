@@ -95,7 +95,8 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
             marketEventCallback,
             new EventCallbackImpl<>(eventBus),
             heartBeatCallback,
-            instruments.keySet());
+            instruments.keySet(),
+            instrumentService);
 
         eventStreamingService = new BitmexEventsStreamingService(
             marketEventCallback,
@@ -105,7 +106,8 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
             new EventCallbackImpl<>(eventBus),
             new EventCallbackImpl<>(eventBus),
             heartBeatCallback,
-            instruments.keySet());
+            instruments.keySet(),
+            instrumentService);
 
         marketDataStreamingService.init();
         marketDataStreamingService.startMarketDataStreaming();

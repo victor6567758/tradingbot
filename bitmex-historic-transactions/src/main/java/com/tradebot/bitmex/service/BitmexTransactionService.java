@@ -5,7 +5,6 @@ import com.tradebot.bitmex.model.BitmexTransaction;
 import com.tradebot.bitmex.repository.BimexAccounRepository;
 import com.tradebot.bitmex.repository.BitmexTransactionRepository;
 import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
-import com.tradebot.bitmex.restapi.account.transaction.BitmexTransactionDataProviderService;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.Transaction;
@@ -35,8 +34,7 @@ public class BitmexTransactionService {
     private final BimexAccounRepository bitmexAccountRepository;
 
     @Getter(AccessLevel.PACKAGE)
-    private final TransactionDataProvider<String, Long> bitmexTransactiondataProvider =
-        new BitmexTransactionDataProviderService();
+    private final TransactionDataProvider<String, Long> bitmexTransactiondataProvider;
 
     public void saveNewTransactions() {
         Collection<Account<Long>> allAccounts = getBitmexAccountDataProvider().getLatestAccountsInfo();
@@ -78,7 +76,9 @@ public class BitmexTransactionService {
         }
         bitmexTransaction.setTransactionType(transaction.getTransactionType().name());
         bitmexTransaction.setUnits(transaction.getUnits());
-        bitmexTransaction.setInstrument(transaction.getInstrument().getInstrument());
+        if (transaction.getInstrument() != null) {
+            bitmexTransaction.setInstrument(transaction.getInstrument().getInstrument());
+        }
         return bitmexTransaction;
     }
 

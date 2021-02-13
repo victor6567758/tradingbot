@@ -10,17 +10,25 @@ import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.instrument.InstrumentService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 @Slf4j
 public class BitmexTransactionDataProviderService implements TransactionDataProvider<String, Long> {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+
+    private final InstrumentService instrumentService;
+
+    public BitmexTransactionDataProviderService(InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
 
     @Getter(AccessLevel.PACKAGE)
     private final UserApi userApi = new UserApi(
@@ -35,7 +43,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
             .filter(transaction -> transaction.getTransactID().equals(transactionId))
-            .findAny().map(BitmexTransactionDataProviderService::mapToTransaction).orElseThrow();
+            .findAny().map(this::mapToTransaction).orElseThrow();
 
 
     }
@@ -53,7 +61,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
                     return transaction.getTransactTime().compareTo(dateTime) > 0;
                 }
             })
-            .map(BitmexTransactionDataProviderService::mapToTransaction)
+            .map(this::mapToTransaction)
             .collect(Collectors.toList());
 
 
@@ -66,7 +74,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
         return getAllTransaction().stream()
             .filter(transaction -> transaction.getAccount().longValue() == accountId)
             .filter(transaction -> transaction.getTransactID().compareTo(minTransactionId) > 0)
-            .map(BitmexTransactionDataProviderService::mapToTransaction)
+            .map(this::mapToTransaction)
             .collect(Collectors.toList());
 
     }
@@ -84,13 +92,15 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
         }
     }
 
-    private static com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {
+    private com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {
         return new com.tradebot.core.account.transaction.Transaction<>(
             transaction.getTransactID(),
-            BitmexUtils.findByStringMarker(BitmexTransactionTypeEvent.values(),
+            BitmexUtils.findByStringMarker(
+                BitmexTransactionTypeEvent.values(),
                 bitmexTransactionTypeEvent -> transaction.getTransactType().equals(bitmexTransactionTypeEvent.label())),
             transaction.getAccount().longValue(),
-            transaction.getCurrency(),
+            StringUtils.isNotBlank(transaction.getAddress()) ?
+                instrumentService.resolveTradeableInstrument(transaction.getAddress()) : null,
             transaction.getAmount().longValue(),
             TradingSignal.NONE,
             transaction.getTransactTime(),

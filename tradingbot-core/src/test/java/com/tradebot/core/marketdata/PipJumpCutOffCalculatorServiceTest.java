@@ -67,10 +67,10 @@ public class PipJumpCutOffCalculatorServiceTest {
 		when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(gbpjpy))))
 				.thenReturn(gbpjpyMap);
 
-		when(instrumentService.getPipForInstrument(eurusd)).thenReturn(pip1);
-		when(instrumentService.getPipForInstrument(gbpnzd)).thenReturn(pip1);
-		when(instrumentService.getPipForInstrument(gbpjpy)).thenReturn(pip2);
-		when(instrumentService.getPipForInstrument(nzdchf)).thenReturn(pip1);
+		when(instrumentService.getTickSizeForInstrument(eurusd)).thenReturn(pip1);
+		when(instrumentService.getTickSizeForInstrument(gbpnzd)).thenReturn(pip1);
+		when(instrumentService.getTickSizeForInstrument(gbpjpy)).thenReturn(pip2);
+		when(instrumentService.getTickSizeForInstrument(nzdchf)).thenReturn(pip1);
 
 		double v = pipCalculator.calculatePipJumpCutOff(nzdchf);
 		assertEquals(26.2947, v, TradingTestConstants.PRECISION);

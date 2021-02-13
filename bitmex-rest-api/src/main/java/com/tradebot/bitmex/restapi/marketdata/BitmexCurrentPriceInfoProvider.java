@@ -6,6 +6,7 @@ import com.tradebot.bitmex.restapi.generated.model.Quote;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
@@ -24,6 +25,12 @@ import lombok.extern.slf4j.Slf4j;
 public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+
+    private final InstrumentService instrumentService;
+
+    public BitmexCurrentPriceInfoProvider(InstrumentService instrumentService) {
+        this.instrumentService = instrumentService;
+    }
 
     @Getter(AccessLevel.PACKAGE)
     private final QuoteApi quoteApi = new QuoteApi(
@@ -57,7 +64,7 @@ public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider 
 
             Quote quote = quotes.get(0);
             return new Price(
-                new TradeableInstrument(quote.getSymbol(), quote.getSymbol()),
+                instrumentService.resolveTradeableInstrument(quote.getSymbol()),
                 quote.getBidPrice(),
                 quote.getAskPrice(),
                 quote.getTimestamp()

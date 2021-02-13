@@ -14,6 +14,7 @@ import com.tradebot.bitmex.restapi.model.BitmexTradeBin;
 import com.tradebot.bitmex.restapi.streaming.BaseBitmexStreamingService;
 import com.tradebot.core.events.EventCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.MarketEventCallback;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -39,7 +40,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     private static final String TRADE_BIN1D = "tradeBin1d";
     private static final String EXECUTION = "execution";
 
-    private static final char QUOTE_DELIMITER = ':';
+    private final InstrumentService instrumentService;
 
     public BitmexEventsStreamingService(
         MarketEventCallback marketEventCallback,
@@ -49,7 +50,8 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         EventCallback<BitmexTrade> tradeEventCallback,
         EventCallback<BitmexTradeBin> tradeBinEventCallback,
         HeartBeatCallback<Long> heartBeatCallback,
-        Collection<TradeableInstrument> instruments) {
+        Collection<TradeableInstrument> instruments,
+        InstrumentService instrumentService) {
 
         super(heartBeatCallback);
         this.marketEventCallback = marketEventCallback;
@@ -59,6 +61,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         this.tradeEventCallback = tradeEventCallback;
         this.tradeBinEventCallback = tradeBinEventCallback;
         this.instruments = instruments;
+        this.instrumentService = instrumentService;
 
         validRawInstruments =
             instruments.stream().map(TradeableInstrument::getInstrument).collect(Collectors.toUnmodifiableSet());
@@ -217,7 +220,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
             if (validRawInstruments.contains(tradeBin.getSymbol())) {
 
                 marketEventCallback.onTradeBinEvent(
-                    new TradeableInstrument(tradeBin.getSymbol(), tradeBin.getSymbol()),
+                    instrumentService.resolveTradeableInstrument(tradeBin.getSymbol()),
                     granularity,
                     tradeBin.getTimestamp(),
                     tradeBin.getOpen(),

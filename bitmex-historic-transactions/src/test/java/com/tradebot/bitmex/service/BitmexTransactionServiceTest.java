@@ -24,6 +24,7 @@ import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.instrument.InstrumentService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.platform.commons.util.StringUtils;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,6 +66,9 @@ public class BitmexTransactionServiceTest {
     private BimexAccounRepository bimexAccounRepository;
 
     @Autowired
+    private InstrumentService instrumentService;
+
+    @Autowired
     private BitmexTransactionRepository bitmexTransactionRepository;
 
     @SpyBean
@@ -81,7 +86,7 @@ public class BitmexTransactionServiceTest {
         transactionDataProviderMock = mock(BitmexTransactionDataProviderService.class);
         List<com.tradebot.core.account.transaction.Transaction<String, Long>> newTransactions =
             transactions.stream()
-                .map(BitmexTransactionServiceTest::mapToTransaction)
+                .map(this::mapToTransaction)
                 .collect(Collectors.toList());
 
         doReturn(newTransactions).when(transactionDataProviderMock)
@@ -132,13 +137,14 @@ public class BitmexTransactionServiceTest {
         return Collections.singletonList(account);
     }
 
-    private static com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {
+    private com.tradebot.core.account.transaction.Transaction<String, Long> mapToTransaction(Transaction transaction) {
         return new com.tradebot.core.account.transaction.Transaction<>(
             transaction.getTransactID(),
             BitmexUtils.findByStringMarker(BitmexTransactionTypeEvent.values(),
                 bitmexTransactionTypeEvent -> transaction.getTransactType().equals(bitmexTransactionTypeEvent.label())),
             transaction.getAccount().longValue(),
-            transaction.getCurrency(),
+            StringUtils.isNotBlank(transaction.getAddress()) ?
+                instrumentService.resolveTradeableInstrumentNoException(transaction.getAddress()) : null,
             transaction.getAmount().longValue(),
             TradingSignal.NONE,
             transaction.getTransactTime(),
