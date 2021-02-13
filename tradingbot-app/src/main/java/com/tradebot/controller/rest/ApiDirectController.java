@@ -1,8 +1,7 @@
 package com.tradebot.controller.rest;
 
-import com.tradebot.bitmex.restapi.order.BitmexOrderManagementProvider;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
-import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.utils.CommonConsts;
@@ -23,14 +22,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ApiDirectController {
 
-    private final OrderManagementProvider<String, Long> orderManagementProvider = new BitmexOrderManagementProvider();
+    private final OrderManagementProvider<String, Long> orderManagementProvider;
+
+    private final InstrumentService instrumentService;
 
     @PutMapping("/openLimitTrade")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public String openLimitOrder(@RequestBody LimitOrderRequest limitOrderRequest) {
-        TradeableInstrument instrument = new TradeableInstrument(limitOrderRequest.getSymbol(), limitOrderRequest.getSymbol());
         Order<String> order = Order.buildLimitOrder(
-            instrument,
+            instrumentService.resolveTradeableInstrument(limitOrderRequest.getSymbol()),
             limitOrderRequest.getLots(),
             TradingSignalConvertible.fromString(limitOrderRequest.getTradingSignal()),
             limitOrderRequest.getLimitPrice(),
@@ -43,9 +43,8 @@ public class ApiDirectController {
     @PutMapping("/openMarketTrade")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public String openLimitOrder(@RequestBody MarketOrderRequest marketOrderRequest) {
-        TradeableInstrument instrument = new TradeableInstrument(marketOrderRequest.getSymbol(), marketOrderRequest.getSymbol());
         Order<String> order = Order.buildMarketOrder(
-            instrument,
+            instrumentService.resolveTradeableInstrument(marketOrderRequest.getSymbol()),
             marketOrderRequest.getLots(),
             TradingSignalConvertible.fromString(marketOrderRequest.getTradingSignal()),
             CommonConsts.INVALID_PRICE,

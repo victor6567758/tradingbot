@@ -42,6 +42,14 @@ public class InstrumentService {
 
         TradeableInstrument tradeableInstrument = instrumentMap.get(instrument.getInstrument());
         return tradeableInstrument != null ? tradeableInstrument.getPip() : 1.0;
+    }
 
+    public TradeableInstrument resolveTradeableInstrument(String symbol) {
+        TradeableInstrument tradeableInstrument = instrumentMap.get(symbol);
+        if (tradeableInstrument == null) {
+            throw new IllegalArgumentException(String.format("Unknown instrument %s", symbol));
+        }
+
+        return tradeableInstrument;
     }
 }

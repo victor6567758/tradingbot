@@ -1,6 +1,7 @@
 package com.tradebot.core.instrument;
 
 
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -11,6 +12,7 @@ public class TradeableInstrument {
     private final String description;
     private final String instrumentId;
     private final double pip;
+    private final int scale;
     private final int hash;
     private final InstrumentPairInterestRate instrumentPairInterestRate;
 
@@ -28,6 +30,7 @@ public class TradeableInstrument {
 
         this.instrument = instrument;
         this.pip = pip;
+        this.scale = BigDecimal.valueOf(pip).scale();
         this.instrumentPairInterestRate = instrumentPairInterestRate;
         this.instrumentId = instrumentId;
         this.description = description;

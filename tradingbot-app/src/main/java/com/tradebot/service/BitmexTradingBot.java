@@ -8,11 +8,14 @@ import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.Account;
+import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.helper.CacheCandlestick;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
+import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.response.CandleResponse;
 import com.tradebot.response.GridContextResponse;
@@ -59,9 +62,15 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
     private Map<TradeableInstrument, InitialContext> initialContextMap;
 
-    public BitmexTradingBot(EventBus eventBus, ModelMapper modelMapper,
-        SimpMessagingTemplate simpMessagingTemplate, BitmexOrderManager bitmexOrderManager) {
-        super(eventBus);
+    public BitmexTradingBot(
+        EventBus eventBus,
+        ModelMapper modelMapper,
+        SimpMessagingTemplate simpMessagingTemplate,
+        BitmexOrderManager bitmexOrderManager,
+        InstrumentService instrumentService,
+        AccountDataProvider<Long> accountDataProvider,
+        HistoricMarketDataProvider historicMarketDataProvider) {
+        super(eventBus, instrumentService, accountDataProvider, historicMarketDataProvider);
         tradingContextCache = CacheBuilder.newBuilder()
             .expireAfterWrite(
                 bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradingSolutionsDepthMin(),
@@ -75,7 +84,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     public void initialize() {
         super.initialize();
 
-        Account<Long> account = accountDataProviderService.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
+        Account<Long> account = accountDataProvider.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
             .getTradingConfiguration().getAccountId());
         bitmexOrderManager.initialize(account.getAccountId());
 
@@ -105,7 +114,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     public Optional<GridContextResponse> getLastContextList(String symbol) {
         tradingContextMapLock.readLock().lock();
         try {
-            TradingContext tradingContext = tradingContextMap.get(new TradeableInstrument(symbol, symbol));
+            TradingContext tradingContext = tradingContextMap.get(instrumentService.resolveTradeableInstrument(symbol));
             if (tradingContext == null) {
                 return Optional.empty();
             }
@@ -228,7 +237,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     private void calculateVarContextParameters(CandleStick candleStick, InitialContext initialContext, TradingContext tradingContext) {
         tradingContext.setCandleStick(candleStick);
 
-        Account<Long> account = accountDataProviderService.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
+        Account<Long> account = accountDataProvider.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
             .getTradingConfiguration().getAccountId());
         tradingContext.setOneLotPrice(account.getTotalBalance().doubleValue() / initialContext.getLinesNum());
 
@@ -243,14 +252,15 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             //    log.info("One lot price for {} is more than 1.0, disabling trading",
             //        tradingContext.getTradeableInstrument().getInstrument());
             //} else {
-                if (!tradingContext.isStarted()) {
-                    tradingContext.setStarted(true);
+            if (!tradingContext.isStarted()) {
+                tradingContext.setStarted(true);
 
-                    log.info("Trading setup has started for {}", tradingContext.toString());
-                    bitmexOrderManager.startOrderEvolution(initialContext, tradingContext);
-                }
+                log.info("Trading setup has started for {}", tradingContext.toString());
+                bitmexOrderManager.startOrderEvolution(initialContext, tradingContext);
+            }
             //}
-        } {
+        }
+        {
             if (log.isDebugEnabled()) {
                 log.debug("Trading is disabled for {}", tradingContext.getTradeableInstrument().getInstrument());
             }

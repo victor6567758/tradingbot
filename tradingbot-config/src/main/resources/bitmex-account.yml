@@ -29,13 +29,6 @@ bitmex:
     priceExpiryMinutes: 20
     tradeableInstruments:
       - instrument: XBTUSD
-        description: XBTUSD
-        instrumentId: XBTUSD
-        pip: 0.0
-        baseCurrencyBidInterestRate: -1.0
-        baseCurrencyAskInterestRate: -1.0
-        quoteCurrencyBidInterestRate: -1.0
-        quoteCurrencyAskInterestRate: -1.0
         cacheHistory:
           - M1
           - M5
@@ -47,13 +40,6 @@ bitmex:
           linesNum: 11
           orderPosUnits: 1
       - instrument: XBTJPY
-        description: XBTJPY
-        instrumentId: XBTJPY
-        pip: 0.0
-        baseCurrencyBidInterestRate: -1.0
-        baseCurrencyAskInterestRate: -1.0
-        quoteCurrencyBidInterestRate: -1.0
-        quoteCurrencyAskInterestRate: -1.0
         cacheHistory:
           - M1
           - M5
