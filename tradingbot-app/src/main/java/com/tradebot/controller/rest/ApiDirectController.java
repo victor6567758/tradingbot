@@ -1,18 +1,22 @@
 package com.tradebot.controller.rest;
 
+import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
+import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.order.Order;
-import com.tradebot.core.order.OrderManagementProvider;
-import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.request.LimitOrderRequest;
 import com.tradebot.request.MarketOrderRequest;
+import com.tradebot.service.BitmexOrderManager;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Profile("dev")
@@ -21,12 +25,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ApiDirectController {
 
-    private final OrderManagementProvider<String, Long> orderManagementProvider;
-
     private final InstrumentService instrumentService;
 
+    private final BitmexOrderManager bitmexOrderManager;
+
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+
+    @PostConstruct
+    public void initialize() {
+        bitmexOrderManager.initialize(-1L, bitmexAccountConfiguration);
+    }
+
     @PutMapping("/openLimitTrade")
-    public OrderResultContext<String> openLimitOrder(@RequestBody LimitOrderRequest limitOrderRequest) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void openLimitOrder(@RequestBody LimitOrderRequest limitOrderRequest) {
         Order<String> order = Order.buildLimitOrder(
             instrumentService.resolveTradeableInstrument(limitOrderRequest.getSymbol()),
             limitOrderRequest.getLots(),
@@ -35,11 +47,12 @@ public class ApiDirectController {
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE);
 
-        return orderManagementProvider.placeOrder(order, -1L);
+        bitmexOrderManager.submitOrder(order);
     }
 
     @PutMapping("/openMarketTrade")
-    public OrderResultContext<String> openLimitOrder(@RequestBody MarketOrderRequest marketOrderRequest) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void openLimitOrder(@RequestBody MarketOrderRequest marketOrderRequest) {
         Order<String> order = Order.buildMarketOrder(
             instrumentService.resolveTradeableInstrument(marketOrderRequest.getSymbol()),
             marketOrderRequest.getLots(),
@@ -47,6 +60,6 @@ public class ApiDirectController {
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE);
 
-        return orderManagementProvider.placeOrder(order, -1L);
+        bitmexOrderManager.submitOrder(order);
     }
 }

@@ -5,89 +5,24 @@ import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.marketdata.historic.CandleStick;
-import com.tradebot.core.order.OrderExecutionServiceBase;
-import com.tradebot.core.order.OrderExecutionServiceCallback;
-import com.tradebot.core.order.OrderExecutionSimpleServiceImpl;
-import com.tradebot.core.order.OrderManagementProvider;
+import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderResultContext;
-import com.tradebot.model.InitialContext;
 import com.tradebot.model.TradingContext;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class BitmexOrderManager implements OrderExecutionServiceCallback {
+public interface BitmexOrderManager {
 
-    private final OrderManagementProvider<String, Long> orderManagementProvider;
-    private OrderExecutionServiceBase<String, Long> orderExecutionEngine;
-    private BitmexAccountConfiguration bitmexAccountConfiguration;
+    void initialize(long accountId, BitmexAccountConfiguration bitmexAccountConfiguration);
 
-    public void initialize(long accountId, BitmexAccountConfiguration bitmexAccountConfiguration) {
+    void submitOrder(Order<String> order);
 
-        orderExecutionEngine = new OrderExecutionSimpleServiceImpl<>(
-            orderManagementProvider,
-            () -> accountId,
-            this);
+    void startOrderEvolution(TradingContext tradingContext);
 
-        this.bitmexAccountConfiguration = bitmexAccountConfiguration;
-    }
+    void onCandleCallback(CandleStick candleStick, CacheCandlestick cacheCandlestick, TradingContext tradingContext);
 
-    // TradingContext is locked
-    public void startOrderEvolution(InitialContext initialContext, TradingContext tradingContext) {
-        tradingContext.getTradingGrid().values().forEach(decision -> {
-            orderExecutionEngine.submit(decision);
-        });
-    }
+    void onOrderCallback(TradingContext tradingContext, BitmexOrderEventPayload event);
 
-    public void onCandleCallback(CandleStick candleStick, CacheCandlestick cacheCandlestick,
-        InitialContext initialContext, TradingContext tradingContext) {
+    void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Candle callback {}", candleStick.toString());
-        }
+    void onOrderResultCallback(TradingContext tradingContext, OrderResultContext<String> orderResultContext);
 
-        if (tradingContext.isTradeEnabled()) {
-
-        }
-
-    }
-
-    public void onOrderCallback(TradingContext tradingContext, BitmexOrderEventPayload event) {
-        if (log.isDebugEnabled()) {
-            log.debug("Order callback {}", event.getPayLoad().toString());
-        }
-    }
-
-    public void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event) {
-        if (log.isDebugEnabled()) {
-            log.debug("Order execution callback {}", event.getPayLoad().toString());
-        }
-
-    }
-
-
-    @Override
-    public void fired() {
-
-    }
-
-    @Override
-    public boolean ifTradeAllowed() {
-        return false;
-    }
-
-    @Override
-    public String getReason() {
-        return null;
-    }
-
-    @Override
-    public void onOrderResult(OrderResultContext orderResultContext) {
-        if (log.isDebugEnabled()) {
-            log.debug("Order result context {}", orderResultContext.toString());
-        }
-    }
 }

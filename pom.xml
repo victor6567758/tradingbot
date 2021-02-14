@@ -150,9 +150,9 @@
       </dependency>
 
       <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>webjars-locator</artifactId>
-            <version>${webjar.locator.version}</version>
+        <groupId>org.webjars</groupId>
+        <artifactId>webjars-locator</artifactId>
+        <version>${webjar.locator.version}</version>
       </dependency>
 
       <dependency>
@@ -362,12 +362,12 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.0</version>
         <configuration>
-<!--          <systemProperties>-->
-<!--            <property>-->
-<!--              <name>java.util.logging.config.file</name>-->
-<!--              <value>src/test/resources/logging.properties</value>-->
-<!--            </property>-->
-<!--          </systemProperties>-->
+          <!--          <systemProperties>-->
+          <!--            <property>-->
+          <!--              <name>java.util.logging.config.file</name>-->
+          <!--              <value>src/test/resources/logging.properties</value>-->
+          <!--            </property>-->
+          <!--          </systemProperties>-->
           <argLine>
             --illegal-access=permit
           </argLine>
@@ -378,16 +378,16 @@
       </plugin>
 
 
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-failsafe-plugin</artifactId>-->
-<!--        <version>2.22.0</version>-->
-<!--        <configuration>-->
-<!--          <argLine>-->
-<!--            &#45;&#45;illegal-access=permit-->
-<!--          </argLine>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
+      <!--      <plugin>-->
+      <!--        <groupId>org.apache.maven.plugins</groupId>-->
+      <!--        <artifactId>maven-failsafe-plugin</artifactId>-->
+      <!--        <version>2.22.0</version>-->
+      <!--        <configuration>-->
+      <!--          <argLine>-->
+      <!--            &#45;&#45;illegal-access=permit-->
+      <!--          </argLine>-->
+      <!--        </configuration>-->
+      <!--      </plugin>-->
 
 
       <plugin>

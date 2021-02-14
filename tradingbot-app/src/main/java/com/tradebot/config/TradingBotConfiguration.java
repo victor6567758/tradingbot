@@ -18,9 +18,12 @@ import org.springframework.context.annotation.Lazy;
 public class TradingBotConfiguration {
 
     private final InstrumentService instrumentService;
+    private final OrderManagementProvider<String, Long> orderManagementProvider;
 
-    public TradingBotConfiguration(@Lazy InstrumentService instrumentService) {
+    public TradingBotConfiguration(@Lazy InstrumentService instrumentService,
+        @Lazy OrderManagementProvider<String, Long> orderManagementProvider) {
         this.instrumentService = instrumentService;
+        this.orderManagementProvider = orderManagementProvider;
     }
 
     @Bean
@@ -52,4 +55,5 @@ public class TradingBotConfiguration {
     public OrderManagementProvider<String, Long> orderManagementProvider() {
         return new BitmexOrderManagementProvider(instrumentService);
     }
+
 }

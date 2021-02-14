@@ -15,7 +15,7 @@ public class BitmexOrderQuotas extends OrderResultContext<String> {
     private int xRatelimitReset = -1;
     private int xRatelimitRemaining1s = -1;
 
-    public BitmexOrderQuotas(String orderId, boolean result) {
-        super(orderId, result);
+    public BitmexOrderQuotas(String orderId, boolean result, String symbol) {
+        super(orderId, result, symbol);
     }
 }

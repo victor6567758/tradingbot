@@ -57,6 +57,6 @@ public class TradingController {
     @PutMapping("/setTradeEnabled/{enabled}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void setTradeEnabled(@PathVariable boolean enabled) {
-        bitmexTradingBot.setTradesEnabled(enabled);
+        bitmexTradingBot.setGlobalTradesEnabled(enabled);
     }
 }

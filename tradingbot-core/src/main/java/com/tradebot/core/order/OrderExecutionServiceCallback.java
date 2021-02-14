@@ -1,6 +1,6 @@
 package com.tradebot.core.order;
 
-public interface OrderExecutionServiceCallback {
+public interface OrderExecutionServiceCallback<N> {
 
     void fired();
 
@@ -8,6 +8,6 @@ public interface OrderExecutionServiceCallback {
 
     String getReason();
 
-    void onOrderResult(OrderResultContext orderResultContext);
+    void onOrderResult(OrderResultContext<N> orderResultContext);
 
 }

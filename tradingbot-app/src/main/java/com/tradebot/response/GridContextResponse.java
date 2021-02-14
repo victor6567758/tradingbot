@@ -15,6 +15,5 @@ public class GridContextResponse {
 
     private Set<Double> mesh;
     private String symbol;
-    private double oneLotPrice;
     private CandleResponse candleResponse;
 }

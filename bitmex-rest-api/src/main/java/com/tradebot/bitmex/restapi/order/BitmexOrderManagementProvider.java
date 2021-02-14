@@ -121,8 +121,11 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 throw new IllegalArgumentException("Amend order returned wrong HTTP code");
             }
 
-            return new OrderResultContext<>(orderId,
-                cancelled.getData().stream().anyMatch(order -> order.getOrderID().equals(orderId)));
+            Order cancelledOrder =
+                cancelled.getData().stream().filter(order -> orderId.equals(order.getOrderID())).findAny().orElse(null);
+
+            return cancelledOrder != null ? new OrderResultContext<>(orderId, true, cancelledOrder.getSymbol()) :
+                new OrderResultContext<>(orderId, false, null);
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -220,7 +223,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
     }
 
     private BitmexOrderQuotas prepareResult(ApiResponse<Order> apiResponse) {
-        BitmexOrderQuotas result = new BitmexOrderQuotas(apiResponse.getData().getOrderID(), true);
+        BitmexOrderQuotas result = new BitmexOrderQuotas(apiResponse.getData().getOrderID(), true, apiResponse.getData().getSymbol());
         result.setXRatelimitLimit(getIntHeaderValue("x-ratelimit-limit", apiResponse.getHeaders()));
         result.setXRatelimitRemaining(getIntHeaderValue("x-ratelimit-remaining", apiResponse.getHeaders()));
         result.setXRatelimitReset(getIntHeaderValue("x-ratelimit-reset", apiResponse.getHeaders()));
