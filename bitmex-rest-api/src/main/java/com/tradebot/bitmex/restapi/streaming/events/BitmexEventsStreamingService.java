@@ -42,13 +42,19 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
 
     private final InstrumentService instrumentService;
 
+    private final MarketEventCallback marketEventCallback;
+    private final EventCallback<JSONObject> eventCallback;
+    private final EventCallback<BitmexExecution> executionEventCallback;
+    private final EventCallback<BitmexOrder> orderEventCallback;
+    private final EventCallback<BitmexTrade> tradeEventCallback;
+    private final Set<String> validRawInstruments;
+
     public BitmexEventsStreamingService(
         MarketEventCallback marketEventCallback,
         EventCallback<JSONObject> eventCallback,
         EventCallback<BitmexExecution> executionEventCallback,
         EventCallback<BitmexOrder> orderEventCallback,
         EventCallback<BitmexTrade> tradeEventCallback,
-        EventCallback<BitmexTradeBin> tradeBinEventCallback,
         HeartBeatCallback<Long> heartBeatCallback,
         Collection<TradeableInstrument> instruments,
         InstrumentService instrumentService) {
@@ -59,8 +65,6 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         this.executionEventCallback = executionEventCallback;
         this.orderEventCallback = orderEventCallback;
         this.tradeEventCallback = tradeEventCallback;
-        this.tradeBinEventCallback = tradeBinEventCallback;
-        this.instruments = instruments;
         this.instrumentService = instrumentService;
 
         validRawInstruments =
@@ -81,15 +85,6 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
             new MappingFunction(this::processExecution, EXECUTION)
         });
     }
-
-    private final MarketEventCallback marketEventCallback;
-    private final EventCallback<JSONObject> eventCallback;
-    private final EventCallback<BitmexExecution> executionEventCallback;
-    private final EventCallback<BitmexOrder> orderEventCallback;
-    private final EventCallback<BitmexTrade> tradeEventCallback;
-    private final EventCallback<BitmexTradeBin> tradeBinEventCallback;
-    private final Collection<TradeableInstrument> instruments;
-    private final Set<String> validRawInstruments;
 
 
     @Override

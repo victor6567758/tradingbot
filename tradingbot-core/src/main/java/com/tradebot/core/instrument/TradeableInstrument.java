@@ -19,10 +19,6 @@ public class TradeableInstrument {
     private final int hash;
     private final InstrumentPairInterestRate instrumentPairInterestRate;
 
-    public TradeableInstrument(String instrument, String instrumentId) {
-        this(instrument, instrumentId, 0.0, null, instrument, null, null, null);
-    }
-
     public TradeableInstrument(
         String instrument,
         String instrumentId,

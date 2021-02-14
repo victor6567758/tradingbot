@@ -41,8 +41,8 @@ import org.mockito.ArgumentCaptor;
 public class BitmexEventsStreamingServiceTest {
 
     private static final List<TradeableInstrument> INSTRUMENTS = Arrays.asList(
-        new TradeableInstrument("XBTUSD", "XBTUSD"),
-        new TradeableInstrument("XBTJPY","XBTJPY")
+        new TradeableInstrument("XBTUSD", "XBTUSD", 0.001, null, null, null, null, null),
+        new TradeableInstrument("XBTJPY","XBTJPY", 0.001, null, null, null, null, null)
     );
 
     private JettyCommunicationSocket jettyCommunicationSocketSpy;
@@ -66,7 +66,6 @@ public class BitmexEventsStreamingServiceTest {
     private EventCallback<BitmexExecution> executionEventCallbackSpy;
     private EventCallback<BitmexOrder> orderEventCallbackSpy;
     private EventCallback<BitmexTrade> tradeEventCallbackSpy;
-    private EventCallback<BitmexTradeBin> tradeEventBinCallbackSpy;
 
     private MarketEventCallback marketEventCallbackSpy;
     private InstrumentService instrumentServiceSpy;
@@ -98,14 +97,6 @@ public class BitmexEventsStreamingServiceTest {
 
         @Override
         public void onEvent(EventPayLoad<BitmexTrade> eventPayLoad) {
-
-        }
-    };
-    private final EventCallback<BitmexTradeBin> tradeEventBinCallback = new EventCallback<BitmexTradeBin>() {
-
-
-        @Override
-        public void onEvent(EventPayLoad<BitmexTradeBin> eventPayLoad) {
 
         }
     };
@@ -161,7 +152,6 @@ public class BitmexEventsStreamingServiceTest {
         executionEventCallbackSpy = spy(executionEventCallback);
         orderEventCallbackSpy = spy(orderEventCallback);
         tradeEventCallbackSpy = spy(tradeEventCallback);
-        tradeEventBinCallbackSpy = spy(tradeEventBinCallback);
         marketEventCallbackSpy = spy(marketEventCallback);
 
         instrumentServiceSpy = mock(InstrumentService.class);
@@ -174,7 +164,6 @@ public class BitmexEventsStreamingServiceTest {
             executionEventCallbackSpy,
             orderEventCallbackSpy,
             tradeEventCallbackSpy,
-            tradeEventBinCallbackSpy,
             heartBeatCallbackSpy,
             INSTRUMENTS,
             instrumentServiceSpy)

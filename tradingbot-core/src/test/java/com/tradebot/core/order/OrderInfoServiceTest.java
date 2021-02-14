@@ -38,7 +38,7 @@ public class OrderInfoServiceTest<N> {
 		service.pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2);
 		verify(orderManagementProvider, times(1)).pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2);
 
-		TradeableInstrument usdchf = new TradeableInstrument("USD_CHF", "USD_CHF");
+		TradeableInstrument usdchf = new TradeableInstrument("USD_CHF", "USD_CHF", 0.001, null, null, null, null, null);
 		service.pendingOrdersForInstrument(usdchf);
 		verify(orderManagementProvider, times(1)).pendingOrdersForInstrument(usdchf);
 	}
@@ -47,19 +47,19 @@ public class OrderInfoServiceTest<N> {
 		Collection<Order<Long>> orders = Lists.newArrayList();
 
 		Order<Long> order1 = mock(Order.class);
-		TradeableInstrument eurjpy = new TradeableInstrument("EUR_JPY","EUR_JPY");
+		TradeableInstrument eurjpy = new TradeableInstrument("EUR_JPY","EUR_JPY", 0.001, null, null, null, null, null);
 		when(order1.getInstrument()).thenReturn(eurjpy);
 		when(order1.getSide()).thenReturn(TradingSignal.SHORT);
 		orders.add(order1);
 
 		Order<Long> order2 = mock(Order.class);
-		TradeableInstrument eurusd = new TradeableInstrument("EUR_USD","EUR_USD");
+		TradeableInstrument eurusd = new TradeableInstrument("EUR_USD","EUR_USD", 0.001, null, null, null, null, null);
 		when(order2.getInstrument()).thenReturn(eurusd);
 		when(order2.getSide()).thenReturn(TradingSignal.LONG);
 		orders.add(order2);
 
 		Order<Long> order3 = mock(Order.class);
-		TradeableInstrument gbpjpy = new TradeableInstrument("GBP_JPY","GBP_JPY");
+		TradeableInstrument gbpjpy = new TradeableInstrument("GBP_JPY","GBP_JPY", 0.001, null, null, null, null, null);
 		when(order3.getInstrument()).thenReturn(gbpjpy);
 		when(order3.getSide()).thenReturn(TradingSignal.SHORT);
 		orders.add(order3);

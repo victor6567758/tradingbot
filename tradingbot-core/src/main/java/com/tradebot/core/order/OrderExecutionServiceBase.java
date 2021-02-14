@@ -18,7 +18,7 @@ public abstract class OrderExecutionServiceBase<N, K> {
 
     private static final long SHUTDOWN_WAIT_TIME = 5000L;
 
-    private final OrderExecutionServiceContext orderExecutionServiceContext;
+    private final OrderExecutionServiceCallback orderExecutionServiceCallback;
     private final OrderManagementProvider<N, K> orderManagementProvider;
     private final Supplier<K> accountIdSupplier;
 
@@ -43,57 +43,46 @@ public abstract class OrderExecutionServiceBase<N, K> {
 
     private Optional<Order<N>> processOrder(Order<N> order) {
 
-        try {
-            if (!initOrderSubmit()) {
-                return Optional.empty();
-            }
-
-            orderExecutionServiceContext.fired();
-            N orderId = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
-            if (orderId != null) {
-                order.setOrderId(orderId);
-            }
-
-            return Optional.of(order);
-        } catch (Exception exception) { // library can generate any kind of exception
-            log.error("Error on processing order", exception);
-            throw new IllegalArgumentException(exception);
+        if (!initOrderSubmit()) {
+            return Optional.empty();
         }
+
+        OrderResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
+        order.setOrderId(result.getOrderId());
+
+        orderExecutionServiceCallback.onOrderResult(result);
+        return Optional.of(order);
     }
 
     private List<Order<N>> processTradingDecision(TradingDecision decision) {
 
-        try {
-            if (!initOrderSubmit()) {
-                return Collections.emptyList();
-            }
-
-            if (!preValidate(decision)) {
-                log.warn("Validation failed for a decision: {}", decision.toString());
-                return Collections.emptyList();
-            }
-
-            List<Order<N>> ordersGenerated = createOrderListFromDecision(decision);
-            ordersGenerated.forEach(order -> {
-                N orderId = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
-                if (orderId != null) {
-                    order.setOrderId(orderId);
-                }
-            });
-            return ordersGenerated;
-        } catch (Exception exception) { // library can generate any kind of exception
-            log.error("Error on processing order", exception);
-            throw new IllegalArgumentException(exception);
+        if (!initOrderSubmit()) {
+            return Collections.emptyList();
         }
+
+        if (!preValidate(decision)) {
+            log.warn("Validation failed for a decision: {}", decision.toString());
+            return Collections.emptyList();
+        }
+
+        List<Order<N>> ordersGenerated = createOrderListFromDecision(decision);
+        ordersGenerated.forEach(order -> {
+            OrderResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
+            order.setOrderId(result.getOrderId());
+
+            orderExecutionServiceCallback.onOrderResult(result);
+        });
+        return ordersGenerated;
+
     }
 
     private boolean initOrderSubmit() {
-        if (!orderExecutionServiceContext.ifTradeAllowed()) {
-            log.warn("Trade is not allowed: {}", orderExecutionServiceContext.getReason());
+        if (!orderExecutionServiceCallback.ifTradeAllowed()) {
+            log.warn("Trade is not allowed: {}", orderExecutionServiceCallback.getReason());
             return false;
         }
 
-        orderExecutionServiceContext.fired();
+        orderExecutionServiceCallback.fired();
         return true;
     }
 

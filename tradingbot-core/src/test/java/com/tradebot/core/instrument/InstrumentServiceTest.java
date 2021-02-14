@@ -32,7 +32,7 @@ public class InstrumentServiceTest {
 		Collection<TradeableInstrument> usdpairs = service.getAllPairsWithCurrency("USD");
 		assertEquals(4, usdpairs.size());
 
-		TradeableInstrument usdjpy = new TradeableInstrument("USD_JPY", "USD_JPY");
+		TradeableInstrument usdjpy = new TradeableInstrument("USD_JPY", "USD_JPY", 0.001, null, null, null, null, null);
 		assertTrue(usdpairs.contains(usdjpy));
 
 		Collection<TradeableInstrument> jpypairs = service.getAllPairsWithCurrency("JPY");
@@ -44,10 +44,10 @@ public class InstrumentServiceTest {
 
 		Collection<TradeableInstrument> nullpairs = service.getAllPairsWithCurrency(null);
 		assertTrue(nullpairs.isEmpty());
-		assertEquals(NON_JPY_PIP, service.getTickSizeForInstrument(new TradeableInstrument("GBP_CHF", "GBP_CHF")),
+		assertEquals(NON_JPY_PIP, service.getTickSizeForInstrument(new TradeableInstrument("GBP_CHF", "GBP_CHF", 0.001, null, null, null, null, null)),
 				TradingTestConstants.PRECISION);
 		assertEquals(JPY_PIP, service.getTickSizeForInstrument(usdjpy), TradingTestConstants.PRECISION);
-		assertEquals(1.0, service.getTickSizeForInstrument(new TradeableInstrument("XAU_EUR", "XAU_EUR")),
+		assertEquals(1.0, service.getTickSizeForInstrument(new TradeableInstrument("XAU_EUR", "XAU_EUR", 0.001, null, null, null, null, null)),
 				TradingTestConstants.PRECISION);
 	}
 

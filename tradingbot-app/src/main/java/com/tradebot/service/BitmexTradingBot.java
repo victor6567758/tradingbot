@@ -21,8 +21,8 @@ import com.tradebot.response.CandleResponse;
 import com.tradebot.response.GridContextResponse;
 import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.util.GeneralConst;
-import com.tradebot.util.InitialContext;
-import com.tradebot.util.TradingContext;
+import com.tradebot.model.InitialContext;
+import com.tradebot.model.TradingContext;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -47,6 +47,7 @@ import org.modelmapper.config.Configuration;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.util.StringUtils;
 
 @Service
 @Slf4j
@@ -86,7 +87,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
         Account<Long> account = accountDataProvider.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
             .getTradingConfiguration().getAccountId());
-        bitmexOrderManager.initialize(account.getAccountId());
+        bitmexOrderManager.initialize(account.getAccountId(), bitmexAccountConfiguration);
 
         initializeDetails();
         initializeModelMapper();
@@ -172,13 +173,16 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             throw new IllegalArgumentException(String.format("Cannot find symbol %s", candleStick.getInstrument()));
         }
 
+        Account<Long> account = accountDataProvider.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
+            .getTradingConfiguration().getAccountId());
+
         tradingContextMapLock.writeLock().lock();
         try {
             TradingContext tradingContext = tradingContextMap.get(candleStick.getInstrument());
             if (tradingContext == null) {
                 tradingContext = new TradingContext(candleStick.getInstrument());
 
-                calculateInitialContextParameters(candleStick, initialContext, tradingContext);
+                calculateInitialContextParameters(account, candleStick, initialContext, tradingContext);
                 tradingContextMap.put(candleStick.getInstrument(), tradingContext);
 
                 if (log.isDebugEnabled()) {
@@ -186,7 +190,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 }
             }
 
-            calculateVarContextParameters(candleStick, initialContext, tradingContext);
+            calculateVarContextParameters(account, candleStick, initialContext, tradingContext);
             tradingContextCache.put(System.currentTimeMillis(), tradingContext);
 
             bitmexOrderManager.onCandleCallback(candleStick, cacheCandlestick, initialContext, tradingContext);
@@ -205,15 +209,38 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
     @Override
     public void visit(BitmexExecutionEventPayload event) {
-        bitmexOrderManager.onOrderExecutionCallback(event);
+        TradeableInstrument instrument =
+            instrumentService.resolveTradeableInstrument(event.getPayLoad().getSymbol());
+
+        tradingContextMapLock.writeLock().lock();
+        try {
+            TradingContext tradingContext = tradingContextMap.get(instrument);
+            bitmexOrderManager.onOrderExecutionCallback(tradingContext, event);
+        } finally {
+            tradingContextMapLock.writeLock().unlock();
+        }
+
     }
 
     @Override
     public void visit(BitmexOrderEventPayload event) {
-        bitmexOrderManager.onOrderCallback(event);
+        TradeableInstrument instrument =
+            instrumentService.resolveTradeableInstrument(event.getPayLoad().getSymbol());
+        tradingContextMapLock.writeLock().lock();
+        try {
+            TradingContext tradingContext = tradingContextMap.get(instrument);
+            bitmexOrderManager.onOrderCallback(tradingContext, event);
+        } finally {
+            tradingContextMapLock.writeLock().unlock();
+        }
+
     }
 
-    private void calculateInitialContextParameters(CandleStick candleStick, InitialContext initialContext, TradingContext tradingContext) {
+    private void calculateInitialContextParameters(
+        Account<Long> account,
+        CandleStick candleStick,
+        InitialContext initialContext,
+        TradingContext tradingContext) {
         double currentPrice = candleStick.getClosePrice() + candleStick.getClosePrice() / 100;
         double priceStep = (initialContext.getPriceEnd() - currentPrice) / initialContext.getLinesNum();
 
@@ -229,17 +256,24 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     .takeProfitPrice(CommonConsts.INVALID_PRICE)
                     .build());
 
-            currentPrice -= priceStep;
+            currentPrice += priceStep;
         }
 
     }
 
-    private void calculateVarContextParameters(CandleStick candleStick, InitialContext initialContext, TradingContext tradingContext) {
+    private void calculateVarContextParameters(
+        Account<Long> account,
+        CandleStick candleStick,
+        InitialContext initialContext,
+        TradingContext tradingContext) {
         tradingContext.setCandleStick(candleStick);
 
-        Account<Long> account = accountDataProvider.getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
-            .getTradingConfiguration().getAccountId());
+        if (StringUtils.isEmpty(initialContext.getReportExchangePair())) {
+            initialContext.setReportExchangePair(account.getCurrency() + initialContext.getReportCurrency());
+            log.info("Exchange pair detected to calculate margin {}", initialContext.getReportExchangePair());
+        }
         tradingContext.setOneLotPrice(account.getTotalBalance().doubleValue() / initialContext.getLinesNum());
+
 
         if (!tradesEnabled.get()) {
             log.debug("Trades are globally disabled");
@@ -276,7 +310,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                         (Double) entry.getValue().get("x"),
                         (Double) entry.getValue().get("priceEnd"),
                         (Integer) entry.getValue().get("linesNum"),
-                        (Integer) entry.getValue().get("orderPosUnits")
+                        (Integer) entry.getValue().get("orderPosUnits"),
+                        (String) entry.getValue().get("reportCurrency")
                     ))
             ).collect(Collectors.toUnmodifiableMap(
                 ImmutablePair::getLeft,

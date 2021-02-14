@@ -1,13 +1,14 @@
 package com.tradebot.core.account;
 
-import com.google.common.collect.Lists;
 import com.tradebot.core.BaseTradingConfig;
 import com.tradebot.core.helper.ProviderHelper;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.utils.TradingUtils;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -19,17 +20,20 @@ public class AccountInfoService<K> {
     private final BaseTradingConfig baseTradingConfig;
     private final CurrentPriceInfoProvider currentPriceInfoProvider;
     private final ProviderHelper<?> providerHelper;
+    private final InstrumentService instrumentService;
 
 
     public AccountInfoService(AccountDataProvider<K> accountDataProvider,
         CurrentPriceInfoProvider currentPriceInfoProvider,
         BaseTradingConfig baseTradingConfig,
-        ProviderHelper<?> providerHelper) {
+        ProviderHelper<?> providerHelper,
+        InstrumentService instrumentService) {
 
         this.accountDataProvider = accountDataProvider;
         this.baseTradingConfig = baseTradingConfig;
         this.currentPriceInfoProvider = currentPriceInfoProvider;
         this.providerHelper = providerHelper;
+        this.instrumentService = instrumentService;
     }
 
     public Collection<Account<K>> getAllAccounts() {
@@ -84,14 +88,13 @@ public class AccountInfoService<K> {
 
             Map<TradeableInstrument, Price> priceInfoMap = this.currentPriceInfoProvider
                 .getCurrentPricesForInstruments(
-                    Lists.newArrayList(new TradeableInstrument(currencyPair, currencyPair)));
+                    Collections.singletonList(instrumentService.resolveTradeableInstrument(currencyPair)));
             if (priceInfoMap.isEmpty()) {
                 /*this means we got the currency pair inverted*/
                 /*example when the home currency is GBP and instrument is USDJPY*/
-                currencyPair = providerHelper
-                    .fromIsoFormat(accountInfo.getCurrency() + baseCurrency);
+                currencyPair = providerHelper.fromIsoFormat(accountInfo.getCurrency() + baseCurrency);
                 priceInfoMap = currentPriceInfoProvider.getCurrentPricesForInstruments(
-                    Lists.newArrayList(new TradeableInstrument(currencyPair, currencyPair)));
+                    Collections.singletonList(instrumentService.resolveTradeableInstrument(currencyPair)));
                 if (priceInfoMap.isEmpty()) {
                     // something else is wrong here
                     return Double.MAX_VALUE;

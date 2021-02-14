@@ -18,7 +18,7 @@ public class TradeBotAppDefinitions {
 
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss");
 
-    private final TradeableInstrument tradeableInstrument = new TradeableInstrument("USDJPY", "USDJPY");
+    private final TradeableInstrument tradeableInstrument = new TradeableInstrument("USDJPY", "USDJPY", 0.001, null, null, null, null, null);
 
     private CacheCandlestick cacheCandlestick;
 

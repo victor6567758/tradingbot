@@ -42,8 +42,8 @@ import org.mockito.ArgumentCaptor;
 public class BitmexMarketDataStreamingServiceTest {
 
     private static final Collection<TradeableInstrument> INSTRUMENTS = Arrays.asList(
-        new TradeableInstrument("XBTUSD", "XBTUSD"),
-        new TradeableInstrument("XBTJPY","XBTJPY")
+        new TradeableInstrument("XBTUSD", "XBTUSD", 0.001, null, null, null, null, null),
+        new TradeableInstrument("XBTJPY","XBTJPY", 0.001, null, null, null, null, null)
     );
 
     private static final TradeableInstrument INSTRUMENTS_XBTUSD = INSTRUMENTS.stream().filter(n -> "XBTUSD".equals(n.getInstrument())).findAny().orElseThrow();

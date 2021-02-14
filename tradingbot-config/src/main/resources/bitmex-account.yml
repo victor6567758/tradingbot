@@ -27,6 +27,7 @@ bitmex:
     mailTo: victorofff@gmail.com
     tradingSolutionsDepthMin: 20
     priceExpiryMinutes: 20
+    waitForOrderOperationReplySecs: 20
     tradeableInstruments:
       - instrument: XBTUSD
         cacheHistory:
@@ -35,18 +36,20 @@ bitmex:
           - H1
           - D
         algParameters:
-          priceEnd: 34403.0
+          priceEnd: 28964.0
           x: 0.02
           linesNum: 11
           orderPosUnits: 1
-      - instrument: XBTJPY
-        cacheHistory:
-          - M1
-          - M5
-          - H1
-          - D
-        algParameters:
-          priceEnd: 3500000.0
-          x: 0.02
-          linesNum: 10
-          orderPosUnits: 1
+          reportCurrency: USD
+#      - instrument: XBTJPY
+#        cacheHistory:
+#          - M1
+#          - M5
+#          - H1
+#          - D
+#        algParameters:
+#          priceEnd: 2981577.0
+#          x: 0.02
+#          linesNum: 10
+#          orderPosUnits: 1
+#          reportCurrency: USD

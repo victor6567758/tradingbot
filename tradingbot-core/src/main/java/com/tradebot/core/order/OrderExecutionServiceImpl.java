@@ -24,9 +24,9 @@ public class OrderExecutionServiceImpl<N, K> extends OrderExecutionServiceBase<N
         BaseTradingConfig baseTradingConfig,
         PreOrderValidationService<N, K> preOrderValidationService,
         CurrentPriceInfoProvider currentPriceInfoProvider,
-        OrderExecutionServiceContext orderExecutionServiceContext) {
+        OrderExecutionServiceCallback orderExecutionServiceCallback) {
 
-        super(orderExecutionServiceContext, orderManagementProvider, () -> accountInfoService.findAccountToTrade().orElseThrow());
+        super(orderExecutionServiceCallback, orderManagementProvider, () -> accountInfoService.findAccountToTrade().orElseThrow());
 
         this.accountInfoService = accountInfoService;
         this.baseTradingConfig = baseTradingConfig;

@@ -20,7 +20,7 @@ public class CacheCandlestickTest {
 
     @Test
     public void addHistoryTest() {
-        TradeableInstrument tradeableInstrument = new TradeableInstrument("USDJPY", "USDJPY");
+        TradeableInstrument tradeableInstrument = new TradeableInstrument("USDJPY", "USDJPY", 0.001, null, null, null, null, null);
 
         CacheCandlestick cacheCandlestick = new CacheCandlestick(tradeableInstrument, 10,
             Collections.singletonList(CandleStickGranularity.H1));

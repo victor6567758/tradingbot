@@ -54,10 +54,17 @@ public class Account<T> {
         this.hash = calcHashCode();
         toStr = String.format("Currency=%s,NAV=%5.2f,Total Balance=%5.2f, UnrealisedPnl=%5.2f, "
                 + "RealisedPnl=%5.2f, MarginUsed=%5.2f, MarginAvailable=%5.2f,"
-                + " OpenTrades=%d, amountAvailableRatio=%1.2f, marginRate=%1.2f", currency,
+                + " OpenTrades=%d, amountAvailableRatio=%1.2f, marginRate=%1.2f",
+            currency,
             netAssetValue,
-            totalBalance, unrealisedPnl, realisedPnl, marginUsed, marginAvailable, openTrades,
-            this.amountAvailableRatio, this.marginRate);
+            totalBalance,
+            unrealisedPnl,
+            realisedPnl,
+            marginUsed,
+            marginAvailable,
+            openTrades,
+            this.amountAvailableRatio,
+            this.marginRate);
     }
 
 

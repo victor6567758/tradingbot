@@ -10,22 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionServiceBase<N, K> {
 
-
     public OrderExecutionSimpleServiceImpl(
         OrderManagementProvider<N, K> orderManagementProvider,
-        Supplier<K> accountIdSupplier) {
-        super(new OrderExecutionServiceContext() {
-
-            @Override
-            public boolean ifTradeAllowed() {
-                return true;
-            }
-
-            @Override
-            public String getReason() {
-                return "N/A";
-            }
-        }, orderManagementProvider, accountIdSupplier);
+        Supplier<K> accountIdSupplier,
+        OrderExecutionServiceCallback orderExecutionServiceCallback) {
+        super(orderExecutionServiceCallback, orderManagementProvider, accountIdSupplier);
     }
 
     @Override

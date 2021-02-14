@@ -1,5 +1,6 @@
-package com.tradebot.util;
+package com.tradebot.model;
 
+import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
@@ -21,9 +22,10 @@ public class TradingContext {
 
     private final TradeableInstrument tradeableInstrument;
     private final Map<BigDecimal, TradingDecision> tradingGrid = new TreeMap<>();
-    private final Map<Integer, Order<String>> currentOrders = new HashMap<>();
+    private final Map<String, Order<String>> currentOrders = new HashMap<>();
     private double oneLotPrice;
     private CandleStick candleStick;
     private boolean tradeEnabled = true;
     private boolean started = false;
+    private BitmexOrderQuotas bitmexOrderQuotas;
 }

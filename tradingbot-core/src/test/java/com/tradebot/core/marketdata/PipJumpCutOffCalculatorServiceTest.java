@@ -34,16 +34,16 @@ public class PipJumpCutOffCalculatorServiceTest {
 		InstrumentService instrumentService = mock(InstrumentService.class);
 		DateTime now = DateTime.now();
 
-		TradeableInstrument eurusd = new TradeableInstrument("EUR_USD","EUR_USD");
+		TradeableInstrument eurusd = new TradeableInstrument("EUR_USD","EUR_USD", 0.001, null, null, null, null, null);
 		Price eurusdPrice = new Price(eurusd, 1.11905, 1.11915, now);
 
-		TradeableInstrument nzdchf = new TradeableInstrument("NZD_CHF","NZD_CHF");
+		TradeableInstrument nzdchf = new TradeableInstrument("NZD_CHF","NZD_CHF", 0.001, null, null, null, null, null);
 		Price nzdchfPrice = new Price(nzdchf, 0.65382, 0.65402, now);
 
-		TradeableInstrument gbpjpy = new TradeableInstrument("GBP_JPY","GBP_JPY");
+		TradeableInstrument gbpjpy = new TradeableInstrument("GBP_JPY","GBP_JPY", 0.001, null, null, null, null, null);
 		Price gbpjpyPrice = new Price(gbpjpy, 166.506, 166.524, now);
 
-		TradeableInstrument gbpnzd = new TradeableInstrument("GBP_NZD","GBP_NZD");
+		TradeableInstrument gbpnzd = new TradeableInstrument("GBP_NZD","GBP_NZD", 0.001, null, null, null, null, null);
 		Price gbpnzdPrice = new Price(gbpnzd, 2.17625, 2.17671, now);
 
 		final double basePip = 45.0;

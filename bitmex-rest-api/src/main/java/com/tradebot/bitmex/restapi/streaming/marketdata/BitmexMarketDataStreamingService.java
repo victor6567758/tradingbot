@@ -26,6 +26,10 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
 
     private final InstrumentService instrumentService;
 
+    private final MarketEventCallback marketEventCallback;
+    private final EventCallback<BitmexInstrument> instrumentEventCallback;
+    private final Collection<TradeableInstrument> instruments;
+
     public BitmexMarketDataStreamingService(
         MarketEventCallback marketEventCallback,
         EventCallback<BitmexInstrument> instrumentEventCallback,
@@ -47,9 +51,6 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
         );
     }
 
-    private final MarketEventCallback marketEventCallback;
-    private final EventCallback<BitmexInstrument> instrumentEventCallback;
-    private final Collection<TradeableInstrument> instruments;
 
     @Override
     public void init() {

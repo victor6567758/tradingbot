@@ -97,7 +97,8 @@ public class BitmexOrderManagementProviderTest {
     @Test
     public void testAllPendingOrdersForInstrument() {
         Collection<com.tradebot.core.order.Order<String>> pendingOrders =
-            bitmexOrderManagementProviderSpy.pendingOrdersForInstrument(new TradeableInstrument(newOrder.getSymbol(), newOrder.getSymbol()));
+            bitmexOrderManagementProviderSpy.pendingOrdersForInstrument(new TradeableInstrument(
+                newOrder.getSymbol(), newOrder.getSymbol(), 0.001, null, null, null, null, null));
         assertThat(pendingOrders).hasSize(1);
 
         com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.iterator().next();

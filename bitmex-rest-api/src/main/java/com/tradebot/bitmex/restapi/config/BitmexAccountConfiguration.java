@@ -49,6 +49,7 @@ public class BitmexAccountConfiguration {
         private String mailTo;
         private int priceExpiryMinutes;
         private int tradingSolutionsDepthMin;
+        private int waitForOrderOperationReplySecs;
         private List<Map<String, ?>> tradeableInstruments;
         private Map<String, String> algParameters;
     }

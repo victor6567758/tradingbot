@@ -11,6 +11,9 @@ import com.google.common.collect.Maps;
 import com.tradebot.core.BaseTradingConfig;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.helper.ProviderHelper;
+import com.tradebot.core.instrument.InstrumentDataProvider;
+import com.tradebot.core.instrument.InstrumentPairInterestRate;
+import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
@@ -18,13 +21,25 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.junit.Before;
 import org.junit.Test;
 
 public class AccountInfoServiceTest {
 
     private static final double MARGIN_RATE = 0.2;
     private static final int UNITS = 3000;
+
+    private InstrumentDataProvider instrumentDataProvider;
+
+    @Before
+    public void init() {
+        instrumentDataProvider = mock(InstrumentDataProvider.class);
+        Collection<TradeableInstrument> instruments = createInstruments();
+
+        when(instrumentDataProvider.getInstruments()).thenReturn(instruments);
+    }
 
     @Test
     @SuppressWarnings("unchecked")
@@ -35,7 +50,7 @@ public class AccountInfoServiceTest {
 
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
         AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
-            null, baseTradingConfig, null);
+            null, baseTradingConfig, null, new InstrumentService(instrumentDataProvider));
         List<Account<Long>> accounts = createAccounts();
 
         when(accountDataProvider.getLatestAccountsInfo()).thenReturn(accounts);
@@ -54,9 +69,9 @@ public class AccountInfoServiceTest {
         CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
         ProviderHelper<?> providerHelper = mock(ProviderHelper.class);
         AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
-            currentPriceInfoProvider, null, providerHelper);
-        TradeableInstrument gbpusd = new TradeableInstrument("GBP_USD","GBP_USD");
-        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF","GBP_CHF");
+            currentPriceInfoProvider, null, providerHelper, new InstrumentService(instrumentDataProvider));
+        TradeableInstrument gbpusd = new TradeableInstrument("GBP_USD","GBP_USD", 0.001, null, null, null, null, null);
+        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF","GBP_CHF", 0.001, null, null, null, null, null);
         Account<Long> account = mock(Account.class);
 
         when(accountDataProvider.getLatestAccountInfo(TradingTestConstants.ACCOUNT_ID_1)).thenReturn(account);
@@ -82,10 +97,10 @@ public class AccountInfoServiceTest {
         CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
         ProviderHelper<?> providerHelper = mock(ProviderHelper.class);
         AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
-            currentPriceInfoProvider, null, providerHelper);
-        TradeableInstrument audusd = new TradeableInstrument("AUD_USD","AUD_USD");
-        TradeableInstrument euraud = new TradeableInstrument("EUR_AUD", "EUR_AUD");
-        TradeableInstrument audeur = new TradeableInstrument("AUD_EUR", "AUD_EUR");
+            currentPriceInfoProvider, null, providerHelper, new InstrumentService(instrumentDataProvider));
+        TradeableInstrument audusd = new TradeableInstrument("AUD_USD","AUD_USD", 0.001, null, null, null, null, null);
+        TradeableInstrument euraud = new TradeableInstrument("EUR_AUD", "EUR_AUD", 0.001, null, null, null, null, null);
+        TradeableInstrument audeur = new TradeableInstrument("AUD_EUR", "AUD_EUR", 0.001, null, null, null, null, null);
         Account<Long> account = mock(Account.class);
 
         when(accountDataProvider.getLatestAccountInfo(TradingTestConstants.ACCOUNT_ID_1)).thenReturn(account);
@@ -138,5 +153,28 @@ public class AccountInfoServiceTest {
         return Lists.newArrayList(account1, account2, account3, account4);
     }
 
+    private Collection<TradeableInstrument> createInstruments() {
+        Collection<TradeableInstrument> instruments = Lists.newArrayList();
+
+        instruments.add(new TradeableInstrument("GBP_USD", "GBP_USD", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("GBP_CHF", "GBP_CHF", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("EUR_USD", "EUR_USD", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("NZD_USD", "NZD_USD", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("USD_JPY", "USD_JPY", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("AUD_JPY", "USD_JPY", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("AUD_USD", "AUD_USD", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("EUR_AUD", "EUR_AUD", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        instruments.add(new TradeableInstrument("AUD_EUR", "AUD_EUR", 0.001, mock(InstrumentPairInterestRate.class),
+            StringUtils.EMPTY, null, null, null));
+        return instruments;
+    }
 
 }

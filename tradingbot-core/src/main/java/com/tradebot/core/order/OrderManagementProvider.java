@@ -7,11 +7,11 @@ import com.tradebot.core.instrument.TradeableInstrument;
 
 public interface OrderManagementProvider<N, K> {
 
-    N placeOrder(Order<N> order, K accountId);
+    OrderResultContext<N> placeOrder(Order<N> order, K accountId);
 
-    boolean modifyOrder(Order<N> order, K accountId);
+    OrderResultContext<N> modifyOrder(Order<N> order, K accountId);
 
-    boolean closeOrder(N orderId, K accountId);
+    OrderResultContext<N> closeOrder(N orderId, K accountId);
 
     Collection<Order<N>> allPendingOrders();
 

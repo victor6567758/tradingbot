@@ -37,13 +37,14 @@ import org.junit.Test;
 public class OrderExecutionServiceImplTest<N> {
 
     private static final int ALLOWED_SUBMISSIONS = 20;
+    private static final OrderResultContext<Long> ORDER_RESULT_CONTEXT = new OrderResultContext<>(1L, true);
 
     private final AccountInfoService<Long> accountInfoService = mock(AccountInfoService.class);
     private final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
     private final BaseTradingConfig baseTradingConfig = mock(BaseTradingConfig.class);
     private final PreOrderValidationService<Long, Long> preOrderValidationService = mock(PreOrderValidationService.class);
     private final CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
-    private final TradeableInstrument gbpaud = new TradeableInstrument("GBP_AUD", "GBP_AUD");
+    private final TradeableInstrument gbpaud = new TradeableInstrument("GBP_AUD", "GBP_AUD", 0.001, null, null, null, null, null);
     private final TradingSignal signal = TradingSignal.SHORT;
 
     private final TradingDecision tradingDecision1 = TradingDecision.builder()
@@ -68,6 +69,9 @@ public class OrderExecutionServiceImplTest<N> {
         double askPrice = 2.0562;
         priceMap.put(gbpaud, new Price(gbpaud, bidPrice, askPrice, DateTime.now()));
 
+        when(orderManagementProvider.placeOrder(any(Order.class), eq(TradingTestConstants.ACCOUNT_ID_1)))
+            .thenReturn(ORDER_RESULT_CONTEXT);
+
         when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(instruments)))
             .thenReturn(priceMap);
         when(currentPriceInfoProvider
@@ -85,7 +89,11 @@ public class OrderExecutionServiceImplTest<N> {
     @Test
     public void testPlaceOrders() throws ExecutionException, InterruptedException {
 
-        OrderExecutionServiceContext orderExecutionServiceContext = new OrderExecutionServiceContext() {
+        OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
+
+            @Override
+            public void fired() {
+            }
 
             @Override
             public boolean ifTradeAllowed() {
@@ -96,6 +104,11 @@ public class OrderExecutionServiceImplTest<N> {
             public String getReason() {
                 return null;
             }
+
+            @Override
+            public void onOrderResult(OrderResultContext orderResultContext) {
+
+            }
         };
 
         OrderExecutionServiceImpl<Long,Long> service = new OrderExecutionServiceImpl<>(
@@ -104,7 +117,7 @@ public class OrderExecutionServiceImplTest<N> {
             baseTradingConfig,
             preOrderValidationService,
             currentPriceInfoProvider,
-            orderExecutionServiceContext);
+            orderExecutionServiceCallback);
 
 
         Future<List<Order<Long>>> futureTask1 = service.submit(tradingDecision1);
@@ -122,7 +135,7 @@ public class OrderExecutionServiceImplTest<N> {
     @Test
     public void testOrderSubmissionIsInterrupted() throws ExecutionException, InterruptedException {
 
-        OrderExecutionServiceContext orderExecutionServiceContext = new OrderExecutionServiceContext() {
+        OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
 
             private final AtomicInteger counter = new AtomicInteger(ALLOWED_SUBMISSIONS);
 
@@ -139,6 +152,11 @@ public class OrderExecutionServiceImplTest<N> {
             public String getReason() {
                 return null;
             }
+
+            @Override
+            public void onOrderResult(OrderResultContext orderResultContext) {
+
+            }
         };
 
         OrderExecutionServiceImpl<Long, Long> service = new OrderExecutionServiceImpl<>(
@@ -147,7 +165,7 @@ public class OrderExecutionServiceImplTest<N> {
             baseTradingConfig,
             preOrderValidationService,
             currentPriceInfoProvider,
-            orderExecutionServiceContext);
+            orderExecutionServiceCallback);
 
         for (int i = 0; i < ALLOWED_SUBMISSIONS; i++) {
             Future<List<Order<Long>>> future = service.submit(tradingDecision1);

@@ -6,6 +6,8 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.model.Order;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
+import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
 import com.tradebot.bitmex.restapi.model.OrderStatus;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
@@ -14,15 +16,20 @@ import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.order.OrderManagementProvider;
+import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.HttpStatus;
 
 @Slf4j
 public class BitmexOrderManagementProvider implements OrderManagementProvider<String, Long> {
@@ -43,10 +50,11 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
 
     @Override
-    public String placeOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
+    public OrderResultContext<String> placeOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
 
         try {
-            Order newOrder = getOrderApi().orderNew(
+
+            ApiResponse<Order> newOrder = getOrderApi().orderNewWithHttpInfo(
                 order.getInstrument().getInstrument(), // symbol
                 TradingSignalConvertible.toString(order.getSide()), // side
                 null, // simpleOrderQty
@@ -65,7 +73,10 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 null // text
             );
 
-            return newOrder.getOrderID();
+            if (newOrder.getStatusCode() != HttpStatus.SC_OK) {
+                throw new IllegalArgumentException("Open order returned wrong HTTP code");
+            }
+            return prepareResult(newOrder);
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -74,10 +85,10 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
     }
 
     @Override
-    public boolean modifyOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
+    public OrderResultContext<String> modifyOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
 
         try {
-            getOrderApi().orderAmend(
+            ApiResponse<Order> amendedOrder = getOrderApi().orderAmendWithHttpInfo(
                 order.getOrderId(),
                 null,
                 null,
@@ -90,7 +101,11 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 null,
                 null
             );
-            return true;
+
+            if (amendedOrder.getStatusCode() != HttpStatus.SC_OK) {
+                throw new IllegalArgumentException("Amend order returned wrong HTTP code");
+            }
+            return prepareResult(amendedOrder);
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -99,10 +114,15 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
     }
 
     @Override
-    public boolean closeOrder(String orderId, Long accountId) {
+    public OrderResultContext<String> closeOrder(String orderId, Long accountId) {
         try {
-            List<Order> cancelled = getOrderApi().orderCancel(orderId, null, null);
-            return cancelled.stream().anyMatch(order -> order.getOrderID().equals(orderId));
+            ApiResponse<List<Order>> cancelled = getOrderApi().orderCancelWithHttpInfo(orderId, null, null);
+            if (cancelled.getStatusCode() != HttpStatus.SC_OK) {
+                throw new IllegalArgumentException("Amend order returned wrong HTTP code");
+            }
+
+            return new OrderResultContext<>(orderId,
+                cancelled.getData().stream().anyMatch(order -> order.getOrderID().equals(orderId)));
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -197,6 +217,20 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
         convertedOrder.setOrderId(order.getOrderID());
         return convertedOrder;
+    }
+
+    private BitmexOrderQuotas prepareResult(ApiResponse<Order> apiResponse) {
+        BitmexOrderQuotas result = new BitmexOrderQuotas(apiResponse.getData().getOrderID(), true);
+        result.setXRatelimitLimit(getIntHeaderValue("x-ratelimit-limit", apiResponse.getHeaders()));
+        result.setXRatelimitRemaining(getIntHeaderValue("x-ratelimit-remaining", apiResponse.getHeaders()));
+        result.setXRatelimitReset(getIntHeaderValue("x-ratelimit-reset", apiResponse.getHeaders()));
+        result.setXRatelimitRemaining1s(getIntHeaderValue("x-ratelimit-remaining-1s", apiResponse.getHeaders()));
+
+        return result;
+    }
+
+    private static int getIntHeaderValue(String name, Map<String, List<String>> headers) {
+        return NumberUtils.toInt(headers.getOrDefault(name, Collections.singletonList("-1")).get(0), -1);
     }
 
 

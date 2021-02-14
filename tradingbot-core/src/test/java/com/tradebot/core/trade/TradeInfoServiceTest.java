@@ -45,18 +45,18 @@ public class TradeInfoServiceTest {
 	public void allTradesForAccountAndInstrumentTest() {
 		TradeInfoService<Long, Long> service = createService();
 		Collection<Trade<Long, Long>> trades = service.getTradesForAccountAndInstrument(
-				TradingTestConstants.ACCOUNT_ID_1, new TradeableInstrument("USD_JPY", "USD_JPY"));
+				TradingTestConstants.ACCOUNT_ID_1, new TradeableInstrument("USD_JPY", "USD_JPY", 0.001, null, null, null, null, null));
 		assertFalse(trades.isEmpty());
 		trades = service.getTradesForAccountAndInstrument(TradingTestConstants.ACCOUNT_ID_1,
-				new TradeableInstrument("USD_CHF", "USD_CHF"));
+				new TradeableInstrument("USD_CHF", "USD_CHF", 0.001, null, null, null, null, null));
 		assertTrue(trades.isEmpty());
 	}
 
 	@Test
 	public void tradeExistsTest() {
 		TradeInfoService<Long, Long> service = createService();
-		assertTrue(service.isTradeExistsForInstrument(new TradeableInstrument("AUD_USD", "AUD_USD")));
-		assertFalse(service.isTradeExistsForInstrument(new TradeableInstrument("AUD_CHF","AUD_CHF")));
+		assertTrue(service.isTradeExistsForInstrument(new TradeableInstrument("AUD_USD", "AUD_USD", 0.001, null, null, null, null, null)));
+		assertFalse(service.isTradeExistsForInstrument(new TradeableInstrument("AUD_CHF","AUD_CHF", 0.001, null, null, null, null, null)));
 	}
 
 	@Test
@@ -79,9 +79,9 @@ public class TradeInfoServiceTest {
 	public void accountsForInstrumentsTest() {
 		TradeInfoService<Long, Long> service = createService();
 		Collection<Long> accountIds = service
-				.findAllAccountsWithInstrumentTrades(new TradeableInstrument("EUR_USD","EUR_USD"));
+				.findAllAccountsWithInstrumentTrades(new TradeableInstrument("EUR_USD","EUR_USD", 0.001, null, null, null, null, null));
 		assertEquals(2, accountIds.size());
-		accountIds = service.findAllAccountsWithInstrumentTrades(new TradeableInstrument("EUR_JPY","EUR_JPY"));
+		accountIds = service.findAllAccountsWithInstrumentTrades(new TradeableInstrument("EUR_JPY","EUR_JPY", 0.001, null, null, null, null, null));
 		assertEquals(1, accountIds.size());
 	}
 
@@ -108,13 +108,13 @@ public class TradeInfoServiceTest {
 	private Collection<Trade<Long, Long>> createSampleTrades1() {
 		Collection<Trade<Long, Long>> trades = Lists.newArrayList();
 		trades.add(
-				new Trade(2001L, 10, TradingSignal.LONG, new TradeableInstrument("GBP_USD", "GBP_USD"),
+				new Trade(2001L, 10, TradingSignal.LONG, new TradeableInstrument("GBP_USD", "GBP_USD", 0.001, null, null, null, null, null),
 						DateTime.now(), 0.0, 1.5365, 0.0, TradingTestConstants.ACCOUNT_ID_1));
 		trades.add(
-				new Trade(2003L, 10, TradingSignal.LONG, new TradeableInstrument("USD_JPY","USD_JPY"),
+				new Trade(2003L, 10, TradingSignal.LONG, new TradeableInstrument("USD_JPY","USD_JPY", 0.001, null, null, null, null, null),
 						DateTime.now(), 0.0, 120.15, 0.0, TradingTestConstants.ACCOUNT_ID_1));
 		trades.add(new Trade(2005L, 10, TradingSignal.SHORT,
-				new TradeableInstrument("EUR_USD","EUR_USD"), DateTime.now(), 0.0, 1.2429, 0.0,
+				new TradeableInstrument("EUR_USD","EUR_USD", 0.001, null, null, null, null, null), DateTime.now(), 0.0, 1.2429, 0.0,
 				TradingTestConstants.ACCOUNT_ID_1));
 		return trades;
 	}
@@ -123,16 +123,16 @@ public class TradeInfoServiceTest {
 		Collection<Trade<Long, Long>> trades = Lists.newArrayList();
 
 		trades.add(new Trade(2002L, 10, TradingSignal.SHORT,
-				new TradeableInstrument("EUR_JPY","EUR_JPY"), DateTime.now(), 0.0, 135.55, 0.0,
+				new TradeableInstrument("EUR_JPY","EUR_JPY", 0.001, null, null, null, null, null), DateTime.now(), 0.0, 135.55, 0.0,
 				TradingTestConstants.ACCOUNT_ID_2));
 		trades.add(new Trade(2004L, 10, TradingSignal.SHORT,
-				new TradeableInstrument("GBP_NZD","GBP_NZD"), DateTime.now(), 0.0, 2.39, 0.0,
+				new TradeableInstrument("GBP_NZD","GBP_NZD", 0.001, null, null, null, null, null), DateTime.now(), 0.0, 2.39, 0.0,
 				TradingTestConstants.ACCOUNT_ID_2));
 		trades.add(new Trade(2006L, 10, TradingSignal.SHORT,
-				new TradeableInstrument("AUD_USD","AUD_USD"), DateTime.now(), 0.0, 0.8123, 0.0,
+				new TradeableInstrument("AUD_USD","AUD_USD", 0.001, null, null, null, null, null), DateTime.now(), 0.0, 0.8123, 0.0,
 				TradingTestConstants.ACCOUNT_ID_2));
 		trades.add(
-				new Trade(2007L, 10, TradingSignal.LONG, new TradeableInstrument("EUR_USD", "EUR_USD"),
+				new Trade(2007L, 10, TradingSignal.LONG, new TradeableInstrument("EUR_USD", "EUR_USD", 0.001, null, null, null, null, null),
 						DateTime.now(), 0.0, 1.2515, 0.0, TradingTestConstants.ACCOUNT_ID_2));
 		return trades;
 	}

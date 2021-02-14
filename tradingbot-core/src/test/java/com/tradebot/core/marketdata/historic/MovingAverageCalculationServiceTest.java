@@ -26,7 +26,7 @@ public class MovingAverageCalculationServiceTest {
         MovingAverageCalculationService service = new MovingAverageCalculationService(
             historicMarketDataProvider);
         final int candleStickCt = 7;
-        TradeableInstrument eurnzd = new TradeableInstrument("EUR_NZD", "EUR_NZD");
+        TradeableInstrument eurnzd = new TradeableInstrument("EUR_NZD", "EUR_NZD", 0.001, null, null, null, null, null);
         List<CandleStick> candleSticks = createEurNzdCandleSticks();
         when(historicMarketDataProvider
             .getCandleSticks(eurnzd, CandleStickGranularity.M, candleStickCt)).thenReturn(
@@ -55,7 +55,7 @@ public class MovingAverageCalculationServiceTest {
             historicMarketDataProvider);
         DateTime from = new DateTime(1430469000000L);
         DateTime to = new DateTime(1430469055000L);
-        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF", "GBP_CHF");
+        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF", "GBP_CHF", 0.001, null, null, null, null, null);
         List<CandleStick> candleSticks = createGbpChfCandleSticks();
         when(
             historicMarketDataProvider.getCandleSticks(gbpchf, CandleStickGranularity.S5, from, to))

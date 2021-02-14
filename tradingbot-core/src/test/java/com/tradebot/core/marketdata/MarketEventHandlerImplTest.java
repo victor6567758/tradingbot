@@ -45,7 +45,8 @@ public class MarketEventHandlerImplTest {
 			evtBus.register(new MarketDataSubscriber());
 		}
 		MarketEventCallback callback = new MarketEventHandlerImpl(evtBus);
-		callback.onMarketEvent(new TradeableInstrument(GBPUSD, GBPUSD), BID, ASK, DateTime.now());
+		callback.onMarketEvent(new TradeableInstrument(GBPUSD, GBPUSD, 0.001, null, null, null, null, null),
+			BID, ASK, DateTime.now());
 		done.await();
 		assertThat(done.getCount()).isZero();
 	}
