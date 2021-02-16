@@ -3,6 +3,9 @@ package com.tradebot.service;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
+import com.tradebot.bitmex.restapi.model.BitmexExecution;
+import com.tradebot.core.ExecutionType;
+import com.tradebot.core.TradingSignal;
 import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.order.Order;
@@ -11,7 +14,12 @@ import com.tradebot.core.order.OrderExecutionServiceCallback;
 import com.tradebot.core.order.OrderExecutionSimpleServiceImpl;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.order.OrderResultContext;
+import com.tradebot.core.order.OrderStatus;
+import com.tradebot.core.order.OrderType;
 import com.tradebot.model.TradingContext;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +36,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     private OrderExecutionServiceBase<String, Long> orderExecutionEngine;
     private BitmexAccountConfiguration bitmexAccountConfiguration;
-    private AtomicReference<DateTime> lastOrderFireTime =  new AtomicReference<>();
+    private AtomicReference<DateTime> lastOrderFireTime = new AtomicReference<>();
 
     @Override
     public void initialize(long accountId, BitmexAccountConfiguration bitmexAccountConfiguration) {
@@ -59,7 +67,6 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                 }
             });
 
-
         this.bitmexAccountConfiguration = bitmexAccountConfiguration;
     }
 
@@ -70,7 +77,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void startOrderEvolution(TradingContext tradingContext) {
-        tradingContext.getRecalculatedTradingContext().getTradingGrid().values().forEach(decision -> {
+        tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
             orderExecutionEngine.submit(decision);
         });
     }
@@ -92,6 +99,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     public void onOrderCallback(TradingContext tradingContext, BitmexOrderEventPayload event) {
         if (log.isDebugEnabled()) {
             log.debug("Order callback {}", event.getPayLoad().toString());
+
+
         }
     }
 
@@ -100,6 +109,31 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         if (log.isDebugEnabled()) {
             log.debug("Order execution callback {}", event.getPayLoad().toString());
         }
+
+        BitmexExecution bitmexExecution = event.getPayLoad();
+        Map<UUID, BigDecimal> imbalanceMap = tradingContext.getRecalculatedTradingContext().getImbalanceMap();
+        UUID key = UUID.fromString(bitmexExecution.getOrderID());
+
+        if (bitmexExecution.getExecType() == ExecutionType.NEW) {
+
+        }
+        else if (bitmexExecution.getExecType() == ExecutionType.TRADE) {
+
+        }
+
+        if (bitmexExecution.getOrdType() == OrderType.LIMIT) {
+
+        }
+
+        if (bitmexExecution.getOrdStatus() == OrderStatus.FILLED || bitmexExecution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED) {
+
+        }
+
+        if (bitmexExecution.getSide() == TradingSignal.LONG) {
+           // enter signal
+
+        }
+
 
     }
 

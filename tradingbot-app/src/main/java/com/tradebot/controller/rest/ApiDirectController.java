@@ -45,7 +45,8 @@ public class ApiDirectController {
             TradingSignalConvertible.fromString(limitOrderRequest.getTradingSignal()),
             limitOrderRequest.getLimitPrice(),
             CommonConsts.INVALID_PRICE,
-            CommonConsts.INVALID_PRICE);
+            CommonConsts.INVALID_PRICE,
+            limitOrderRequest.getText());
 
         bitmexOrderManager.submitOrder(order);
     }
@@ -58,7 +59,8 @@ public class ApiDirectController {
             marketOrderRequest.getLots(),
             TradingSignalConvertible.fromString(marketOrderRequest.getTradingSignal()),
             CommonConsts.INVALID_PRICE,
-            CommonConsts.INVALID_PRICE);
+            CommonConsts.INVALID_PRICE,
+            marketOrderRequest.getText());
 
         bitmexOrderManager.submitOrder(order);
     }

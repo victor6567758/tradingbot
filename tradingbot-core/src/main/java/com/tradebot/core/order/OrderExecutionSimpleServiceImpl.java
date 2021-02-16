@@ -25,19 +25,19 @@ public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionService
 
             if (decision.getStopPrice() == 0.0) {
                 order = Order.buildMarketOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
+                    CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
             } else {
                 order = Order.buildStopMarketOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    decision.getStopPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
+                    decision.getStopPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
             }
 
         } else {
             if (decision.getStopPrice() == 0.0) {
                 order = Order.buildLimitOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
+                    decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
             } else {
                 order = Order.buildStopLimitOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    decision.getStopPrice(), decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
+                    decision.getStopPrice(), decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
             }
         }
 

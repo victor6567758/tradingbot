@@ -25,5 +25,6 @@ public class TradingDecision {
     private final long units;
     private final double takeProfitPrice;
     private final double stopLossPrice;
+    private final String text;
 
 }

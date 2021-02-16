@@ -1,6 +1,10 @@
 package com.tradebot.bitmex.restapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.tradebot.core.ExecutionType;
+import com.tradebot.core.TradingSignal;
+import com.tradebot.core.order.OrderStatus;
+import com.tradebot.core.order.OrderType;
 import lombok.Data;
 import org.joda.time.DateTime;
 
@@ -21,14 +25,15 @@ public class BitmexExecution {
     private double orderQty;
 
     //Valid options: Buy, Sell.
-    private String side;
+    private TradingSignal side;
 
     // Valid options: Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, MarketWithLeftOverAsLimit, Pegged.
-    private String ordType;
+    private OrderType ordType;
 
-    private String execType;
+    private ExecutionType execType;
 
-    private String ordStatus;
+    // New | Filled | PartiallyFilled | Canceled | Rejected
+    private OrderStatus ordStatus;
 
     private String ordRejectReason;
 

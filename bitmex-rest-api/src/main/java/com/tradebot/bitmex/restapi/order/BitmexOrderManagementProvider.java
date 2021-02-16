@@ -8,7 +8,6 @@ import com.tradebot.bitmex.restapi.generated.model.Order;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
 import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
-import com.tradebot.bitmex.restapi.model.OrderStatus;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.bitmex.restapi.utils.converters.OrderTypeConvertible;
@@ -17,6 +16,7 @@ import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.order.OrderResultContext;
+import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.utils.CommonConsts;
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -59,9 +59,9 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 TradingSignalConvertible.toString(order.getSide()), // side
                 null, // simpleOrderQty
                 BigDecimal.valueOf(order.getUnits()), // orderQty
-                order.getPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getPrice()) : null, // price
+                order.getPrice() > 0 ? order.getPrice() : null, // price
                 BigDecimal.valueOf(0), // displayQty
-                order.getStopPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getStopPrice()) : null, // stopPx
+                order.getStopPrice() > 0 ? order.getStopPrice() : null, // stopPx
                 null, // clOrdID
                 null, // clOrdLinkID
                 null, // pegOffsetValue
@@ -96,8 +96,8 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 BigDecimal.valueOf(order.getUnits()),
                 null,
                 null,
-                order.getPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getPrice()) : null, // price
-                order.getStopPrice() > 0 ? BitmexUtils.roundPrice(order.getInstrument(), order.getStopPrice()) : null, // stopPx
+                order.getPrice() > 0 ? order.getPrice() : null, // price
+                order.getStopPrice() > 0 ? order.getStopPrice() : null, // stopPx
                 null,
                 null
             );

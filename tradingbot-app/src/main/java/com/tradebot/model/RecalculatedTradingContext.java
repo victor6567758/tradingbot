@@ -3,11 +3,11 @@ package com.tradebot.model;
 import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.marketdata.historic.CandleStick;
-import com.tradebot.core.order.Order;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,8 +18,9 @@ import lombok.ToString;
 public class RecalculatedTradingContext {
 
     private CandleStick candleStick;
-    private final Map<BigDecimal, TradingDecision> tradingGrid = new TreeMap<>();
-    private final Map<String, Order<String>> currentOrders = new HashMap<>();
+    private double profitPlus;
+    private final Map<BigDecimal, TradingDecision> openTradingDecisions = new TreeMap<>();
+    private final Map<UUID, BigDecimal> imbalanceMap = new HashMap<>();
     private boolean tradeEnabled = true;
     private boolean ordersProcessingStarted;
     private boolean oneTimeInitialized;

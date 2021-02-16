@@ -72,12 +72,17 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
     }
 
     @Override
-    public void startMarketDataStreaming() {
+    protected void startSubscribedStreaming() {
         for (TradeableInstrument instrument : instruments) {
             log.info("Subscribed to: {}", instrument.getInstrument());
             jettyCommunicationSocket.subscribe(buildSubscribeCommand(getInstrumentParameters(instrument.getInstrument())));
             jettyCommunicationSocket.subscribe(buildSubscribeCommand(getQuoteParameters(instrument.getInstrument())));
         }
+    }
+
+    @Override
+    public void startMarketDataStreaming() {
+        startSubscribedStreaming();
     }
 
     @Override

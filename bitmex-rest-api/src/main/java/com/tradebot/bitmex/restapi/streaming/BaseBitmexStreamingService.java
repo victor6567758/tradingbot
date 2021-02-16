@@ -65,6 +65,7 @@ public abstract class BaseBitmexStreamingService {
             reason -> {
                 log.warn("Reconnecting: {}", reason);
                 pThis.init();
+                pThis.startSubscribedStreaming();
             }, heartBeatCallback);
     }
 
@@ -75,6 +76,7 @@ public abstract class BaseBitmexStreamingService {
         client = new WebSocketClient();
         client.start();
 
+        jettyCommunicationSocket.initizalize();
         client.connect(jettyCommunicationSocket,
             new URI(bitmexAccountConfiguration.getBitmex().getApi().getWebSocketUrl()), new ClientUpgradeRequest());
         jettyCommunicationSocket.waitConnected();
@@ -98,6 +100,8 @@ public abstract class BaseBitmexStreamingService {
     }
 
     protected abstract String extractSubscribeTopic(String subscribeElement);
+
+    protected abstract void startSubscribedStreaming();
 
     protected String buildSubscribeCommand(String... args) {
         return buildWebsocketCommandJson("subscribe", args);

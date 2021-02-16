@@ -37,7 +37,7 @@ bitmex:
           - D
         algParameters:
           priceEnd: 28964.0
-          x: 0.02
+          xPct: 2.0
           linesNum: 11
           orderPosUnits: 1
           reportCurrency: USD

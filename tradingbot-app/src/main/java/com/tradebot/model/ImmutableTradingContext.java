@@ -11,7 +11,7 @@ import lombok.ToString;
 @ToString
 @Builder
 public class ImmutableTradingContext {
-    private final double x;
+    private final double xPct;
     private final double priceEnd;
     private final int linesNum;
     private final int orderPosUnits;

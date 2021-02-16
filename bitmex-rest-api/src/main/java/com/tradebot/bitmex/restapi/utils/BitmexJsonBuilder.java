@@ -5,10 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
-import com.tradebot.bitmex.restapi.model.OrderStatus;
 import com.tradebot.bitmex.restapi.utils.converters.OrderTypeConvertible;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
+import com.tradebot.core.ExecutionType;
 import com.tradebot.core.TradingSignal;
+import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.order.OrderType;
 import lombok.experimental.UtilityClass;
 import org.joda.time.DateTime;
@@ -40,6 +41,13 @@ public class BitmexJsonBuilder {
             .registerTypeAdapter(OrderStatus.class, (JsonSerializer<OrderStatus>) (src, typeOfSrc, context) ->
                 new JsonPrimitive(src.getStatusText()))
 
+            //
+            .registerTypeAdapter(ExecutionType.class, (JsonDeserializer<ExecutionType>) (json, typeOfT, context) ->
+                BitmexUtils.findByStringMarker(ExecutionType.values(), executionType ->
+                    executionType.getExecutionTypeText().equals(json.getAsString())))
+            .registerTypeAdapter(ExecutionType.class, (JsonSerializer<ExecutionType>) (src, typeOfSrc, context) ->
+                new JsonPrimitive(src.getExecutionTypeText()))
+            //
             .create();
     }
 }

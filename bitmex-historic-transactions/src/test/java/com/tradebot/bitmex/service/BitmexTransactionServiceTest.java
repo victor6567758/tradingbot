@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.platform.commons.util.StringUtils;
 import org.junit.runner.RunWith;
@@ -54,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @EnableJpaRepositories(basePackageClasses = BimexAccounRepository.class)
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
+@Ignore
 public class BitmexTransactionServiceTest {
 
     private final JSON json = new JSON();

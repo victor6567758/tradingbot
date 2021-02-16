@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
+import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.Account;
@@ -251,7 +252,6 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     }
 
 
-
     private void calculateInitialContextParameters(
         Account<Long> account,
         CandleStick candleStick,
@@ -260,12 +260,17 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         double priceStep = (tradingContext.getImmutableTradingContext().getPriceEnd() - currentPrice) /
             tradingContext.getImmutableTradingContext().getLinesNum();
 
-        for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
+        tradingContext.getRecalculatedTradingContext().setProfitPlus(
+            Math.abs(priceStep) + (candleStick.getClosePrice() / 100) * tradingContext.getImmutableTradingContext().getXPct()
+        );
 
-            tradingContext.getRecalculatedTradingContext().getTradingGrid().put(BigDecimal.valueOf(currentPrice),
+        for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
+            double roundedPrice = BitmexUtils.roundPrice(candleStick.getInstrument(), currentPrice);
+
+            tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(BigDecimal.valueOf(roundedPrice),
                 TradingDecision.builder().instrument(candleStick.getInstrument())
                     .signal(TradingSignal.LONG)
-                    .limitPrice(currentPrice)
+                    .limitPrice(roundedPrice)
                     .stopPrice(0.0)
                     .units(tradingContext.getImmutableTradingContext().getOrderPosUnits())
                     .stopLossPrice(CommonConsts.INVALID_PRICE)
@@ -274,6 +279,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
             currentPrice += priceStep;
         }
+
 
     }
 
@@ -311,7 +317,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 entry -> new ImmutablePair<>(
                     entry.getKey(),
                     new TradingContext(ImmutableTradingContext.builder()
-                        .x((Double) entry.getValue().get("x"))
+                        .xPct((Double) entry.getValue().get("xPct"))
                         .priceEnd((Double) entry.getValue().get("priceEnd"))
                         .linesNum((Integer) entry.getValue().get("linesNum"))
                         .orderPosUnits((Integer) entry.getValue().get("orderPosUnits"))
@@ -370,7 +376,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         modelMapper.addMappings(new PropertyMap<TradingContext, GridContextResponse>() {
             protected void configure() {
                 using(locationCodeConverter).map(source.getImmutableTradingContext().getTradeableInstrument()).setSymbol(null);
-                using(tradeDecisionMapConverter).map(source.getRecalculatedTradingContext().getTradingGrid()).setMesh(null);
+                using(tradeDecisionMapConverter).map(source.getRecalculatedTradingContext().getOpenTradingDecisions()).setMesh(null);
                 using(candleStickConverter).map(source.getRecalculatedTradingContext().getCandleStick()).setCandleResponse(null);
             }
         });

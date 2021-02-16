@@ -34,6 +34,7 @@ public class JettyCommunicationSocket {
 
     private static final String PING_COMMAND = "ping";
     private static final String PONG_REPLY = "pong";
+    private static final String DID_YOU_FORGET_TO_INITIALIZE_WEBSCOKET = "Did you forget to initialize Webscoket?";
 
 
     private final Consumer<String> messageHandler;
@@ -43,16 +44,22 @@ public class JettyCommunicationSocket {
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private final AtomicLong lastPongTime = new AtomicLong(-1L);
     private final AtomicBoolean stopped = new AtomicBoolean(false);
-    private final CountDownLatch connectLatch = new CountDownLatch(1);
+    private CountDownLatch connectLatch;
 
 
     private Session session;
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
+
+        if (connectLatch == null) {
+            throw new IllegalArgumentException("Did you forget to initialize Webscoket?");
+        }
+
         this.session = session;
         startPingingProcess();
 
+        log.info("Websocket connected");
         connectLatch.countDown();
     }
 
@@ -67,9 +74,7 @@ public class JettyCommunicationSocket {
     }
 
     @OnWebSocketMessage
-    // can come from multiple threads
     public void onMessage(String message) {
-
 
         if (log.isDebugEnabled()) {
             log.debug("Message received: {}", message);
@@ -83,7 +88,16 @@ public class JettyCommunicationSocket {
 
     }
 
+    public void initizalize() {
+        connectLatch = new CountDownLatch(1);
+    }
+
     public void waitConnected() {
+
+        if (connectLatch == null) {
+            throw new IllegalArgumentException(DID_YOU_FORGET_TO_INITIALIZE_WEBSCOKET);
+        }
+
         try {
             connectLatch.await(CONNECT_WAIT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException interruptedException) {

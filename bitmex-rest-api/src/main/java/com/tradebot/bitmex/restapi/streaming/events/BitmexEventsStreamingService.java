@@ -93,17 +93,7 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
     }
 
     @Override
-    public void init() {
-        super.init();
-    }
-
-    @Override
-    public void shutdown() {
-        super.shutdown();
-    }
-
-    @Override
-    public void startEventsStreaming() {
+    protected void startSubscribedStreaming() {
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(ANNOUNCEMENT));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(INSURANCE));
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(PUBLIC_NOTIFICATIONS));
@@ -116,6 +106,21 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(TRADE_BIN1D));
 
         jettyCommunicationSocket.subscribe(buildSubscribeCommand(EXECUTION));
+    }
+
+    @Override
+    public void init() {
+        super.init();
+    }
+
+    @Override
+    public void shutdown() {
+        super.shutdown();
+    }
+
+    @Override
+    public void startEventsStreaming() {
+        startSubscribedStreaming();
     }
 
     @Override

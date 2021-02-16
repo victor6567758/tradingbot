@@ -9,4 +9,5 @@ public class LimitOrderRequest {
     private long lots;
     private double limitPrice;
     private String tradingSignal;
+    private String text;
 }

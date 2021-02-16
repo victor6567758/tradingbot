@@ -23,8 +23,10 @@ import java.util.Collection;
 import java.util.List;
 import org.assertj.core.data.Offset;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class BitmexTransactionDataProviderServiceTest {
 
     private static final TradeableInstrument XBTUSD_INSTR =

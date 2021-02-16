@@ -22,6 +22,8 @@ public class Order<N> {
     private final double takeProfit;
     private final double stopLoss;
 
+    private final String text;
+
     @Setter
     private N orderId;
 
@@ -30,7 +32,8 @@ public class Order<N> {
         long units,
         TradingSignal side,
         double takeProfit,
-        double stopLoss
+        double stopLoss,
+        String text
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -40,7 +43,9 @@ public class Order<N> {
             .price(0.0)
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
-            .stopPrice(0.0).build();
+            .stopPrice(0.0)
+            .text(text)
+            .build();
     }
 
     public static <N> Order<N> buildLimitOrder(
@@ -49,7 +54,8 @@ public class Order<N> {
         TradingSignal side,
         double price,
         double takeProfit,
-        double stopLoss
+        double stopLoss,
+        String text
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -59,7 +65,9 @@ public class Order<N> {
             .price(price)
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
-            .stopPrice(0.0).build();
+            .stopPrice(0.0)
+            .text(text)
+            .build();
     }
 
     public static <N> Order<N> buildStopMarketOrder(
@@ -68,7 +76,8 @@ public class Order<N> {
         TradingSignal side,
         double stopPrice,
         double takeProfit,
-        double stopLoss
+        double stopLoss,
+        String text
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -78,7 +87,9 @@ public class Order<N> {
             .price(0.0)
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
-            .stopPrice(stopPrice).build();
+            .stopPrice(stopPrice)
+            .text(text)
+            .build();
     }
 
     public static <N> Order<N> buildStopLimitOrder(
@@ -88,7 +99,8 @@ public class Order<N> {
         double stopPrice,
         double price,
         double takeProfit,
-        double stopLoss
+        double stopLoss,
+        String text
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -98,7 +110,9 @@ public class Order<N> {
             .price(price)
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
-            .stopPrice(stopPrice).build();
+            .stopPrice(stopPrice)
+            .text(text)
+            .build();
     }
 
 }
