@@ -27,4 +27,5 @@ public class TradingDecision {
     private final double stopLossPrice;
     private final String text;
 
+
 }

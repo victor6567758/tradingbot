@@ -40,11 +40,11 @@ public class OrderExecutionServiceImpl<N, K> extends OrderExecutionServiceBase<N
         Order<N> order;
         if (decision.getLimitPrice() == 0.0) {
             order = Order.buildMarketOrder(decision.getInstrument(), baseTradingConfig.getMaxAllowedQuantity(),
-                decision.getSignal(), decision.getTakeProfitPrice(), decision.getStopLossPrice(), decision.getText());
+                decision.getSignal(), decision.getTakeProfitPrice(), decision.getStopLossPrice());
 
         } else {
             order = Order.buildLimitOrder(decision.getInstrument(), baseTradingConfig.getMaxAllowedQuantity(),
-                decision.getSignal(), decision.getLimitPrice(), decision.getTakeProfitPrice(), decision.getStopLossPrice(), decision.getText());
+                decision.getSignal(), decision.getLimitPrice(), decision.getTakeProfitPrice(), decision.getStopLossPrice());
         }
 
         return Collections.singletonList(order);

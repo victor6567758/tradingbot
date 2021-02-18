@@ -62,7 +62,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 order.getPrice() > 0 ? order.getPrice() : null, // price
                 BigDecimal.valueOf(0), // displayQty
                 order.getStopPrice() > 0 ? order.getStopPrice() : null, // stopPx
-                null, // clOrdID
+                order.getClientOrderId(), // clOrdID
                 null, // clOrdLinkID
                 null, // pegOffsetValue
                 null, // pegPriceType
@@ -70,7 +70,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 null, // timeInForce
                 null, // execInst
                 null, // contingencyType
-                null // text
+                order.getText() // text
             );
 
             if (newOrder.getStatusCode() != HttpStatus.SC_OK) {
@@ -91,7 +91,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
             ApiResponse<Order> amendedOrder = getOrderApi().orderAmendWithHttpInfo(
                 order.getOrderId(),
                 null,
-                null,
+                order.getClientOrderId(),
                 null,
                 BigDecimal.valueOf(order.getUnits()),
                 null,
@@ -99,7 +99,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 order.getPrice() > 0 ? order.getPrice() : null, // price
                 order.getStopPrice() > 0 ? order.getStopPrice() : null, // stopPx
                 null,
-                null
+                order.getText()
             );
 
             if (amendedOrder.getStatusCode() != HttpStatus.SC_OK) {

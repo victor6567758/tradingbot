@@ -8,6 +8,7 @@ import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.model.TradingContext;
+import java.util.Collection;
 
 public interface BitmexOrderManager {
 
@@ -24,5 +25,7 @@ public interface BitmexOrderManager {
     void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event);
 
     void onOrderResultCallback(TradingContext tradingContext, OrderResultContext<String> orderResultContext);
+
+    Collection<Order<String>> cancelAllPendingOrders();
 
 }

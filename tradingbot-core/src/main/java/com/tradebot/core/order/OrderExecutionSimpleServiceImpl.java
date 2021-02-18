@@ -18,6 +18,7 @@ public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionService
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<Order<N>> createOrderListFromDecision(TradingDecision decision) {
 
         Order<N> order;
@@ -25,22 +26,23 @@ public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionService
 
             if (decision.getStopPrice() == 0.0) {
                 order = Order.buildMarketOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
+                    CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
             } else {
                 order = Order.buildStopMarketOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    decision.getStopPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
+                    decision.getStopPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
             }
 
         } else {
             if (decision.getStopPrice() == 0.0) {
                 order = Order.buildLimitOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
+                    decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
             } else {
                 order = Order.buildStopLimitOrder(decision.getInstrument(), decision.getUnits(), decision.getSignal(),
-                    decision.getStopPrice(), decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE, decision.getText());
+                    decision.getStopPrice(), decision.getLimitPrice(), CommonConsts.INVALID_PRICE, CommonConsts.INVALID_PRICE);
             }
         }
 
+        order.setClientOrderId((N) decision.getText());
         log.info("Order {} was generated based on decision {}", order.toString(), decision.toString());
         return Collections.singletonList(order);
     }

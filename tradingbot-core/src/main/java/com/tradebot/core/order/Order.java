@@ -22,18 +22,21 @@ public class Order<N> {
     private final double takeProfit;
     private final double stopLoss;
 
-    private final String text;
-
     @Setter
     private N orderId;
+
+    @Setter
+    private N clientOrderId;
+
+    @Setter
+    private String text;
 
     public static <N> Order<N> buildMarketOrder(
         TradeableInstrument instrument,
         long units,
         TradingSignal side,
         double takeProfit,
-        double stopLoss,
-        String text
+        double stopLoss
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -44,7 +47,6 @@ public class Order<N> {
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
             .stopPrice(0.0)
-            .text(text)
             .build();
     }
 
@@ -54,8 +56,7 @@ public class Order<N> {
         TradingSignal side,
         double price,
         double takeProfit,
-        double stopLoss,
-        String text
+        double stopLoss
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -66,7 +67,6 @@ public class Order<N> {
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
             .stopPrice(0.0)
-            .text(text)
             .build();
     }
 
@@ -76,9 +76,8 @@ public class Order<N> {
         TradingSignal side,
         double stopPrice,
         double takeProfit,
-        double stopLoss,
-        String text
-    ) {
+        double stopLoss
+     ) {
         return Order.<N>builder()
             .instrument(instrument)
             .units(units)
@@ -88,7 +87,6 @@ public class Order<N> {
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
             .stopPrice(stopPrice)
-            .text(text)
             .build();
     }
 
@@ -99,8 +97,7 @@ public class Order<N> {
         double stopPrice,
         double price,
         double takeProfit,
-        double stopLoss,
-        String text
+        double stopLoss
     ) {
         return Order.<N>builder()
             .instrument(instrument)
@@ -111,7 +108,6 @@ public class Order<N> {
             .takeProfit(takeProfit)
             .stopLoss(stopLoss)
             .stopPrice(stopPrice)
-            .text(text)
             .build();
     }
 

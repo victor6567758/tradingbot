@@ -16,13 +16,15 @@ public class BitmexExecution {
 
     private String orderID;
 
+    private String clOrdID;
+
     private String symbol;
 
-    private double lastQty;
+    private long lastQty;
 
     private double lastPx;
 
-    private double orderQty;
+    private long orderQty;
 
     //Valid options: Buy, Sell.
     private TradingSignal side;

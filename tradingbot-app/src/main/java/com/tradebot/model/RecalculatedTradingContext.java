@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,7 +19,7 @@ public class RecalculatedTradingContext {
     private CandleStick candleStick;
     private double profitPlus;
     private final Map<BigDecimal, TradingDecision> openTradingDecisions = new TreeMap<>();
-    private final Map<UUID, BigDecimal> imbalanceMap = new HashMap<>();
+    private final Map<Integer, Long> imbalanceMap = new HashMap<>();
     private boolean tradeEnabled = true;
     private boolean ordersProcessingStarted;
     private boolean oneTimeInitialized;

@@ -55,8 +55,12 @@ public class TradingController {
     }
 
     @PutMapping("/setTradeEnabled/{enabled}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void setTradeEnabled(@PathVariable boolean enabled) {
-        bitmexTradingBot.setGlobalTradesEnabled(enabled);
+    public boolean setTradeEnabled(@PathVariable boolean enabled) {
+        return bitmexTradingBot.setGlobalTradesEnabled(enabled);
+    }
+
+    @PutMapping("/cancelAllOrders")
+    public List<String> cancelAllOrders() {
+        return bitmexTradingBot.cancelAllPendingOrders();
     }
 }

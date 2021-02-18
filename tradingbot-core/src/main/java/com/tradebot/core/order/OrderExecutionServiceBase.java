@@ -18,7 +18,7 @@ public abstract class OrderExecutionServiceBase<N, K> {
 
     private static final long SHUTDOWN_WAIT_TIME = 5000L;
 
-    private final OrderExecutionServiceCallback orderExecutionServiceCallback;
+    private final OrderExecutionServiceCallback<N> orderExecutionServiceCallback;
     private final OrderManagementProvider<N, K> orderManagementProvider;
     private final Supplier<K> accountIdSupplier;
 

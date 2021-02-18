@@ -12,9 +12,11 @@ public class BitmexOrder {
 
     private String orderID;
 
+    private String clOrdID;
+
     private String symbol;
 
-    private double orderQty;
+    private long orderQty;
 
     private double price;
 

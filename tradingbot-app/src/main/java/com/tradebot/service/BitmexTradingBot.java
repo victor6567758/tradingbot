@@ -1,5 +1,6 @@
 package com.tradebot.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
@@ -17,9 +18,11 @@ import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
+import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.ImmutableTradingContext;
+import com.tradebot.model.OrderContext;
 import com.tradebot.model.RecalculatedTradingContext;
 import com.tradebot.model.TradingContext;
 import com.tradebot.response.CandleResponse;
@@ -27,7 +30,9 @@ import com.tradebot.response.GridContextResponse;
 import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.util.GeneralConst;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +44,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
@@ -156,6 +162,11 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         return tradesEnabled.getAndSet(tradesEnabledFlag);
     }
 
+    public List<String> cancelAllPendingOrders() {
+        Collection<Order<String>> orders = bitmexOrderManager.cancelAllPendingOrders();
+        return orders.stream().map(Order::getOrderId).collect(Collectors.toList());
+    }
+
     public void resetTradingContext() {
         tradingContextMapLock.writeLock().lock();
         try {
@@ -252,6 +263,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     }
 
 
+    @SneakyThrows
     private void calculateInitialContextParameters(
         Account<Long> account,
         CandleStick candleStick,
@@ -267,6 +279,9 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
             double roundedPrice = BitmexUtils.roundPrice(candleStick.getInstrument(), currentPrice);
 
+            ObjectMapper mapper = new ObjectMapper();
+            OrderContext orderContext = new OrderContext(String.valueOf(i), roundedPrice);
+
             tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(BigDecimal.valueOf(roundedPrice),
                 TradingDecision.builder().instrument(candleStick.getInstrument())
                     .signal(TradingSignal.LONG)
@@ -275,6 +290,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     .units(tradingContext.getImmutableTradingContext().getOrderPosUnits())
                     .stopLossPrice(CommonConsts.INVALID_PRICE)
                     .takeProfitPrice(CommonConsts.INVALID_PRICE)
+                    .text(mapper.writeValueAsString(orderContext))
                     .build());
 
             currentPrice += priceStep;
