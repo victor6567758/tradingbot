@@ -1,5 +1,6 @@
 package com.tradebot.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
@@ -15,13 +16,16 @@ import com.tradebot.core.order.OrderExecutionSimpleServiceImpl;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.order.OrderStatus;
+import com.tradebot.core.utils.CommonConsts;
+import com.tradebot.model.OrderContext;
 import com.tradebot.model.TradingContext;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
@@ -102,6 +106,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     }
 
     @Override
+    @SneakyThrows
     public void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event) {
         if (log.isDebugEnabled()) {
             log.debug("Order execution callback {}", event.getPayLoad().toString());
@@ -112,9 +117,12 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         }
 
         BitmexExecution bitmexExecution = event.getPayLoad();
-        int customOrderId = NumberUtils.toInt(bitmexExecution.getClOrdID(), -1);
+        OrderContext orderContext;
 
-        if (customOrderId < 0) {
+        if (StringUtils.isNotEmpty(bitmexExecution.getClOrdID())) {
+            ObjectMapper mapper = new ObjectMapper();
+            orderContext = mapper.readValue(bitmexExecution.getClOrdID(), OrderContext.class);
+        } else {
             log.warn("Alien order cannot be processed {}", bitmexExecution.getOrderID());
             return;
         }
@@ -124,13 +132,12 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         if (bitmexExecution.getExecType() == ExecutionType.NEW) {
             if (bitmexExecution.getSide() == TradingSignal.LONG) {
                 log.info("Long accepted {}, {},imbalance reset", bitmexExecution.getClOrdID(), bitmexExecution.getOrderQty());
-                imbalanceMap.put(customOrderId, 0L);
+                imbalanceMap.put(orderContext.getO(), 0L);
             } else {
                 log.info("Short accepted {}, {}", bitmexExecution.getClOrdID(), bitmexExecution.getOrderQty());
             }
 
-        }
-        else if (bitmexExecution.getExecType() == ExecutionType.TRADE) {
+        } else if (bitmexExecution.getExecType() == ExecutionType.TRADE) {
             if (bitmexExecution.getOrdStatus() == OrderStatus.FILLED || bitmexExecution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED) {
 
                 if (bitmexExecution.getSide() == TradingSignal.LONG) {
@@ -139,22 +146,30 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                     // second order, should repeat the setup
                     long orderVolume = bitmexExecution.getSide() == TradingSignal.LONG ? bitmexExecution.getOrderQty() : -bitmexExecution.getOrderQty();
-                    long oldVolume = imbalanceMap.get(customOrderId);
+                    long oldVolume = imbalanceMap.get(orderContext.getO());
                     long newVolume = oldVolume + orderVolume;
 
-                    imbalanceMap.put(customOrderId, newVolume);
+                    imbalanceMap.put(orderContext.getO(), newVolume);
 
-                    if (newVolume == 0) {
+                    if (newVolume == bitmexExecution.getOrderQty()) {
                         log.info("Long volume reached the level to open short order {}, {}",
                             bitmexExecution.getClOrdID(), bitmexExecution.getOrderQty());
 
-                        tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
-                            orderExecutionEngine.submit(decision);
-                        });
+                        // open
+
+                        Order<String> closeOrder = Order.buildMarketOrder(
+                            tradingContext.getImmutableTradingContext().getTradeableInstrument(),
+                            newVolume,
+                            TradingSignal.SHORT,
+                            CommonConsts.INVALID_PRICE,
+                            CommonConsts.INVALID_PRICE
+                        );
+
+                        orderExecutionEngine.submit(closeOrder);
                     }
 
                 } else {
-                    log.info("Short opened {}, {}", bitmexExecution.getClOrdID(), bitmexExecution.getOrderQty());
+                    log.info("Short opened {}, {}, finishing the cycle", bitmexExecution.getClOrdID(), bitmexExecution.getOrderQty());
                 }
             }
         }

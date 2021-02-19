@@ -28,6 +28,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpStatus;
 
@@ -79,6 +80,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
             return prepareResult(newOrder);
 
         } catch (ApiException apiException) {
+            log.error("Order error {} {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }
@@ -108,6 +110,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
             return prepareResult(amendedOrder);
 
         } catch (ApiException apiException) {
+            log.error("Order error {} {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }
@@ -128,6 +131,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 new OrderResultContext<>(orderId, false, null);
 
         } catch (ApiException apiException) {
+            log.error("Order error {} {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }
@@ -141,6 +145,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                     order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText())
             ).map(this::toOrder).collect(Collectors.toList());
         } catch (ApiException apiException) {
+            log.error("Order error {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }
@@ -157,6 +162,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 ).map(this::toOrder).collect(Collectors.toList());
 
         } catch (ApiException apiException) {
+            log.error("Order error {} {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }
@@ -173,6 +179,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 .map(this::toOrder).findAny().orElseThrow();
 
         } catch (ApiException apiException) {
+            log.error("Order error {} {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }
@@ -188,6 +195,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 ).map(this::toOrder).collect(Collectors.toList());
 
         } catch (ApiException apiException) {
+            log.error("Order error {} {}", apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
                 apiException.getResponseBody()), apiException);
         }

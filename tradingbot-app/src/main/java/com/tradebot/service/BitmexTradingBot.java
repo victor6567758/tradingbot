@@ -278,11 +278,12 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
         for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
             double roundedPrice = BitmexUtils.roundPrice(candleStick.getInstrument(), currentPrice);
+            BigDecimal roundedPriceDecimal = BigDecimal.valueOf(roundedPrice);
 
             ObjectMapper mapper = new ObjectMapper();
-            OrderContext orderContext = new OrderContext(String.valueOf(i), roundedPrice);
+            OrderContext orderContext = new OrderContext(i);
 
-            tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(BigDecimal.valueOf(roundedPrice),
+            tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(roundedPriceDecimal,
                 TradingDecision.builder().instrument(candleStick.getInstrument())
                     .signal(TradingSignal.LONG)
                     .limitPrice(roundedPrice)

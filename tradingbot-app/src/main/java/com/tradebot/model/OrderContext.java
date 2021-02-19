@@ -2,11 +2,11 @@ package com.tradebot.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class OrderContext {
-
-    private String orderClientId;
-    private double levelPrice;
+    private int o;
 }
