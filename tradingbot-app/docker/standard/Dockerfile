@@ -17,7 +17,7 @@ RUN chmod 755 entrypoint.sh
 #RUN chown trader:trader entrypoint.sh
 #USER trader:trader
 
-ADD target/tradingbot-app-0.0.1-SNAPSHOT.jar tradingbot-app-0.0.1-SNAPSHOT.jar
+ADD ../../../../target/tradingbot-app-0.0.1-SNAPSHOT.jar tradingbot-app-0.0.1-SNAPSHOT.jar
 
 EXPOSE 8090
 
