@@ -8,7 +8,6 @@ services:
   trading-bot:
     image:
       dockerzzzzzzzzzzzz123/trading-bot-2.0-pi:latest
-    build: .
     ports:
       - "8090:8090"
     networks:

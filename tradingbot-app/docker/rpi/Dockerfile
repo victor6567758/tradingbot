@@ -8,10 +8,10 @@ ENV SPRING_OUTPUT_ANSI_ENABLED=ALWAYS \
 
 
 WORKDIR /root
-COPY entrypoint.sh entrypoint.sh
+COPY docker/rpi/entrypoint.sh entrypoint.sh
 
 RUN chmod 755 entrypoint.sh
-ADD ../../../../target/tradingbot-app-0.0.1-SNAPSHOT.jar tradingbot-app-0.0.1-SNAPSHOT.jar
+ADD target/tradingbot-app-0.0.1-SNAPSHOT.jar tradingbot-app-0.0.1-SNAPSHOT.jar
 
 EXPOSE 8090
 
