@@ -17,6 +17,7 @@ import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.order.OrderStatus;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -74,10 +75,10 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrders() {
-        Collection<com.tradebot.core.order.Order<String>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
-        assertThat(pendingOrders).hasSize(1);
+        OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
+        assertThat(pendingOrders.getData()).hasSize(1);
 
-        com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.iterator().next();
+        com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.getData().iterator().next();
         assertThat(pendingOrder.getOrderId()).isEqualTo(newOrder.getOrderID());
         assertThat(pendingOrder.getInstrument().getInstrument()).isEqualTo(newOrder.getSymbol());
         assertThat(pendingOrder.getSide()).isEqualTo(TradingSignalConvertible.fromString(newOrder.getSide()));
@@ -86,22 +87,22 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrdersForAccount() {
-        com.tradebot.core.order.Order<String> pendingOrder =
+        OrderResultContext<com.tradebot.core.order.Order<String>> pendingOrder =
             bitmexOrderManagementProviderSpy.pendingOrderForAccount(newOrder.getOrderID(), newOrder.getAccount().longValue());
 
-        assertThat(pendingOrder.getOrderId()).isEqualTo(newOrder.getOrderID());
-        assertThat(pendingOrder.getInstrument().getInstrument()).isEqualTo(newOrder.getSymbol());
-        assertThat(pendingOrder.getSide()).isEqualTo(TradingSignalConvertible.fromString(newOrder.getSide()));
+        assertThat(pendingOrder.getData().getOrderId()).isEqualTo(newOrder.getOrderID());
+        assertThat(pendingOrder.getData().getInstrument().getInstrument()).isEqualTo(newOrder.getSymbol());
+        assertThat(pendingOrder.getData().getSide()).isEqualTo(TradingSignalConvertible.fromString(newOrder.getSide()));
     }
 
     @Test
     public void testAllPendingOrdersForInstrument() {
-        Collection<com.tradebot.core.order.Order<String>> pendingOrders =
+        OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders =
             bitmexOrderManagementProviderSpy.pendingOrdersForInstrument(new TradeableInstrument(
                 newOrder.getSymbol(), newOrder.getSymbol(), 0.001, null, null, null, null, null));
-        assertThat(pendingOrders).hasSize(1);
+        assertThat(pendingOrders.getData()).hasSize(1);
 
-        com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.iterator().next();
+        com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.getData().iterator().next();
         assertThat(pendingOrder.getOrderId()).isEqualTo(newOrder.getOrderID());
         assertThat(pendingOrder.getInstrument().getInstrument()).isEqualTo(newOrder.getSymbol());
         assertThat(pendingOrder.getSide()).isEqualTo(TradingSignalConvertible.fromString(newOrder.getSide()));

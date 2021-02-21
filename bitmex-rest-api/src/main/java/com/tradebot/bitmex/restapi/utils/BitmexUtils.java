@@ -2,10 +2,13 @@ package com.tradebot.bitmex.restapi.utils;
 
 import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.InputStream;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -89,6 +92,16 @@ public class BitmexUtils {
         }
 
         return n2;
+    }
+
+    public static String errorMessageFromApiException(ApiException apiException) {
+        return String.format("Code [%d], message [%s], headers [%s], body [%s]",
+            apiException.getCode(), apiException.getMessage(),
+            apiException.getResponseHeaders().entrySet().stream()
+                .filter(entry -> CollectionUtils.isNotEmpty(entry.getValue()))
+                .map(entry -> entry.getKey() + ":" + entry.getValue().get(0))
+                .collect(Collectors.joining(", ")),
+            apiException.getResponseBody());
     }
 
 

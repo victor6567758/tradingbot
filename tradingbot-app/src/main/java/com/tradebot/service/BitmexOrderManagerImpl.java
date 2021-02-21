@@ -166,10 +166,13 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public Collection<Order<String>> cancelAllPendingOrders() {
-        Collection<Order<String>> pendingOrders = orderManagementProvider.allPendingOrders();
-        pendingOrders.forEach(order -> orderManagementProvider.closeOrder(order.getOrderId(), 1L));
+        OrderResultContext<Collection<Order<String>>> pendingOrders = orderManagementProvider.allPendingOrders();
+        if (!pendingOrders.isResult()) {
+            throw new IllegalArgumentException(String.format("Invalid pending order retreival %s", pendingOrders.getMessage()));
+        }
+        pendingOrders.getData().forEach(order -> orderManagementProvider.closeOrder(order.getOrderId(), 1L));
 
-        return pendingOrders;
+        return pendingOrders.getData();
     }
 
     private void commandToOpenCloseOrder(TradingContext tradingContext, TradingDecision openTradingDecision, int clientOrderId) {

@@ -37,7 +37,7 @@ import org.junit.Test;
 public class OrderExecutionServiceImplTest<N> {
 
     private static final int ALLOWED_SUBMISSIONS = 20;
-    private static final OrderResultContext<Long> ORDER_RESULT_CONTEXT = new OrderResultContext<>(1L, true, "GBP_AUD");
+    private static final OrderResultContext<Long> ORDER_RESULT_CONTEXT = new OrderResultContext<>(1L, "GBP_AUD");
 
     private final AccountInfoService<Long> accountInfoService = mock(AccountInfoService.class);
     private final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);

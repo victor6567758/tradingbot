@@ -48,7 +48,7 @@ public abstract class OrderExecutionServiceBase<N, K> {
         }
 
         OrderResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
-        order.setOrderId(result.getOrderId());
+        order.setOrderId(result.getData());
 
         orderExecutionServiceCallback.onOrderResult(result);
         return Optional.of(order);
@@ -68,7 +68,7 @@ public abstract class OrderExecutionServiceBase<N, K> {
         List<Order<N>> ordersGenerated = createOrderListFromDecision(decision);
         ordersGenerated.forEach(order -> {
             OrderResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
-            order.setOrderId(result.getOrderId());
+            order.setOrderId(result.getData());
 
             orderExecutionServiceCallback.onOrderResult(result);
         });

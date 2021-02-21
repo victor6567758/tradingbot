@@ -13,12 +13,12 @@ public interface OrderManagementProvider<N, K> {
 
     OrderResultContext<N> closeOrder(N orderId, K accountId);
 
-    Collection<Order<N>> allPendingOrders();
+    OrderResultContext<Collection<Order<N>>> allPendingOrders();
 
-    Collection<Order<N>> pendingOrdersForAccount(K accountId);
+    OrderResultContext<Collection<Order<N>>> pendingOrdersForAccount(K accountId);
 
-    Order<N> pendingOrderForAccount(N orderId, K accountId);
+    OrderResultContext<Order<N>> pendingOrderForAccount(N orderId, K accountId);
 
-    Collection<Order<N>> pendingOrdersForInstrument(TradeableInstrument instrument);
+    OrderResultContext<Collection<Order<N>>> pendingOrdersForInstrument(TradeableInstrument instrument);
 
 }

@@ -2,6 +2,7 @@
 package com.tradebot.core.order;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,9 +23,25 @@ public class OrderInfoServiceTest<N> {
 	@Test
 	public void netPositionCountForCurrencyTest() {
 		final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
-		OrderInfoService<Long, Long> service = new OrderInfoService<Long, Long>(orderManagementProvider);
+		OrderInfoService<Long, Long> service = new OrderInfoService<>(orderManagementProvider);
+
 		Collection<Order<Long>> orders = createOrders();
-		when(orderManagementProvider.allPendingOrders()).thenReturn(orders);
+		OrderResultContext<Collection<Order<Long>>> orderResultsList = new OrderResultContext<>(orders);
+		OrderResultContext<Order<Long>> orderResult = new OrderResultContext<>(orders.iterator().next());
+
+		when(orderManagementProvider.allPendingOrders()).thenReturn(orderResultsList);
+		when(orderManagementProvider.pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_1))
+			.thenReturn(orderResultsList);
+		when(orderManagementProvider.pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2))
+			.thenReturn(orderResultsList);
+
+		TradeableInstrument usdchf = new TradeableInstrument("USD_CHF", "USD_CHF", 0.001, null, null, null, null, null);
+		when(orderManagementProvider.pendingOrdersForInstrument(eq(usdchf)))
+			.thenReturn(orderResultsList);
+
+		when(orderManagementProvider.pendingOrderForAccount(TradingTestConstants.ORDER_ID, TradingTestConstants.ACCOUNT_ID_1))
+			.thenReturn(orderResult);
+
 		assertEquals(0, service.findNetPositionCountForCurrency("EUR"));
 		assertEquals(2, service.findNetPositionCountForCurrency("JPY"));
 		assertEquals(-1, service.findNetPositionCountForCurrency("GBP"));
@@ -38,7 +55,7 @@ public class OrderInfoServiceTest<N> {
 		service.pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2);
 		verify(orderManagementProvider, times(1)).pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_2);
 
-		TradeableInstrument usdchf = new TradeableInstrument("USD_CHF", "USD_CHF", 0.001, null, null, null, null, null);
+
 		service.pendingOrdersForInstrument(usdchf);
 		verify(orderManagementProvider, times(1)).pendingOrdersForInstrument(usdchf);
 	}
@@ -50,6 +67,7 @@ public class OrderInfoServiceTest<N> {
 		TradeableInstrument eurjpy = new TradeableInstrument("EUR_JPY","EUR_JPY", 0.001, null, null, null, null, null);
 		when(order1.getInstrument()).thenReturn(eurjpy);
 		when(order1.getSide()).thenReturn(TradingSignal.SHORT);
+		when(order1.getOrderId()).thenReturn(TradingTestConstants.ORDER_ID);
 		orders.add(order1);
 
 		Order<Long> order2 = mock(Order.class);
