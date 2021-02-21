@@ -156,35 +156,35 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
     @Override
     public void visit(JsonEventPayLoad event) {
         if (log.isDebugEnabled()) {
-            log.debug(event.getPayLoad().toString());
+            log.debug("JsonEventPayLoad: {}", event.getPayLoad().toString());
         }
     }
 
     @Override
     public void visit(BitmexTradeEventPayload event) {
         if (log.isDebugEnabled()) {
-            log.debug(event.getPayLoad().toString());
+            log.debug("BitmexTradeEventPayload: {}", event.getPayLoad().toString());
         }
     }
 
     @Override
     public void visit(BitmexOrderEventPayload event) {
         if (log.isDebugEnabled()) {
-            log.debug(event.getPayLoad().toString());
+            log.debug("BitmexOrderEventPayload: {}", event.getPayLoad().toString());
         }
     }
 
     @Override
     public void visit(BitmexInstrumentEventPayload event) {
         if (log.isDebugEnabled()) {
-            log.debug(event.getPayLoad().toString());
+            log.debug("BitmexInstrumentEventPayload: {}", event.getPayLoad().toString());
         }
     }
 
     @Override
     public void visit(BitmexExecutionEventPayload event) {
         if (log.isDebugEnabled()) {
-            log.debug(event.getPayLoad().toString());
+            log.debug("BitmexExecutionEventPayload: {}", event.getPayLoad().toString());
         }
     }
 

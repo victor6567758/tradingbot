@@ -62,7 +62,7 @@ $(document).ready(function () {
         getTradingEventsHistory();
     });
 
-    //    button click
+
     $("#btnReset").button().click(() => {
         resetTradingContext();
 
@@ -70,7 +70,28 @@ $(document).ready(function () {
         deinitChart();
         getTradingEventsHistory();
 
-    });    
+    });
+    
+    $("#btnDisableTrade").button().click(() => {
+        fetch(`${REST_API}/setTradeEnabled/false`, {
+            method: 'PUT',
+            body: null
+        }).then(item => console.log("Trade disabled", item));
+    });
+    
+    $("#btnEnableTrade").button().click(() => {
+        fetch(`${REST_API}/setTradeEnabled/true`, {
+            method: 'PUT',
+            body: null
+        }).then(item => console.log("Trade enabled", item));
+    });
+
+    $("#cancelPendingOrders").button().click(() => {
+        fetch(`${REST_API}/cancelAllOrders`, {
+            method: 'PUT',
+            body: null
+        }).then(item => console.log("Cancelled all orders", item));
+    });
 
     $(window).bind('resize', function () {
         adjustChartSize();

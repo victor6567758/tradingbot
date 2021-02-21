@@ -16,6 +16,8 @@ public class BitmexOrderQuotas extends OrderResultContext<String> {
     private int xRatelimitRemaining1s = -1;
 
     public BitmexOrderQuotas(String orderId, boolean result, String symbol) {
-        super(orderId, result, symbol);
+        super(orderId, result, symbol, "OK");
     }
+
+
 }

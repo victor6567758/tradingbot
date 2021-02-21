@@ -11,12 +11,24 @@
   </appender>
 
   <appender name="File" class="ch.qos.logback.core.FileAppender">
-    <file>${PROD_LOG_PATH}/logfile-${bySecond}.log</file>
+    <file>${PROD_LOG_PATH}/happy-trader-2.0-${bySecond}.log</file>
     <append>true</append>
     <encoder>
       <Pattern>%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</Pattern>
     </encoder>
   </appender>
+
+  <appender name="OrderFile" class="ch.qos.logback.core.FileAppender">
+    <file>${PROD_LOG_PATH}/happy-trader-2.0-orders-${bySecond}.log</file>
+    <append>true</append>
+    <encoder>
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.tradebot.service.BitmexOrderManagerImpl" level="${PROD_LOG_LEVEL}" additivity="true">
+    <appender-ref ref="OrderFile"/>
+  </logger>
 
   <logger name="com.tradebot" level="${PROD_LOG_LEVEL}" additivity="false">
     <appender-ref ref="Console"/>

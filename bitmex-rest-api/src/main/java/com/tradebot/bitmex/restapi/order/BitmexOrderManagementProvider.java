@@ -240,6 +240,8 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
         return result;
     }
 
+    private OrderResultContext<String> prepare
+
     private static int getIntHeaderValue(String name, Map<String, List<String>> headers) {
         return NumberUtils.toInt(headers.getOrDefault(name, Collections.singletonList("-1")).get(0), -1);
     }

@@ -42,6 +42,7 @@ public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionService
             }
         }
 
+        // only short id is eligible
         order.setClientOrderId((N) decision.getText());
         log.info("Order {} was generated based on decision {}", order.toString(), decision.toString());
         return Collections.singletonList(order);

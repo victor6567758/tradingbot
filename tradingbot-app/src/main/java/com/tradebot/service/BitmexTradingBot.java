@@ -1,6 +1,5 @@
 package com.tradebot.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
@@ -22,7 +21,6 @@ import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.ImmutableTradingContext;
-import com.tradebot.model.OrderContext;
 import com.tradebot.model.RecalculatedTradingContext;
 import com.tradebot.model.TradingContext;
 import com.tradebot.response.CandleResponse;
@@ -159,6 +157,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     }
 
     public boolean setGlobalTradesEnabled(boolean tradesEnabledFlag) {
+        log.info("Global trade status set: {}", tradesEnabledFlag);
         return tradesEnabled.getAndSet(tradesEnabledFlag);
     }
 
@@ -278,12 +277,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
         for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
             double roundedPrice = BitmexUtils.roundPrice(candleStick.getInstrument(), currentPrice);
-            BigDecimal roundedPriceDecimal = BigDecimal.valueOf(roundedPrice);
 
-            ObjectMapper mapper = new ObjectMapper();
-            OrderContext orderContext = new OrderContext(i);
-
-            tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(roundedPriceDecimal,
+            tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(i,
                 TradingDecision.builder().instrument(candleStick.getInstrument())
                     .signal(TradingSignal.LONG)
                     .limitPrice(roundedPrice)
@@ -291,7 +286,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     .units(tradingContext.getImmutableTradingContext().getOrderPosUnits())
                     .stopLossPrice(CommonConsts.INVALID_PRICE)
                     .takeProfitPrice(CommonConsts.INVALID_PRICE)
-                    .text(mapper.writeValueAsString(orderContext))
+                    .text(String.valueOf(i))
                     .build());
 
             currentPrice += priceStep;
@@ -318,11 +313,6 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 log.info("Trading setup has started for {}", tradingContext.toString());
                 bitmexOrderManager.startOrderEvolution(tradingContext);
             }
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Trading is disabled for {}",
-                tradingContext.getImmutableTradingContext().getTradeableInstrument().getInstrument());
         }
 
     }
@@ -386,7 +376,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         Converter<Map<BigDecimal, TradingDecision>, Set<Double>> tradeDecisionMapConverter =
             context -> {
                 Map<BigDecimal, TradingDecision> source = context.getSource();
-                return source != null ? source.keySet().stream().map(BigDecimal::doubleValue)
+                return source != null ? source.values().stream().map(TradingDecision::getLimitPrice)
                     .collect(Collectors.toCollection(TreeSet::new)) : null;
             };
 
