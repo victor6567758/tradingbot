@@ -48,3 +48,6 @@ build/
 hs_err_pid*
 
 logs/
+
+#config
+/config/**

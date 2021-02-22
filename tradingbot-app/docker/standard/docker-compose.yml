@@ -8,6 +8,8 @@ services:
   trading-bot:
     image:
       dockerzzzzzzzzzzzz123/trading-bot-2.0:latest
+    secrets:
+      - config-secret
     ports:
       - "8090:8090"
     networks:
@@ -18,4 +20,6 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       PROD_REAL_LOG_LEVEL: DEBUG
-
+secrets:
+  config-secret:
+    file: ../config/bitmex-account-prod.yml
