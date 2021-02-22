@@ -1,11 +1,11 @@
 package com.tradebot.bitmex.config;
 
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
-import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -19,9 +19,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "com.tradebot.bitmex.repository")
+@RequiredArgsConstructor
 public class DbConfiguration {
 
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration;
 
     @Bean
     public DataSource dataSource() {

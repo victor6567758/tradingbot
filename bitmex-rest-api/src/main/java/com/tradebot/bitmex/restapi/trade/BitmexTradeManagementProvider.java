@@ -22,7 +22,7 @@ import org.apache.commons.lang3.NotImplementedException;
 @Slf4j
 public class BitmexTradeManagementProvider implements TradeManagementProvider<String, Long> {
 
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     private final InstrumentService instrumentService;
 

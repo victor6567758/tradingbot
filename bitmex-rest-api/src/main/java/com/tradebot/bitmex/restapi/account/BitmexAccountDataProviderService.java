@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BitmexAccountDataProviderService implements AccountDataProvider<Long> {
 
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     @Getter(AccessLevel.PACKAGE)
     private final UserApi userApi = new UserApi(

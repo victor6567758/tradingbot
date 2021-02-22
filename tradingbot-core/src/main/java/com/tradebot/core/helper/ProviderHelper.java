@@ -9,7 +9,4 @@ public interface ProviderHelper<T> {
 
     String fromPairSeparatorFormat(String instrument);
 
-    T getLongNotation();
-
-    T getShortNotation();
 }

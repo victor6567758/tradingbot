@@ -1,7 +1,6 @@
 package com.tradebot.controller.rest;
 
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
-import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.order.Order;
@@ -29,7 +28,7 @@ public class ApiDirectController {
 
     private final BitmexOrderManager bitmexOrderManager;
 
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration;
 
     @PostConstruct
     public void initialize() {

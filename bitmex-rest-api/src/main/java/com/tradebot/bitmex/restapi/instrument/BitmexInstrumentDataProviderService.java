@@ -24,7 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 public class BitmexInstrumentDataProviderService implements InstrumentDataProvider {
 
     private static final BigDecimal CHUNK_SIZE = BigDecimal.valueOf(500);
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
 
     @Getter(AccessLevel.PACKAGE)

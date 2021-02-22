@@ -19,3 +19,4 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       PROD_REAL_LOG_LEVEL: DEBUG
       PROD_REAL_LOG_PATH: /tmp/logs
+      PROD_CONF_YML: /root/bitmex-account-prod.yml

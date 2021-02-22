@@ -4,30 +4,52 @@ import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.core.instrument.TradeableInstrument;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 @UtilityClass
+@Slf4j
 public class BitmexUtils {
 
-    private static final String BITMEX_ACCOUNT_YML = "bitmex-account.yml";
+    private static final String BITMEX_DEFAULT_ACCOUNT_YML = "bitmex-account.yml";
+    private static final String ENV_CONFIG_YML_PATH = "PROD_CONF_YML";
 
-    public static BitmexAccountConfiguration readBitmexCredentials() {
+    public static BitmexAccountConfiguration readBitmexConfiguration() {
+
         Representer representer = new Representer();
         representer.getPropertyUtils().setSkipMissingProperties(true);
-
         Yaml yaml = new Yaml(new Constructor(BitmexAccountConfiguration.class), representer);
-        InputStream inputStream = BitmexAccountConfiguration.class.getClassLoader()
-            .getResourceAsStream(BITMEX_ACCOUNT_YML);
-        return yaml.load(inputStream);
+
+        String configYml = System.getProperty(ENV_CONFIG_YML_PATH);
+        if (StringUtils.isNotBlank(configYml)) {
+            try (InputStream inputStream = FileUtils.openInputStream(FileUtils.getFile(configYml))) {
+                log.debug("Read configuration from {}", configYml);
+                return yaml.load(inputStream);
+            } catch (IOException e) {
+                log.warn("External configuration file is not readable {}", configYml);
+            }
+        }
+
+        try (InputStream inputStream = BitmexAccountConfiguration.class.getClassLoader().getResourceAsStream(BITMEX_DEFAULT_ACCOUNT_YML)) {
+            log.debug("Read configuration from {}", BITMEX_DEFAULT_ACCOUNT_YML);
+            return yaml.load(inputStream);
+        } catch (IOException e) {
+            log.warn("Classpath configuration file is not readable {}", BITMEX_DEFAULT_ACCOUNT_YML);
+        }
+
+        throw new IllegalArgumentException("Neither of configuration yaml files could be read");
     }
+
 
     public static <T> T findByStringMarker(T[] list, Predicate<T> predicate) {
         for (T element : list) {

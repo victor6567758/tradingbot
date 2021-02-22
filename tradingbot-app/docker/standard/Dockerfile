@@ -12,6 +12,9 @@ ENV SPRING_OUTPUT_ANSI_ENABLED=ALWAYS \
 WORKDIR /root
 COPY docker/standard/entrypoint.sh entrypoint.sh
 
+RUN mkdir -p config
+COPY docker/config/bitmex-account-prod.yml config/bitmex-account-prod.yml
+
 RUN chmod 755 entrypoint.sh
 
 #RUN chown trader:trader entrypoint.sh

@@ -59,7 +59,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
 
     protected Map<TradeableInstrument, List<CandleStickGranularity>> instruments;
 
-    protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     protected final InstrumentService instrumentService;
 

@@ -23,7 +23,7 @@ import org.joda.time.DateTime;
 @Slf4j
 public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvider {
 
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     private final InstrumentService instrumentService;
 

@@ -51,7 +51,7 @@ public abstract class BaseBitmexStreamingService {
     @Getter
     protected final JettyCommunicationSocket jettyCommunicationSocket;
 
-    protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
 
     protected WebSocketClient client;

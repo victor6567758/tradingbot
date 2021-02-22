@@ -25,14 +25,5 @@ public class BitmexProviderHelper implements ProviderHelper<String> {
         return tokens[0] + tokens[1];
     }
 
-    @Override
-    public String getLongNotation() {
-        return BitmexConstants.BUY;
-    }
-
-    @Override
-    public String getShortNotation() {
-        return BitmexConstants.SELL;
-    }
 
 }

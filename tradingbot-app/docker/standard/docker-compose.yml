@@ -18,5 +18,4 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       PROD_REAL_LOG_LEVEL: DEBUG
-      PROD_REAL_LOG_PATH: /tmp/logs
 

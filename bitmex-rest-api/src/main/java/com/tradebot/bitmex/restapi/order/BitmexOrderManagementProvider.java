@@ -35,7 +35,7 @@ import org.apache.http.HttpStatus;
 public class BitmexOrderManagementProvider implements OrderManagementProvider<String, Long> {
 
     private static final String ORDER_ERROR = "Order error {} {}";
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     private final InstrumentService instrumentService;
 

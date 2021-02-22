@@ -22,7 +22,7 @@ import org.joda.time.DateTime;
 @Slf4j
 public class BitmexTransactionDataProviderService implements TransactionDataProvider<String, Long> {
 
-    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexCredentials();
+    private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     private final InstrumentService instrumentService;
 
