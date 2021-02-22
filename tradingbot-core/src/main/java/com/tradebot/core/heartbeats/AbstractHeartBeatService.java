@@ -43,15 +43,11 @@ public abstract class AbstractHeartBeatService<T> {
         }
 
         private void runUntilSuccess() {
-            try {
-                startWait = executionFunction.apply(startWait);
-                executorService
-                    .schedule(this::runUntilSuccess, startWait, TimeUnit.MILLISECONDS);
+            startWait = executionFunction.apply(startWait);
 
-            } catch (Exception e) {
-                log.warn("Exception on running Callable", e);
+            if (executorService.isTerminated()) {
+                executorService.schedule(this::runUntilSuccess, startWait, TimeUnit.MILLISECONDS);
             }
-
         }
     }
 
@@ -63,9 +59,9 @@ public abstract class AbstractHeartBeatService<T> {
 
     private final RetryingJobExecutor executorService;
 
-    protected abstract boolean isAlive(HeartBeatPayLoad<T> payLoad);
+    protected abstract boolean isTerminated(HeartBeatPayLoad<T> payLoad);
 
-    public AbstractHeartBeatService(
+    protected AbstractHeartBeatService(
         Collection<HeartBeatStreamingService> heartBeatStreamingServices, long warmUpTime,
         long startWait) {
 
@@ -83,7 +79,7 @@ public abstract class AbstractHeartBeatService<T> {
         executorService.shutdown();
     }
 
-    public boolean isAlive() {
+    public boolean isTerminated() {
         return executorService.isTerminated();
     }
 
@@ -101,7 +97,7 @@ public abstract class AbstractHeartBeatService<T> {
     private long heartbeat(long startWait) {
         long newStartWait = startWait;
         for (Map.Entry<String, HeartBeatStreamingService> entry : heartBeatProducerMap.entrySet()) {
-            if (!isAlive(payLoadMap.get(entry.getKey()))) {
+            if (!isTerminated(payLoadMap.get(entry.getKey()))) {
                 entry.getValue().startHeartBeatStreaming();
                 log.warn(
                     "Heartbeat source {} is not responding. just restarted it and will listen for heartbeat after {} ms",

@@ -12,7 +12,7 @@ public class DefaultHeartBeatService extends AbstractHeartBeatService<DateTime> 
     }
 
     @Override
-    protected boolean isAlive(HeartBeatPayLoad<DateTime> payLoad) {
+    protected boolean isTerminated(HeartBeatPayLoad<DateTime> payLoad) {
         return payLoad != null
             && (DateTime.now().getMillis() - payLoad.getPayLoad().getMillis()) < MAX_HEARTBEAT_DELAY;
     }

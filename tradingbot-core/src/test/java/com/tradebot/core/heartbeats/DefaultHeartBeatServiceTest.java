@@ -4,15 +4,14 @@ package com.tradebot.core.heartbeats;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.tradebot.core.streaming.heartbeats.HeartBeatStreamingService;
 
@@ -31,7 +30,7 @@ public class DefaultHeartBeatServiceTest {
 	@Test
 	public void heartBeatTest() {
 
-		DefaultHeartBeatService service = new DefaultHeartBeatService(Lists.newArrayList(heartBeatStreamingService), 1L, 1L);
+		DefaultHeartBeatService service = new DefaultHeartBeatService(Arrays.asList(heartBeatStreamingService), 1L, 1L);
 		service.init();
 
 		EventBus eventBus = new EventBus();
@@ -45,6 +44,6 @@ public class DefaultHeartBeatServiceTest {
 		heartBeatCallBack.onHeartBeat(new HeartBeatPayLoad<>(DateTime.now(), TESTSTREAM));
 
 		service.stop();
-		assertThat(service.isAlive()).isTrue();
+		assertThat(service.isTerminated()).isTrue();
 	}
 }
