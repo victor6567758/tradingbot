@@ -49,5 +49,5 @@ hs_err_pid*
 
 logs/
 
-#config
-/config/**
+#secret config
+/config/bitmex-account-prod.yml
