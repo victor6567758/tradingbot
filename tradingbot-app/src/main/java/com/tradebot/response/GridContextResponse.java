@@ -1,15 +1,11 @@
 package com.tradebot.response;
 
 import java.util.Set;
-
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@ToString
-@Getter
-@Setter
+
+@Data
 @NoArgsConstructor
 public class GridContextResponse {
 

@@ -4,6 +4,7 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
+import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.ExecutionType;
 import com.tradebot.core.TradingDecision;
@@ -20,6 +21,7 @@ import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.TradingContext;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongPredicate;
@@ -81,19 +83,15 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void startOrderEvolution(TradingContext tradingContext) {
-        tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
-            orderExecutionEngine.submit(decision);
-        });
+        tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(
+            this::submitDecisionHelper);
     }
 
     @Override
     public void onCandleCallback(CandleStick candleStick, CacheCandlestick cacheCandlestick, TradingContext tradingContext) {
-
         if (log.isDebugEnabled()) {
             log.debug("Candle callback {}", candleStick.toString());
         }
-
-
     }
 
     @Override
@@ -139,7 +137,6 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == bitmexExecution.getOrderQty())) {
                         log.info("Long volume reached the level to open short order {}", clientOrderId);
                         commandToOpenCloseOrder(tradingContext, openTradingDecision, clientOrderId);
-
                     }
 
                 } else {
@@ -147,7 +144,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == 0)) {
                         if (tradingContext.getRecalculatedTradingContext().isTradeEnabled()) {
-                            orderExecutionEngine.submit(openTradingDecision);
+                            submitDecisionHelper(openTradingDecision);
                         } else {
                             log.warn("Global trading is disabled");
                         }
@@ -161,7 +158,12 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void onOrderResultCallback(TradingContext tradingContext, OrderResultContext<String> orderResultContext) {
-        log.info("Order result callback {}", orderResultContext.toString());
+        if (orderResultContext instanceof BitmexOrderQuotas) {
+            BitmexOrderQuotas bitmexOrderQuotas = (BitmexOrderQuotas) orderResultContext;
+            log.info("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
+        } else {
+            log.info("Order result callback {}", orderResultContext.toString());
+        }
     }
 
     @Override
@@ -170,8 +172,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         if (!pendingOrders.isResult()) {
             throw new IllegalArgumentException(String.format("Invalid pending order retreival %s", pendingOrders.getMessage()));
         }
-        pendingOrders.getData().forEach(order -> orderManagementProvider.closeOrder(order.getOrderId(), 1L));
 
+        pendingOrders.getData().forEach(order -> orderManagementProvider.closeOrder(order.getOrderId(), 1L));
         return pendingOrders.getData();
     }
 
@@ -200,6 +202,14 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         long totalVolume = imbalanceMap.get(clientOrderId) + executedVolumeSigned;
         imbalanceMap.put(clientOrderId, totalVolume);
         return volumePredicate.test(totalVolume);
+    }
+
+    private void submitDecisionHelper(TradingDecision decision) {
+        List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision);
+        orders.forEach( order -> {
+            orderExecutionEngine.submit(order);
+        });
+
     }
 
 

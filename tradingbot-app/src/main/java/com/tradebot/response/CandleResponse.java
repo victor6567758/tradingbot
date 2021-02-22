@@ -1,17 +1,15 @@
 package com.tradebot.response;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@ToString
-@Getter
-@Setter
+
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 public class CandleResponse {
+
     private double open;
     private double high;
     private double low;

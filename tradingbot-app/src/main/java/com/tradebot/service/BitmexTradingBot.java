@@ -20,6 +20,7 @@ import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
+import com.tradebot.model.ExecutionChain;
 import com.tradebot.model.ImmutableTradingContext;
 import com.tradebot.model.RecalculatedTradingContext;
 import com.tradebot.model.TradingContext;
@@ -289,6 +290,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     .text(String.valueOf(i))
                     .build());
 
+            tradingContext.getRecalculatedTradingContext().getExecutionChains().put(i, new ExecutionChain(i));
             currentPrice += priceStep;
         }
 

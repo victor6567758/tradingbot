@@ -21,6 +21,7 @@ public class RecalculatedTradingContext {
     // internal order id -> Trading decision
     private final Map<Integer, TradingDecision> openTradingDecisions = new TreeMap<>();
     private final Map<Integer, Long> imbalanceMap = new HashMap<>();
+    private final Map<Integer, ExecutionChain> executionChains = new HashMap<>();
     private boolean tradeEnabled = true;
     private boolean ordersProcessingStarted;
     private boolean oneTimeInitialized;
