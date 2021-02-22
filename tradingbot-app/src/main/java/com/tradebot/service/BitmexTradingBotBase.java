@@ -84,6 +84,9 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
     }
 
     public void initialize() {
+
+        log.info("Configuration tag {}", bitmexAccountConfiguration.getBitmex().getTag());
+
         MarketEventCallback marketEventCallback = new MarketEventHandlerImpl(eventBus);
         HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallbackImpl<>(eventBus);
 

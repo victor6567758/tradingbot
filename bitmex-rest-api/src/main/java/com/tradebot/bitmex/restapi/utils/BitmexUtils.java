@@ -46,7 +46,6 @@ public class BitmexUtils {
         } catch (IOException e) {
             log.warn("Classpath configuration file is not readable {}", BITMEX_DEFAULT_ACCOUNT_YML);
         }
-
         throw new IllegalArgumentException("Neither of configuration yaml files could be read");
     }
 

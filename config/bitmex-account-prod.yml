@@ -1,4 +1,5 @@
 bitmex:
+  tag: production
   api:
     key: g0NEqStp4VbtzPZJ4v_HUFtR
     secret: 60Gi_Ln64gj1yC1cxMIAf2U0AIAZdAFzMfP5WG5_0OtZUgnH

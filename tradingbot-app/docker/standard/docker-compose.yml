@@ -1,4 +1,4 @@
-version: '3'
+version: '3.6'
 
 networks:
   app-tier:
@@ -20,6 +20,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       PROD_REAL_LOG_LEVEL: DEBUG
+      PROD_REAL_LOG_PATH: /tmp/logs
 secrets:
   config-secret:
-    file: ../config/bitmex-account-prod.yml
+    file: ../../../config/bitmex-account-prod.yml

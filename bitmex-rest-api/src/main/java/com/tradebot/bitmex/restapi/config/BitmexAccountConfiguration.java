@@ -12,6 +12,7 @@ public class BitmexAccountConfiguration {
     @Data
     public static class Bitmex {
 
+        private String tag;
         private Api api;
         private Db db;
         private TradingConfiguration tradingConfiguration;
