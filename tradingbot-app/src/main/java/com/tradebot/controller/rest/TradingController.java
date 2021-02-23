@@ -63,4 +63,6 @@ public class TradingController {
     public List<String> cancelAllOrders() {
         return bitmexTradingBot.cancelAllPendingOrders();
     }
+
+
 }

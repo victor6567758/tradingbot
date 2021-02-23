@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
+import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
@@ -20,16 +21,18 @@ import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
-import com.tradebot.model.ExecutionChain;
 import com.tradebot.model.ImmutableTradingContext;
 import com.tradebot.model.RecalculatedTradingContext;
 import com.tradebot.model.TradingContext;
 import com.tradebot.response.CandleResponse;
+import com.tradebot.response.ExecutionResponse;
 import com.tradebot.response.GridContextResponse;
 import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.util.GeneralConst;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +48,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -290,7 +295,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     .text(String.valueOf(i))
                     .build());
 
-            tradingContext.getRecalculatedTradingContext().getExecutionChains().put(i, new ExecutionChain(i));
+            tradingContext.getRecalculatedTradingContext().getExecutionChains().put(i, new ArrayList<>());
             currentPrice += priceStep;
         }
 
@@ -374,12 +379,37 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 candleStick.getEventDate().getMillis()
             );
         };
+
         Converter<TradeableInstrument, String> locationCodeConverter = context -> context.getSource().getInstrument();
-        Converter<Map<BigDecimal, TradingDecision>, Set<Double>> tradeDecisionMapConverter =
+
+        Converter<Map<BigDecimal, TradingDecision>, Set<Pair<Integer, Double>>> tradeDecisionMapConverter =
             context -> {
                 Map<BigDecimal, TradingDecision> source = context.getSource();
-                return source != null ? source.values().stream().map(TradingDecision::getLimitPrice)
-                    .collect(Collectors.toCollection(TreeSet::new)) : null;
+                return source != null ? source.values().stream()
+                    .map(entry -> new ImmutablePair<>(NumberUtils.toInt(entry.getText()), entry.getLimitPrice()))
+                    .collect(Collectors.toCollection(TreeSet::new)) : Collections.emptySet();
+            };
+
+        Converter<Map<Integer, List<BitmexExecution>>, Map<Integer, List<ExecutionResponse>>> executionResponseListConverter =
+            context -> {
+                Map<Integer, List<BitmexExecution>> source = context.getSource();
+
+                return source != null ? source.entrySet().stream()
+                    .map(entry -> new ImmutablePair<>(entry.getKey(),
+                        entry.getValue().stream().map(bitmexExecution ->
+                            new ExecutionResponse(
+                                bitmexExecution.getTimestamp(),
+                                bitmexExecution.getSide(),
+                                bitmexExecution.getOrdType(),
+                                bitmexExecution.getExecType(),
+                                bitmexExecution.getOrdStatus(),
+                                bitmexExecution.getOrderQty())
+                        ).collect(Collectors.toList())
+                    ))
+                    .collect(Collectors.toMap(
+                        ImmutablePair::getLeft,
+                        ImmutablePair::getRight)) :
+                    Collections.emptyMap();
             };
 
         modelMapper.addMappings(new PropertyMap<TradingContext, GridContextResponse>() {
@@ -387,6 +417,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 using(locationCodeConverter).map(source.getImmutableTradingContext().getTradeableInstrument()).setSymbol(null);
                 using(tradeDecisionMapConverter).map(source.getRecalculatedTradingContext().getOpenTradingDecisions()).setMesh(null);
                 using(candleStickConverter).map(source.getRecalculatedTradingContext().getCandleStick()).setCandleResponse(null);
+                using(executionResponseListConverter).map(source.getRecalculatedTradingContext().getExecutionChains()).setExecutionResponseList(null);
             }
         });
     }

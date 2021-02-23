@@ -20,6 +20,7 @@ import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.TradingContext;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,11 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         Map<Integer, Long> imbalanceMap = tradingContext.getRecalculatedTradingContext().getImbalanceMap();
         TradingDecision openTradingDecision = tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().get(clientOrderId);
 
+        List<BitmexExecution> executionList = tradingContext.getRecalculatedTradingContext().getExecutionChains()
+            .computeIfAbsent(clientOrderId, integer -> new ArrayList<>());
+
+        executionList.add(bitmexExecution);
+
         if (bitmexExecution.getExecType() == ExecutionType.NEW) {
             if (bitmexExecution.getSide() == TradingSignal.LONG) {
                 log.info("Long accepted for order {}", clientOrderId);
@@ -170,7 +176,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     public Collection<Order<String>> cancelAllPendingOrders() {
         OrderResultContext<Collection<Order<String>>> pendingOrders = orderManagementProvider.allPendingOrders();
         if (!pendingOrders.isResult()) {
-            throw new IllegalArgumentException(String.format("Invalid pending order retreival %s", pendingOrders.getMessage()));
+            throw new IllegalArgumentException(String.format("Invalid pending order retrieval %s", pendingOrders.getMessage()));
         }
 
         pendingOrders.getData().forEach(order -> orderManagementProvider.closeOrder(order.getOrderId(), 1L));
@@ -206,7 +212,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     private void submitDecisionHelper(TradingDecision decision) {
         List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision);
-        orders.forEach( order -> {
+        orders.forEach(order -> {
             orderExecutionEngine.submit(order);
         });
 

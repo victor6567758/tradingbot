@@ -1,6 +1,6 @@
 
-const WA_API = "ws://localhost:8090/websocket";
-const REST_API = "http://localhost:8090/signal";
+const WA_API = "/websocket";
+const REST_API = "/signal";
 
 const WS_QUOT_API = 'wss://fstream.binance.com/ws';
 const FUT_QUOT_API = 'https://fabi.binance.com';
@@ -15,6 +15,7 @@ let lastConfigUpdateTime_ = null;
 let lastConfigUpdateTimer_ = null;
 
 $(document).ready(function () {
+
 
     lastConfigUpdateTimer_ = setInterval(() => {
         if (lastConfigUpdateTime_ != null) {
@@ -157,8 +158,11 @@ function getTradingEventsHistory() {
 }
 
 function startTradingEventStreaming() {
+    let url = new URL(`${WA_API}`, window.location.href);
+    url.protocol = url.protocol.replace('http', 'ws');
+
     stompClient_ = new window.StompJs.Client({
-        webSocketFactory: () => new WebSocket(`${WA_API}`)
+        webSocketFactory: () => new WebSocket(url.href)
     });
 
 
