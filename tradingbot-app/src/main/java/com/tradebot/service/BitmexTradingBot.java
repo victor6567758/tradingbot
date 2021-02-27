@@ -411,6 +411,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                                 bitmexExecution.getOrdType(),
                                 bitmexExecution.getExecType(),
                                 bitmexExecution.getOrdStatus(),
+                                bitmexExecution.getLastPx(),
                                 bitmexExecution.getOrderQty())
                         ).collect(Collectors.toList())
                     ))

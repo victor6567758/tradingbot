@@ -23,5 +23,7 @@ public class ExecutionResponse {
 
     private OrderStatus ordStatus;
 
+    double execPrice;
+
     private long lots;
 }
