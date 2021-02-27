@@ -234,6 +234,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         try {
             TradingContext tradingContext = tradingContextMap.get(instrument);
             bitmexOrderManager.onOrderExecutionCallback(tradingContext, event);
+
+            sendTradeConfig(tradingContext);
         } finally {
             tradingContextMapLock.writeLock().unlock();
         }
@@ -249,6 +251,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         try {
             TradingContext tradingContext = tradingContextMap.get(instrument);
             bitmexOrderManager.onOrderCallback(tradingContext, event);
+
+            sendTradeConfig(tradingContext);
         } finally {
             tradingContextMapLock.writeLock().unlock();
         }
@@ -263,6 +267,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         try {
             TradingContext tradingContext = tradingContextMap.get(instrument);
             bitmexOrderManager.onOrderResultCallback(tradingContext, orderResultContext);
+
+            sendTradeConfig(tradingContext);
         } finally {
             tradingContextMapLock.writeLock().unlock();
         }

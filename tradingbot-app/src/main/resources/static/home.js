@@ -2,8 +2,8 @@
 const WA_API = "/websocket";
 const REST_API = "/signal";
 
-const WS_QUOT_API = 'wss://fstream.binance.com/ws';
-const FUT_QUOT_API = 'https://fabi.binance.com';
+// const WS_QUOT_API = 'wss://fstream.binance.com/ws';
+// const FUT_QUOT_API = 'https://fabi.binance.com';
 
 let stompClient_ = null;
 let chart_ = null;
@@ -13,6 +13,8 @@ let candleStickSeries_ = null;
 
 let lastConfigUpdateTime_ = null;
 let lastConfigUpdateTimer_ = null;
+
+let ordersExecutionMap_ = null;
 
 $(document).ready(function () {
 
@@ -94,6 +96,10 @@ $(document).ready(function () {
         }).then(item => console.log("Cancelled all orders", item));
     });
 
+    $("#showExecutionHistory").button().click(() => {
+        showOrderExecutionHistory();
+    });    
+
     $(window).bind('resize', function () {
         adjustChartSize();
     });
@@ -150,6 +156,7 @@ function getTradingEventsHistory() {
                 item.forEach(
                     (parsedMessage) => {
                         populateChartWithConfigMessage(parsedMessage);
+                        populateOrderExecutionHistory(parsedMessage.executionResponseList);
                     }
                 );
 
@@ -194,10 +201,11 @@ function populateConfigurationList(parsedMessage) {
     $('#lastContextdateTime').html(new Date(parsedMessage.candleResponse.dateTime).toISOString());
 
     $('#configList').empty();
-    parsedMessage.mesh.forEach((item) => {
+    parsedMessage.mesh.forEach((item, idx) => {
         let configHtml = `
             <div class="tradeconfig">
                 <div class="price">${roundTo(item, 3)}</div>
+                <div class="price">${idx}</div>
             </div>`;
 
         $('#configList').append(configHtml);
@@ -220,6 +228,26 @@ function deinitChart() {
         chart_.removeSeries(candleStickSeries_);
         candleStickSeries_ = null;
     }
+}
+
+function populateOrderExecutionHistory(orderExecutionList) {
+    ordersExecutionMap_ = orderExecutionList;
+    console.log(ordersExecutionMap_);
+}
+
+function showOrderExecutionHistory() {
+    if (ordersExecutionMap_ == null) {
+        alert('There are no orders');
+        return;
+    }
+
+    for (var entry in ordersExecutionMap_) {
+        if (ordersExecutionMap_.hasOwnProperty(entry)) { 
+            let executionEntry = ordersExecutionMap_[entry];          
+            console.log("Execution log", entry, executionEntry);
+        }
+    }
+   
 }
 
 function initChart(size) {
@@ -271,6 +299,8 @@ function populateChartWithConfigMessage(parsedMessage) {
         low: parsedMessage.candleResponse.low,
         close: parsedMessage.candleResponse.close
     });
+
+    populateOrderExecutionHistory(parsedMessage.executionResponseList);
 
 }
 

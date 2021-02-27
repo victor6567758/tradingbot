@@ -63,6 +63,7 @@
 
     <bootstrap.webjar.version>4.6.0</bootstrap.webjar.version>
     <jquery.webjar.version>3.5.1</jquery.webjar.version>
+    <jquery-ui.webjar.version>1.12.1</jquery-ui.webjar.version>
     <webjar.locator.version>0.40</webjar.locator.version>
 
   </properties>
@@ -143,7 +144,15 @@
         <version>${jquery.webjar.version}</version>
       </dependency>
 
-      <dependency>
+
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery-ui</artifactId>
+            <version>${jquery-ui.webjar.version}</version>
+        </dependency>
+
+
+        <dependency>
         <artifactId>commons-lang3</artifactId>
         <groupId>org.apache.commons</groupId>
         <version>${apache.common.version}</version>

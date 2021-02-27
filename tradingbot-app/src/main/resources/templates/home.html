@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, internal-scale=1.0">
     <title>Trading</title>
     <link th:href = "@{/home.css}" rel="stylesheet">
-
+    <link th:href = "@{/webjars/jquery-ui/jquery-ui.min.css}">
 </head>
 
 <body>
@@ -19,6 +19,7 @@
     <input id = "btnEnableTrade" type="submit" value="Enable Trade"/>
     <input id = "btnDisableTrade" type="submit" value="Disable Trade"/>
     <input id = "cancelPendingOrders" type="submit" value="Cancel Pending Orders"/>
+    <input id = "showExecutionHistory" type="submit" value="Show Execution History"/>
     
     <header>
         <label for="pair">Trade Pair</label>
@@ -41,6 +42,7 @@
             
             <div class="tradeconfig-container_header">
                 <div>Mesh Level</div>
+                <div>Internal Order ID</div>
             </div>
             <div class="tradeconfig-container_list" id="configList">
                 <span>N/A</span>
@@ -55,6 +57,7 @@
 
     <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
     <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script th:src="@{/webjars/jquery-ui/jquery-ui.min.js}"></script>
 
     <script type="text/javascript" th:src="@{/home.js}"></script>
 </body>
