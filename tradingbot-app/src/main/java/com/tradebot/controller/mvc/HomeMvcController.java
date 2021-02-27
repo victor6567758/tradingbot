@@ -26,16 +26,15 @@ public class HomeMvcController {
     public String homePage(Model model) {
         model.addAttribute("appName", appName);
         model.addAttribute("symbolList", bitmexTradingBot.getAllSymbols());
-        model.addAttribute("buildVersion", buildProperties.getVersion() + ":" + buildProperties.getArtifact() + ":" +
-            buildProperties.getTime().toString());
+        model.addAttribute("buildVersion", createBuildInfo());
         model.addAttribute("activeProfiles", String.join(", ", environment.getActiveProfiles()));
 
         return "home";
     }
 
-    @GetMapping("/wstest")
-    public String wstestPage(Model model) {
-        model.addAttribute("appName", appName);
-        return "wstest";
+    private String createBuildInfo() {
+        return buildProperties.getVersion() +
+            ":" + buildProperties.getArtifact() +
+            ":" + (buildProperties.getTime() != null ? buildProperties.getTime().toString() : "N/A");
     }
 }

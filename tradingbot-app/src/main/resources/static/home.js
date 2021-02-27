@@ -198,7 +198,6 @@ function populateConfigurationList(parsedMessage) {
         let configHtml = `
             <div class="tradeconfig">
                 <div class="price">${roundTo(item, 3)}</div>
-                <div class="volume">1</div>
             </div>`;
 
         $('#configList').append(configHtml);

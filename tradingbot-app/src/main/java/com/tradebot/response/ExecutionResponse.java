@@ -7,14 +7,13 @@ import com.tradebot.core.order.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.joda.time.DateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExecutionResponse {
 
-    private DateTime dateTime;
+    private long dateTime;
 
     private TradingSignal side;
 
