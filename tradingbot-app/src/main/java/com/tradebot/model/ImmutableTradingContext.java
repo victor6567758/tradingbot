@@ -13,6 +13,7 @@ import lombok.ToString;
 public class ImmutableTradingContext {
     private final double xPct;
     private final double priceEnd;
+    private final double currentPriceAdjustDivider;
     private final int linesNum;
     private final int orderPosUnits;
     private final TradeableInstrument tradeableInstrument;

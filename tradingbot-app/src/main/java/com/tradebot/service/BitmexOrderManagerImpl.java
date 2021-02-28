@@ -142,19 +142,23 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == bitmexExecution.getOrderQty())) {
                         log.info("Long volume reached the level to open short order {}", clientOrderId);
-                        commandToOpenCloseOrder(tradingContext, openTradingDecision, clientOrderId);
+                        commandToOpenCloseOrder(bitmexExecution, tradingContext, openTradingDecision, clientOrderId);
                     }
 
                 } else {
-                    log.info("Short filled {}, restarting the cycle", clientOrderId);
+                    log.info("Short filled {}, stopping the whole process", clientOrderId);
 
-                    if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == 0)) {
-                        if (tradingContext.getRecalculatedTradingContext().isTradeEnabled()) {
-                            submitDecisionHelper(openTradingDecision);
-                        } else {
-                            log.warn("Global trading is disabled");
-                        }
-                    }
+                    bitmexTradingBot.setGlobalTradesEnabled(false);
+                    bitmexTradingBot.resetTradingContext();
+                    bitmexTradingBot.cancelAllPendingOrders();
+
+//                    if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == 0)) {
+//                        if (tradingContext.getRecalculatedTradingContext().isTradeEnabled()) {
+//                            submitDecisionHelper(openTradingDecision);
+//                        } else {
+//                            log.warn("Global trading is disabled");
+//                        }
+//                    }
                 }
             }
         }
@@ -182,19 +186,23 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         return pendingOrders.getData();
     }
 
-    private void commandToOpenCloseOrder(TradingContext tradingContext, TradingDecision openTradingDecision, int clientOrderId) {
+    private void commandToOpenCloseOrder(
+        BitmexExecution bitmexExecution,
+        TradingContext tradingContext,
+        TradingDecision openTradingDecision,
+        int clientOrderId) {
         Order<String> closeOrder = Order.buildStopMarketOrder(
             tradingContext.getImmutableTradingContext().getTradeableInstrument(),
             openTradingDecision.getUnits(),
             TradingSignal.SHORT,
             BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-                openTradingDecision.getLimitPrice() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
+                bitmexExecution.getPrice() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE
         );
 
         closeOrder.setClientOrderId(String.valueOf(clientOrderId));
-        log.info("About to submit closing order {}", closeOrder.toString());
+        log.info("About to submit closing SHORT order {}", closeOrder.toString());
         orderExecutionEngine.submit(closeOrder);
     }
 
@@ -211,9 +219,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     private void submitDecisionHelper(TradingDecision decision) {
         List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision);
-        orders.forEach(order -> {
-            orderExecutionEngine.submit(order);
-        });
+        orders.forEach(order -> orderExecutionEngine.submit(order));
 
     }
 

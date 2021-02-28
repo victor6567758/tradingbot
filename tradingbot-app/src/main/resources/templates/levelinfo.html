@@ -16,16 +16,18 @@
     <thead class="ttop">
       <tr class="table-info">
         <td><b>Datetime</b></td>
-        <td><b>Side</b> </td>
-        <td><b>Order Type</b> </td>
-        <td><b>Order Status</b> </td>
-        <td><b>Execution Price</b> </td>
-        <td><b>Lots</b> </td>
+        <td><b>Side</b></td>
+        <td><b>Order Type</b></td>
+        <td><b>Execution Type</b></td>
+        <td><b>Order Status</b></td>
+        <td><b>Execution Price</b></td>
+        <td><b>Lots</b></td>
+        <td><b>Original Order ID</b></td>
       </tr>
     </thead>
     <tbody>
       <tr th:each="execution, iStat : ${levelExecutions}" th:style="${iStat.odd}? 'font-weight: normal;'">
-        
+
         <td th:text="${#dates.format(execution.dateTime, 'dd-MM-yyyy HH:mm:ss')}"></td>
         <td th:text="${execution.side}"></td>
         <td th:text="${execution.ordType}"></td>
@@ -33,6 +35,7 @@
         <td th:text="${execution.ordStatus}"></td>
         <td th:text="${execution.execPrice}"></td>
         <td th:text="${execution.lots}"></td>
+        <td th:text="${execution.originalOrderId}"></td>
       </tr>
     </tbody>
   </table>

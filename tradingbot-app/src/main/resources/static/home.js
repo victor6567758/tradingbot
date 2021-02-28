@@ -19,7 +19,7 @@ let ordersExecutionMap_ = null;
 $(document).ready(function () {
 
     $("#dlgTradeForLevels").dialog({
-        autoOpen : false, modal : true, show : "blind", hide : "blind"
+        autoOpen: false, modal: true, show: "blind", hide: "blind"
     });
 
 
@@ -30,7 +30,7 @@ $(document).ready(function () {
 
             $('#lastServerUpdate').html(seconds);
         }
-        
+
     }, 5000);
 
     chart_ = LightweightCharts.createChart(document.getElementById('chart'), {
@@ -63,7 +63,7 @@ $(document).ready(function () {
     getTradingEventsHistory();
 
     $('#pair').on('change', () => {
-        
+
         lastConfigUpdateTime_ = null;
         deinitChart();
         getTradingEventsHistory();
@@ -78,14 +78,14 @@ $(document).ready(function () {
         getTradingEventsHistory();
 
     });
-    
+
     $("#btnDisableTrade").button().click(() => {
         fetch(`${REST_API}/setTradeEnabled/false`, {
             method: 'PUT',
             body: null
         }).then(item => console.log("Trade disabled", item));
     });
-    
+
     $("#btnEnableTrade").button().click(() => {
         fetch(`${REST_API}/setTradeEnabled/true`, {
             method: 'PUT',
@@ -102,7 +102,7 @@ $(document).ready(function () {
 
     $("#showExecutionHistory").button().click(() => {
         showOrderExecutionHistory();
-    });    
+    });
 
     $(window).bind('resize', function () {
         adjustChartSize();
@@ -110,7 +110,7 @@ $(document).ready(function () {
 
     adjustChartSize();
 
-    
+
 
 });
 
@@ -250,8 +250,8 @@ function showOrderExecutionHistory() {
     }
 
     for (var entry in ordersExecutionMap_) {
-        if (ordersExecutionMap_.hasOwnProperty(entry)) { 
-            let executionEntry = ordersExecutionMap_[entry];       
+        if (ordersExecutionMap_.hasOwnProperty(entry)) {
+            let executionEntry = ordersExecutionMap_[entry];
             console.log("Execution log", entry, executionEntry);
 
             executionEntry.forEach((item) => {
@@ -261,7 +261,7 @@ function showOrderExecutionHistory() {
     }
 
 
-   
+
 }
 
 function initChart(size) {

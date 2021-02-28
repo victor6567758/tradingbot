@@ -26,4 +26,6 @@ public class ExecutionResponse {
     double execPrice;
 
     private long lots;
+
+    private String originalOrderId;
 }

@@ -4,28 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, internal-scale=1.0">
     <title>Trading console</title>
-    <link th:href = "@{/home.css}" rel="stylesheet">
-    <link th:href = "@{/webjars/jquery-ui/1.12.1/jquery-ui.min.css}" rel="stylesheet">
+    <link th:href="@{/home.css}" rel="stylesheet">
+    <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.css}" rel="stylesheet">
 </head>
 
 <body>
     <p>Welcome to <span th:text="${appName}">app</span></p>
     <p>Version <span th:text="${buildVersion}">version</span></p>
-    
+
     <div>Active profile(s)</div>
     <div th:text="${activeProfiles}"></div>
 
-    <input id = "btnReset" type="submit" value="Reset"/>
-    <input id = "btnEnableTrade" type="submit" value="Enable Trade"/>
-    <input id = "btnDisableTrade" type="submit" value="Disable Trade"/>
-    <input id = "cancelPendingOrders" type="submit" value="Cancel Pending Orders"/>
-    <input id = "showExecutionHistory" type="submit" value="Show Execution History"/>
-    
+    <input id="btnReset" type="submit" value="Reset" />
+    <input id="btnEnableTrade" type="submit" value="Enable Trade" />
+    <input id="btnDisableTrade" type="submit" value="Disable Trade" />
+    <input id="cancelPendingOrders" type="submit" value="Cancel Pending Orders" />
+    <input id="showExecutionHistory" type="submit" value="Show Execution History" />
+
     <header>
         <label for="pair">Trade Pair</label>
         <select id="pair">
-            <option th:each="symbol : ${symbolList}"
-                    th:value="${symbol}" th:text="${symbol}"></option>
+            <option th:each="symbol : ${symbolList}" th:value="${symbol}" th:text="${symbol}"></option>
         </select>
     </header>
 
@@ -39,7 +39,7 @@
 
             <label for="lastContextdateTime">Last context Time</label>
             <div id="lastContextdateTime">N/A</div>
-            
+
             <div class="tradeconfig-container_header">
                 <div>Mesh Level</div>
                 <div>Internal Order ID</div>
@@ -51,9 +51,9 @@
     </div>
 
     <!-- <div id="dlgTradeForLevels" title="Contact form">
-        <p>appear now</p>
-    </div> -->
-  
+    <p>appear now</p>
+</div> -->
+
 
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>

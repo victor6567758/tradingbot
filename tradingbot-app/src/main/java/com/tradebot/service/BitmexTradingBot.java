@@ -280,13 +280,13 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         Account<Long> account,
         CandleStick candleStick,
         TradingContext tradingContext) {
-        double currentPrice = candleStick.getClosePrice() + candleStick.getClosePrice() / 100;
+        double currentPrice = candleStick.getClosePrice() + candleStick.getClosePrice() / tradingContext
+            .getImmutableTradingContext().getCurrentPriceAdjustDivider();
         double priceStep = (tradingContext.getImmutableTradingContext().getPriceEnd() - currentPrice) /
             tradingContext.getImmutableTradingContext().getLinesNum();
 
         tradingContext.getRecalculatedTradingContext().setProfitPlus(
-            Math.abs(priceStep) + (candleStick.getClosePrice() / 100) * tradingContext.getImmutableTradingContext()
-                .getXPct()
+            Math.abs(priceStep) * tradingContext.getImmutableTradingContext().getXPct()
         );
 
         for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
@@ -340,6 +340,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     entry.getKey(),
                     new TradingContext(ImmutableTradingContext.builder()
                         .xPct((Double) entry.getValue().get("xPct"))
+                        .currentPriceAdjustDivider((Double) entry.getValue().get("currentPriceAdjustDivider"))
                         .priceEnd((Double) entry.getValue().get("priceEnd"))
                         .linesNum((Integer) entry.getValue().get("linesNum"))
                         .orderPosUnits((Integer) entry.getValue().get("orderPosUnits"))
@@ -412,7 +413,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                                 bitmexExecution.getExecType(),
                                 bitmexExecution.getOrdStatus(),
                                 bitmexExecution.getLastPx(),
-                                bitmexExecution.getOrderQty())
+                                bitmexExecution.getOrderQty(),
+                                bitmexExecution.getOrderID())
                         ).collect(Collectors.toList())
                     ))
                     .collect(Collectors.toMap(
