@@ -154,7 +154,6 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                         } else {
                             log.warn("Global trading is disabled");
                         }
-
                     }
                 }
             }

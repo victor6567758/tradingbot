@@ -18,6 +18,10 @@ let ordersExecutionMap_ = null;
 
 $(document).ready(function () {
 
+    $("#dlgTradeForLevels").dialog({
+        autoOpen : false, modal : true, show : "blind", hide : "blind"
+    });
+
 
     lastConfigUpdateTimer_ = setInterval(() => {
         if (lastConfigUpdateTime_ != null) {
@@ -199,13 +203,14 @@ function startTradingEventStreaming() {
 
 function populateConfigurationList(parsedMessage) {
     $('#lastContextdateTime').html(new Date(parsedMessage.candleResponse.dateTime).toISOString());
+    const symbol = $("#pair").val();
 
     $('#configList').empty();
     parsedMessage.mesh.forEach((item, idx) => {
         let configHtml = `
             <div class="tradeconfig">
                 <div class="price">${roundTo(item, 3)}</div>
-                <div class="price">${idx}</div>
+                <div class="price"><a href="/levelinfo?level=${idx}&symbol=${symbol}" target="_blank">${idx}</a></div>
             </div>`;
 
         $('#configList').append(configHtml);
@@ -236,6 +241,9 @@ function populateOrderExecutionHistory(orderExecutionList) {
 }
 
 function showOrderExecutionHistory() {
+
+    //$("#dlgTradeForLevels").dialog("open");
+
     if (ordersExecutionMap_ == null) {
         alert('There are no orders');
         return;
@@ -243,10 +251,16 @@ function showOrderExecutionHistory() {
 
     for (var entry in ordersExecutionMap_) {
         if (ordersExecutionMap_.hasOwnProperty(entry)) { 
-            let executionEntry = ordersExecutionMap_[entry];          
+            let executionEntry = ordersExecutionMap_[entry];       
             console.log("Execution log", entry, executionEntry);
+
+            executionEntry.forEach((item) => {
+                console.log("Operation", item);
+            });
         }
     }
+
+
    
 }
 

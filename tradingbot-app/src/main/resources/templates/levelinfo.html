@@ -1,0 +1,44 @@
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, internal-scale=1.0">
+  <title>Level Info</title>
+  <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+  <link th:href="@{/home.css}" rel="stylesheet">
+</head>
+
+<body>
+  <p>Welcome to level: <span th:text="${level}">0</span></p>
+
+  <table class="table table-striped table-primary">
+
+    <thead class="ttop">
+      <tr class="table-info">
+        <td><b>Datetime</b></td>
+        <td><b>Side</b> </td>
+        <td><b>Order Type</b> </td>
+        <td><b>Order Status</b> </td>
+        <td><b>Execution Price</b> </td>
+        <td><b>Lots</b> </td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="execution, iStat : ${levelExecutions}" th:style="${iStat.odd}? 'font-weight: normal;'">
+        
+        <td th:text="${#dates.format(execution.dateTime, 'dd-MM-yyyy HH:mm:ss')}"></td>
+        <td th:text="${execution.side}"></td>
+        <td th:text="${execution.ordType}"></td>
+        <td th:text="${execution.execType}"></td>
+        <td th:text="${execution.ordStatus}"></td>
+        <td th:text="${execution.execPrice}"></td>
+        <td th:text="${execution.lots}"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
+  <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+
+</html>

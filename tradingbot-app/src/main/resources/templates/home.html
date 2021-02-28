@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, internal-scale=1.0">
-    <title>Trading</title>
+    <title>Trading console</title>
     <link th:href = "@{/home.css}" rel="stylesheet">
-    <link th:href = "@{/webjars/jquery-ui/jquery-ui.min.css}">
+    <link th:href = "@{/webjars/jquery-ui/1.12.1/jquery-ui.min.css}" rel="stylesheet">
 </head>
 
 <body>
@@ -50,6 +50,10 @@
         </div>
     </div>
 
+    <!-- <div id="dlgTradeForLevels" title="Contact form">
+        <p>appear now</p>
+    </div> -->
+  
 
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.0.0/bundles/stomp.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
@@ -57,7 +61,7 @@
 
     <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
     <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
-    <script th:src="@{/webjars/jquery-ui/jquery-ui.min.js}"></script>
+    <script th:src="@{/webjars/jquery-ui/1.12.1/jquery-ui.min.js}"></script>
 
     <script type="text/javascript" th:src="@{/home.js}"></script>
 </body>
