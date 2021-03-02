@@ -209,12 +209,25 @@ function populateConfigurationList(parsedMessage) {
     parsedMessage.mesh.forEach((item, idx) => {
         let configHtml = `
             <div class="tradeconfig">
-                <div class="price">${roundTo(item, 3)}</div>
-                <div class="price"><a href="/levelinfo?level=${idx}&symbol=${symbol}" target="_blank">${idx}</a></div>
+                <div class="price">${roundTo(item[0], 3)}</div>
+                <div class="price"><a href="/levelinfo?level=${item[1]}&symbol=${symbol}" target="_blank">${item[1]}</a></div>
             </div>`;
 
         $('#configList').append(configHtml);
     });
+
+    if (parsedMessage.limitResponse != null) {
+        $('#ordersLimitForMin').html(parsedMessage.limitResponse.requestLimitPerMinute);
+        $('#remainingOrdersInMin').html(parsedMessage.limitResponse.requestRemainingWithinMinute);
+        $('#remainingOrdersInSec').html(parsedMessage.limitResponse.requestRemainingWithin1Sec);
+        $('#waitTimeToAllowTrading').html(new Date(parsedMessage.limitResponse.limitResetTime).toISOString());
+    } else {
+        $('#ordersLimitForMin').html('N/A');
+        $('#remainingOrdersInMin').html('N/A');
+        $('#remainingOrdersInSec').html('N/A');
+        $('#waitTimeToAllowTrading').html('N/A');
+    }
+
 }
 
 function deinitChart() {

@@ -4,7 +4,6 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
-import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.ExecutionType;
 import com.tradebot.core.TradingDecision;
@@ -167,12 +166,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void onOrderResultCallback(TradingContext tradingContext, OrderResultContext<String> orderResultContext) {
-        if (orderResultContext instanceof BitmexOrderQuotas) {
-            BitmexOrderQuotas bitmexOrderQuotas = (BitmexOrderQuotas) orderResultContext;
-            log.info("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
-        } else {
-            log.info("Order result callback {}", orderResultContext.toString());
-        }
+
     }
 
     @Override

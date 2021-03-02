@@ -1,30 +1,12 @@
 package com.tradebot.service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
+import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
@@ -46,11 +28,30 @@ import com.tradebot.model.TradingContext;
 import com.tradebot.response.CandleResponse;
 import com.tradebot.response.ExecutionResponse;
 import com.tradebot.response.GridContextResponse;
+import com.tradebot.response.LimitResponse;
 import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.util.GeneralConst;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -266,8 +267,20 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         tradingContextMapLock.writeLock().lock();
         try {
             TradingContext tradingContext = tradingContextMap.get(instrument);
-            bitmexOrderManager.onOrderResultCallback(tradingContext, orderResultContext);
 
+            if (orderResultContext instanceof BitmexOrderQuotas) {
+                BitmexOrderQuotas bitmexOrderQuotas = (BitmexOrderQuotas) orderResultContext;
+                tradingContext.getRecalculatedTradingContext().setBitmexOrderQuotas(bitmexOrderQuotas);
+                if (log.isDebugEnabled()) {
+                    log.debug("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Order result callback {}", orderResultContext.toString());
+                }
+            }
+
+            bitmexOrderManager.onOrderResultCallback(tradingContext, orderResultContext);
             sendTradeConfig(tradingContext);
         } finally {
             tradingContextMapLock.writeLock().unlock();
@@ -391,12 +404,25 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
         Converter<TradeableInstrument, String> locationCodeConverter = context -> context.getSource().getInstrument();
 
-        Converter<Map<BigDecimal, TradingDecision>, Set<Double>> tradeDecisionMapConverter =
+        Converter<Map<Integer, TradingDecision>, List<Pair<Double, Integer>>> tradeDecisionMapConverter =
             context -> {
-                Map<BigDecimal, TradingDecision> source = context.getSource();
+                Map<Integer, TradingDecision> source = context.getSource();
                 return source != null ? source.values().stream()
-                    .map(TradingDecision::getLimitPrice)
-                    .collect(Collectors.toCollection(TreeSet::new)) : Collections.emptySet();
+                    .sorted(Comparator.comparingDouble(TradingDecision::getLimitPrice))
+                    .map(decision -> new ImmutablePair<>(decision.getLimitPrice(), NumberUtils.toInt(decision.getText())))
+                    .collect(Collectors.toList()) : Collections.emptyList();
+            };
+
+        Converter<BitmexOrderQuotas, LimitResponse> limitResponseConverter =
+            context -> {
+                BitmexOrderQuotas source = context.getSource();
+
+                return source != null ? new LimitResponse(
+                    source.getXRatelimitLimit(),
+                    source.getXRatelimitRemaining1s(),
+                    source.getXRatelimitRemaining(),
+                    source.getXRatelimitRemaining() * 1000L
+                ) : null;
             };
 
         Converter<Map<Integer, List<BitmexExecution>>, Map<Integer, List<ExecutionResponse>>> executionResponseListConverter =
@@ -433,6 +459,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                     .setCandleResponse(null);
                 using(executionResponseListConverter).map(source.getRecalculatedTradingContext().getExecutionChains())
                     .setExecutionResponseList(null);
+                using(limitResponseConverter).map(source.getRecalculatedTradingContext().getBitmexOrderQuotas())
+                    .setLimitResponse(null);
             }
         });
     }
