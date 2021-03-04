@@ -207,10 +207,11 @@ function populateConfigurationList(parsedMessage) {
 
     $('#configList').empty();
     parsedMessage.mesh.forEach((item, idx) => {
+        console.log('mesh element', item);
         let configHtml = `
             <div class="tradeconfig">
-                <div class="price">${roundTo(item[0], 3)}</div>
-                <div class="price"><a href="/levelinfo?level=${item[1]}&symbol=${symbol}" target="_blank">${item[1]}</a></div>
+                <div class="price">${roundTo(item.meshLevel, 3)}</div>
+                <div class="price"><a href="/levelinfo?level=${item.level}&symbol=${symbol}" target="_blank">${item.level}</a></div>
             </div>`;
 
         $('#configList').append(configHtml);
@@ -316,7 +317,7 @@ function populateChartWithConfigMessage(parsedMessage) {
     let timeStamp = parsedMessage.candleResponse.dateTime / 1000;
 
     for (let i = 0; i < parsedMessage.mesh.length; i++) {
-        indicatorSerieses_[i].update({ time: timeStamp, value: parsedMessage.mesh[i] });
+        indicatorSerieses_[i].update({ time: timeStamp, value: parsedMessage.mesh[i].meshLevel });
     }
 
     candleStickSeries_.update({
