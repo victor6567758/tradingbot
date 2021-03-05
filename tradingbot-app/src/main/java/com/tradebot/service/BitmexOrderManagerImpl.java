@@ -190,13 +190,16 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             openTradingDecision.getUnits(),
             TradingSignal.SHORT,
             BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-                bitmexExecution.getPrice() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
+                bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE
         );
 
         closeOrder.setClientOrderId(String.valueOf(clientOrderId));
-        log.info("About to submit closing SHORT order {}", closeOrder.toString());
+        // TODO - still need to check the validity of bitmexExecution.getLastPx()
+        log.info("About to submit closing SHORT order {}, execution price for calculation the target is {}, profit plus {}",
+            closeOrder.toString(), bitmexExecution.getLastPx(),
+            tradingContext.getRecalculatedTradingContext().getProfitPlus());
         orderExecutionEngine.submit(closeOrder);
     }
 

@@ -93,7 +93,11 @@ public class ApiClientAuthorizeable extends ApiClient {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Request: [{}], [{}]", request.toString(), request.body());
+            if (bodyContent != null) {
+                log.debug("Request: [{}], [{}]", request.toString(), bodyContent);
+            } else {
+                log.debug("Request: [{}]", request.toString());
+            }
         }
 
         return request;
