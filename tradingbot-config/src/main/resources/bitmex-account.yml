@@ -37,10 +37,10 @@ bitmex:
           - H1
           - D
         algParameters:
-          priceEnd: 40000.0
+          priceEnd: 46135.0
           currentPriceAdjustDivider: 1000.0
           xPct: 1.001
-          linesNum: 21
+          linesNum: 4
           orderPosUnits: 1
           reportCurrency: USD
 #      - instrument: XBTJPY

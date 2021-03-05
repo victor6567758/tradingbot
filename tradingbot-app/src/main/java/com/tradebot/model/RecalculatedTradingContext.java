@@ -7,6 +7,7 @@ import com.tradebot.core.marketdata.historic.CandleStick;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -16,15 +17,15 @@ import lombok.ToString;
 @ToString
 public class RecalculatedTradingContext {
 
-    private CandleStick candleStick;
-    private double profitPlus;
+  private CandleStick candleStick;
+  private double profitPlus;
 
-    // internal order id -> Trading decision
-    private final Map<Integer, TradingDecision> openTradingDecisions = new HashMap<>();
-    private final Map<Integer, Long> imbalanceMap = new HashMap<>();
-    private final Map<Integer, List<BitmexExecution>> executionChains = new HashMap<>();
-    private boolean tradeEnabled = true;
-    private boolean ordersProcessingStarted;
-    private boolean oneTimeInitialized;
-    private BitmexOrderQuotas bitmexOrderQuotas;
+  // internal order id -> Trading decision
+  private final Map<Integer, TradingDecision> openTradingDecisions = new TreeMap<>();
+  private final Map<Integer, Long> imbalanceMap = new HashMap<>();
+  private final Map<Integer, List<BitmexExecution>> executionChains = new HashMap<>();
+  private boolean tradeEnabled = true;
+  private boolean ordersProcessingStarted;
+  private boolean oneTimeInitialized;
+  private BitmexOrderQuotas bitmexOrderQuotas;
 }

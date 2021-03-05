@@ -423,7 +423,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         context -> {
           Map<Integer, TradingDecision> source = context.getSource();
           return source != null ? source.values().stream()
-              .sorted(Comparator.comparingDouble(TradingDecision::getLimitPrice).reversed())
+              //.sorted(Comparator.comparingDouble(TradingDecision::getLimitPrice).reversed())
               .map(decision -> new MeshEntry(decision.getLimitPrice(),
                   NumberUtils.toInt(decision.getText())))
               .collect(Collectors.toList()) : Collections.emptyList();
