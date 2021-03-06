@@ -8,7 +8,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class TradingDecision {
+public class TradingDecision<C> {
 
     public enum SrcDecison {
         SOCIAL_MEDIA,
@@ -25,7 +25,7 @@ public class TradingDecision {
     private final long units;
     private final double takeProfitPrice;
     private final double stopLossPrice;
-    private final String text;
+    private final C context;
 
 
 }

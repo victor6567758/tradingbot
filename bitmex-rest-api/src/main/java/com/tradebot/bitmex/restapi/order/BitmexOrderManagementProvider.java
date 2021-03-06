@@ -61,7 +61,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 null, // simpleOrderQty
                 BigDecimal.valueOf(order.getUnits()), // orderQty
                 order.getPrice() > 0 ? order.getPrice() : null, // price
-                BigDecimal.valueOf(0), // displayQty
+                null, // displayQty
                 order.getStopPrice() > 0 ? order.getStopPrice() : null, // stopPx
                 order.getClientOrderId(), // clOrdID
                 null, // clOrdLinkID

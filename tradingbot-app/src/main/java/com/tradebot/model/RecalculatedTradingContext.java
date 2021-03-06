@@ -21,7 +21,7 @@ public class RecalculatedTradingContext {
   private double profitPlus;
 
   // internal order id -> Trading decision
-  private final Map<Integer, TradingDecision> openTradingDecisions = new TreeMap<>();
+  private final Map<Integer, TradingDecision<TradingDecisionContext>> openTradingDecisions = new TreeMap<>();
   private final Map<Integer, Long> imbalanceMap = new HashMap<>();
   private final Map<Integer, List<BitmexExecution>> executionChains = new HashMap<>();
   private boolean tradeEnabled = true;

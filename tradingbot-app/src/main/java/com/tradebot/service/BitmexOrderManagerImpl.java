@@ -4,7 +4,6 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
-import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.ExecutionType;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
@@ -19,16 +18,18 @@ import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.TradingContext;
+import com.tradebot.model.TradingDecisionContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongPredicate;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +41,11 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     private final OrderManagementProvider<String, Long> orderManagementProvider;
     private final BitmexTradingBot bitmexTradingBot;
 
-    private OrderExecutionServiceBase<String, Long> orderExecutionEngine;
+    private OrderExecutionServiceBase<String, Long, TradingDecisionContext> orderExecutionEngine;
     private BitmexAccountConfiguration bitmexAccountConfiguration;
+
     private AtomicReference<DateTime> lastOrderFireTime = new AtomicReference<>();
+    private Map<String, TradingDecisionContext> clientOrderIdLevelMap = new ConcurrentHashMap<>();
 
     @Override
     public void initialize(long accountId, BitmexAccountConfiguration bitmexAccountConfiguration) {
@@ -109,15 +112,16 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             return;
         }
 
-        int clientOrderId = NumberUtils.toInt(bitmexExecution.getClOrdID(), -1);
-
-        if (clientOrderId < 0) {
+        TradingDecisionContext tradingDecisionContext = clientOrderIdLevelMap.get(bitmexExecution.getClOrdID());
+        if (tradingDecisionContext == null) {
             log.warn("Alien order cannot be processed {}", bitmexExecution.getOrderID());
             return;
         }
 
+        int clientOrderId = tradingDecisionContext.getLevel();
+
         Map<Integer, Long> imbalanceMap = tradingContext.getRecalculatedTradingContext().getImbalanceMap();
-        TradingDecision openTradingDecision = tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().get(clientOrderId);
+        TradingDecision<TradingDecisionContext> openTradingDecision = tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().get(clientOrderId);
 
         List<BitmexExecution> executionList = tradingContext.getRecalculatedTradingContext().getExecutionChains()
             .computeIfAbsent(clientOrderId, integer -> new ArrayList<>());
@@ -136,28 +140,28 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             if (bitmexExecution.getOrdStatus() == OrderStatus.FILLED || bitmexExecution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED) {
 
                 if (bitmexExecution.getSide() == TradingSignal.LONG) {
-                    // first order
+
                     log.info("Long filled {}", clientOrderId);
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == bitmexExecution.getOrderQty())) {
                         log.info("Long volume reached the level to open short order {}", clientOrderId);
+                        removeClientOrder(bitmexExecution.getClOrdID());
+
                         commandToOpenCloseOrder(bitmexExecution, tradingContext, openTradingDecision, clientOrderId);
                     }
 
                 } else {
-                    log.info("Short filled {}, stopping the whole process", clientOrderId);
+                    log.info("Short filled {}", clientOrderId);
 
-                    bitmexTradingBot.setGlobalTradesEnabled(false);
-                    bitmexTradingBot.resetTradingContext();
-                    bitmexTradingBot.cancelAllPendingOrders();
+                    if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == 0)) {
+                        log.info("Short volume reached the level to stop the trade {}", clientOrderId);
+                        removeClientOrder(bitmexExecution.getClOrdID());
 
-//                    if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, clientOrderId, qty -> qty == 0)) {
-//                        if (tradingContext.getRecalculatedTradingContext().isTradeEnabled()) {
-//                            submitDecisionHelper(openTradingDecision);
-//                        } else {
-//                            log.warn("Global trading is disabled");
-//                        }
-//                    }
+                        bitmexTradingBot.setGlobalTradesEnabled(false);
+                        bitmexTradingBot.resetTradingContext();
+                        bitmexTradingBot.cancelAllPendingOrders();
+
+                    }
                 }
             }
         }
@@ -180,22 +184,38 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         return pendingOrders.getData();
     }
 
+    private void removeClientOrder(String clientOrderId) {
+        if (clientOrderIdLevelMap.remove(clientOrderId) == null) {
+            log.error("Could not find previous client order id {}", clientOrderId);
+        }
+    }
+
     private void commandToOpenCloseOrder(
         BitmexExecution bitmexExecution,
         TradingContext tradingContext,
         TradingDecision openTradingDecision,
         int clientOrderId) {
-        Order<String> closeOrder = Order.buildStopMarketOrder(
+//        Order<String> closeOrder = Order.buildStopMarketOrder(
+//            tradingContext.getImmutableTradingContext().getTradeableInstrument(),
+//            openTradingDecision.getUnits(),
+//            TradingSignal.SHORT,
+//            BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
+//                bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
+//            CommonConsts.INVALID_PRICE,
+//            CommonConsts.INVALID_PRICE
+//        );
+
+        Order<String> closeOrder = Order.buildMarketOrder(
             tradingContext.getImmutableTradingContext().getTradeableInstrument(),
             openTradingDecision.getUnits(),
             TradingSignal.SHORT,
-            BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-                bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE
         );
 
-        closeOrder.setClientOrderId(String.valueOf(clientOrderId));
+        closeOrder.setClientOrderId(UUID.randomUUID().toString());
+        clientOrderIdLevelMap.put(closeOrder.getClientOrderId(), new TradingDecisionContext(clientOrderId));
+
         // TODO - still need to check the validity of bitmexExecution.getLastPx()
         log.info("About to submit closing SHORT order {}, execution price for calculation the target is {}, profit plus {}",
             closeOrder.toString(), bitmexExecution.getLastPx(),
@@ -214,10 +234,17 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         return volumePredicate.test(totalVolume);
     }
 
-    private void submitDecisionHelper(TradingDecision decision) {
+    private void submitDecisionHelper(TradingDecision<TradingDecisionContext> decision) {
         List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision);
-        orders.forEach(order -> orderExecutionEngine.submit(order));
+        if (orders.size() != 1) {
+            throw new IllegalArgumentException("At this strategy 1 order per a single decision");
+        }
 
+        Order<String> order = orders.get(0);
+        order.setClientOrderId(UUID.randomUUID().toString());
+        clientOrderIdLevelMap.put(order.getClientOrderId(), decision.getContext());
+
+        orderExecutionEngine.submit(orders.get(0));
     }
 
 

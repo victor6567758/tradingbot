@@ -11,7 +11,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class OrderExecutionServiceImpl<N, K> extends OrderExecutionServiceBase<N, K> {
+public class OrderExecutionServiceImpl<N, K, C> extends OrderExecutionServiceBase<N, K, C> {
 
 
     private final AccountInfoService<K> accountInfoService;
@@ -24,7 +24,7 @@ public class OrderExecutionServiceImpl<N, K> extends OrderExecutionServiceBase<N
         BaseTradingConfig baseTradingConfig,
         PreOrderValidationService<N, K> preOrderValidationService,
         CurrentPriceInfoProvider currentPriceInfoProvider,
-        OrderExecutionServiceCallback orderExecutionServiceCallback) {
+        OrderExecutionServiceCallback<N> orderExecutionServiceCallback) {
 
         super(orderExecutionServiceCallback, orderManagementProvider, () -> accountInfoService.findAccountToTrade().orElseThrow());
 
@@ -36,7 +36,7 @@ public class OrderExecutionServiceImpl<N, K> extends OrderExecutionServiceBase<N
     }
 
     @Override
-    public List<Order<N>> createOrderListFromDecision(TradingDecision decision) {
+    public List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision) {
         Order<N> order;
         if (decision.getLimitPrice() == 0.0) {
             order = Order.buildMarketOrder(decision.getInstrument(), baseTradingConfig.getMaxAllowedQuantity(),
@@ -51,7 +51,7 @@ public class OrderExecutionServiceImpl<N, K> extends OrderExecutionServiceBase<N
     }
 
     @Override
-    protected boolean preValidate(TradingDecision decision) {
+    protected boolean preValidate(TradingDecision<C> decision) {
         if (TradingSignal.NONE != decision.getSignal() &&
             preOrderValidationService.checkInstrumentNotAlreadyTraded(decision.getInstrument()) &&
             preOrderValidationService.checkLimitsForCcy(decision.getInstrument(), decision.getSignal())) {

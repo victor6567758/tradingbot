@@ -76,9 +76,7 @@ public class JettyCommunicationSocket {
     @OnWebSocketMessage
     public void onMessage(String message) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Message received: {}", message);
-        }
+        log.debug("Message received: {}", message);
 
         if (message.equals(PONG_REPLY)) {
             validateLastPongTime();

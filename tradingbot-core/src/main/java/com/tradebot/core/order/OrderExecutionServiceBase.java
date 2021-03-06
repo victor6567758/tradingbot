@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-public abstract class OrderExecutionServiceBase<N, K> {
+public abstract class OrderExecutionServiceBase<N, K, C> {
 
     private static final long SHUTDOWN_WAIT_TIME = 5000L;
 
@@ -25,7 +25,7 @@ public abstract class OrderExecutionServiceBase<N, K> {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
-    public Future<List<Order<N>>> submit(TradingDecision decision) {
+    public Future<List<Order<N>>> submit(TradingDecision<C> decision) {
         return executorService.submit(() -> processTradingDecision(decision));
     }
 
@@ -37,9 +37,9 @@ public abstract class OrderExecutionServiceBase<N, K> {
         CommonUtils.commonExecutorServiceShutdown(executorService, SHUTDOWN_WAIT_TIME);
     }
 
-    public abstract List<Order<N>> createOrderListFromDecision(TradingDecision decision);
+    public abstract List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision);
 
-    protected abstract boolean preValidate(TradingDecision decision);
+    protected abstract boolean preValidate(TradingDecision<C> decision);
 
     private Optional<Order<N>> processOrder(Order<N> order) {
 
@@ -54,7 +54,7 @@ public abstract class OrderExecutionServiceBase<N, K> {
         return Optional.of(order);
     }
 
-    private List<Order<N>> processTradingDecision(TradingDecision decision) {
+    private List<Order<N>> processTradingDecision(TradingDecision<C> decision) {
 
         if (!initOrderSubmit()) {
             return Collections.emptyList();

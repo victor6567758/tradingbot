@@ -47,12 +47,12 @@ public class OrderExecutionServiceImplTest<N> {
     private final TradeableInstrument gbpaud = new TradeableInstrument("GBP_AUD", "GBP_AUD", 0.001, null, null, null, null, null);
     private final TradingSignal signal = TradingSignal.SHORT;
 
-    private final TradingDecision tradingDecision1 = TradingDecision.builder()
+    private final TradingDecision<Object> tradingDecision1 = TradingDecision.builder()
         .signal(signal).instrument(gbpaud).tradeSource(SrcDecison.OTHER).limitPrice(1.855).stopPrice(2.21).units(1L)
         .takeProfitPrice(CommonConsts.INVALID_PRICE).stopLossPrice(CommonConsts.INVALID_PRICE)
         .build();
 
-    private final TradingDecision tradingDecision2 = TradingDecision.builder()
+    private final TradingDecision<Object> tradingDecision2 = TradingDecision.builder()
         .signal(signal).instrument(gbpaud).tradeSource(SrcDecison.OTHER).limitPrice(1.855).stopPrice(2.21).units(1L)
         .takeProfitPrice(2.12).stopLossPrice(CommonConsts.INVALID_PRICE)
         .build();
@@ -89,7 +89,7 @@ public class OrderExecutionServiceImplTest<N> {
     @Test
     public void testPlaceOrders() throws ExecutionException, InterruptedException {
 
-        OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
+        OrderExecutionServiceCallback<Long> orderExecutionServiceCallback = new OrderExecutionServiceCallback<>() {
 
             @Override
             public void fired() {
@@ -106,12 +106,12 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OrderResultContext orderResultContext) {
+            public void onOrderResult(OrderResultContext<Long> orderResultContext) {
 
             }
         };
 
-        OrderExecutionServiceImpl<Long,Long> service = new OrderExecutionServiceImpl<>(
+        OrderExecutionServiceImpl<Long,Long, Object> service = new OrderExecutionServiceImpl<>(
             accountInfoService,
             orderManagementProvider,
             baseTradingConfig,
@@ -135,7 +135,7 @@ public class OrderExecutionServiceImplTest<N> {
     @Test
     public void testOrderSubmissionIsInterrupted() throws ExecutionException, InterruptedException {
 
-        OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
+        OrderExecutionServiceCallback<Long> orderExecutionServiceCallback = new OrderExecutionServiceCallback<>() {
 
             private final AtomicInteger counter = new AtomicInteger(ALLOWED_SUBMISSIONS);
 
@@ -154,12 +154,12 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OrderResultContext orderResultContext) {
+            public void onOrderResult(OrderResultContext<Long> orderResultContext) {
 
             }
         };
 
-        OrderExecutionServiceImpl<Long, Long> service = new OrderExecutionServiceImpl<>(
+        OrderExecutionServiceImpl<Long, Long, Object> service = new OrderExecutionServiceImpl<>(
             accountInfoService,
             orderManagementProvider,
             baseTradingConfig,

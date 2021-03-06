@@ -8,18 +8,17 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionServiceBase<N, K> {
+public class OrderExecutionSimpleServiceImpl<N, K, C> extends OrderExecutionServiceBase<N, K, C> {
 
     public OrderExecutionSimpleServiceImpl(
         OrderManagementProvider<N, K> orderManagementProvider,
         Supplier<K> accountIdSupplier,
-        OrderExecutionServiceCallback orderExecutionServiceCallback) {
+        OrderExecutionServiceCallback<N> orderExecutionServiceCallback) {
         super(orderExecutionServiceCallback, orderManagementProvider, accountIdSupplier);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public List<Order<N>> createOrderListFromDecision(TradingDecision decision) {
+    public List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision) {
 
         Order<N> order;
         if (decision.getLimitPrice() == 0.0) {
@@ -42,14 +41,12 @@ public class OrderExecutionSimpleServiceImpl<N, K> extends OrderExecutionService
             }
         }
 
-        // only short id is eligible
-        order.setClientOrderId((N) decision.getText());
         log.info("Order {} was generated based on decision {}", order.toString(), decision.toString());
         return Collections.singletonList(order);
     }
 
     @Override
-    protected boolean preValidate(TradingDecision decision) {
+    protected boolean preValidate(TradingDecision<C> decision) {
         return true;
     }
 
