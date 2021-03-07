@@ -46,7 +46,6 @@ public class BitmexHistoricMarketDataProviderTest {
     private final JSON json = new JSON();
     private final TradeApi tradeApi = mock(TradeApi.class);
     private BitmexHistoricMarketDataProvider bitmexHistoricMarketDataProviderSpy;
-    private InstrumentService instrumentServiceSpy;
 
     private List<TradeBin> tradeBins1d;
     private List<TradeBin> tradeBins1m;
@@ -55,10 +54,8 @@ public class BitmexHistoricMarketDataProviderTest {
     @Before
     public void init() throws ApiException, IOException {
 
-        instrumentServiceSpy = mock(InstrumentService.class);
-        doReturn(XBTUSD_INSTR).when(instrumentServiceSpy).resolveTradeableInstrument(XBTUSD_INSTR.getInstrument());
 
-        bitmexHistoricMarketDataProviderSpy = spy(new BitmexHistoricMarketDataProvider(instrumentServiceSpy));
+        bitmexHistoricMarketDataProviderSpy = spy(new BitmexHistoricMarketDataProvider());
 
         tradeBins1d = json.deserialize(Resources.toString(Resources.getResource("tradeBulkReply1d.json"), StandardCharsets.UTF_8),
             new TypeToken<List<TradeBin>>() {

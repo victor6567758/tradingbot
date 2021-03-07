@@ -63,13 +63,13 @@ $(document).ready(function () {
     });
 
 
-    startTradingEventStreaming();
-    getTradingEventsHistory();
+    startAllStreaming();
+    getHistory();
 
     $('#pair').on('change', () => {
 
         deinitVisualElements();
-        getTradingEventsHistory();
+        getHistory();
     });
 
 
@@ -77,7 +77,7 @@ $(document).ready(function () {
         resetTradingContext();
 
         deinitVisualElements();
-        getTradingEventsHistory();
+        getHistory();
 
     });
 
@@ -147,11 +147,13 @@ function roundTo(n, digits) {
 }
 
 
-function getTradingEventsHistory() {
-    fetch(`${REST_API}/history/${$("#pair").val()}`)
+function getHistory() {
+    const symbol = $("#pair").val();
+
+    fetch(`${REST_API}/history/${symbol}`)
         .then(item => item.json())
         .then(item => {
-            console.log("Config message received", item);
+            console.log("Mesh history message received", item);
 
             if (item.length > 0) {
 
@@ -163,9 +165,25 @@ function getTradingEventsHistory() {
 
             }
         });
+
+    fetch(`${REST_API}/candle/${symbol}`)
+        .then(item => item.json())
+        .then(item => {
+            console.log("Candle history message received", item);
+
+            if (item.length > 0) {
+
+                item.forEach(
+                    (candleResponse) => {
+                        populateChartWithCandleRealTimeHistory(candleResponse);
+                    }
+                );
+
+            }
+        });    
 }
 
-function startTradingEventStreaming() {
+function startAllStreaming() {
     let url = new URL(`${WA_API}`, window.location.href);
     url.protocol = url.protocol.replace('http', 'ws');
 
@@ -200,7 +218,7 @@ function startTradingEventStreaming() {
             if (symbol == candleMessage.symbol) {
                 lastConfigUpdateTime_ = new Date().getTime();
 
-                populateChartWithCandleRealTime(candleMessage);
+                populateChartWithCandleRealTimeHistory(candleMessage);
             }
 
         });
@@ -208,7 +226,7 @@ function startTradingEventStreaming() {
         stompClient_.subscribe('/topic/quotas', message => {
             let limitMessage = JSON.parse(message.body).message;
             console.log("WS quotas message received", limitMessage);
-            
+
             populateLimitsRealTime(limitMessage);
         });
     };
@@ -316,7 +334,7 @@ function populateChartWithMeshRealTimeHistory(parsedMessage) {
 
 }
 
-function populateChartWithCandleRealTime(candleResponse) {
+function populateChartWithCandleRealTimeHistory(candleResponse) {
     candleStickSeries_.update({
         time: candleResponse.dateTime / 1000,
         open: candleResponse.open,

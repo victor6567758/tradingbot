@@ -55,7 +55,7 @@ public class TradingBotConfiguration {
 
     @Bean
     public HistoricMarketDataProvider historicMarketDataProvider() {
-        return new BitmexHistoricMarketDataProvider(instrumentService);
+        return new BitmexHistoricMarketDataProvider();
     }
 
     @Bean

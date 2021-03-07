@@ -7,7 +7,6 @@ import com.tradebot.bitmex.restapi.generated.model.TradeBin;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
@@ -25,12 +24,6 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
-    private final InstrumentService instrumentService;
-
-    public BitmexHistoricMarketDataProvider(InstrumentService instrumentService) {
-        this.instrumentService = instrumentService;
-    }
-
     @Getter(AccessLevel.PACKAGE)
     private final TradeApi tradeApi = new TradeApi(
         new ApiClientAuthorizeable(bitmexAccountConfiguration.getBitmex().getApi().getKey(),
@@ -47,10 +40,19 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
 
         try {
             return getTradeApi().tradeGetBucketed(
-                BitMexGranularity.toBitmexGranularity(granularity), true, instrument.getInstrument(), null, null,
+                BitMexGranularity.toBitmexGranularity(granularity),
+                true,
+                instrument.getInstrument(),
+                null,
+                null,
                 BigDecimal.valueOf(bitmexAccountConfiguration.getBitmex().getApi().getHistoryDepth()),
-                null, true, from, to).stream().map(
-                bucket -> toCandleStick(bucket, granularity)).collect(Collectors.toList());
+                null,
+                true,
+                from,
+                to
+            ).stream()
+                .filter(bucket -> bucket.getClose() != null)
+                .map(bucket -> toCandleStick(instrument, bucket, granularity)).collect(Collectors.toList());
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -77,8 +79,9 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
                 true,
                 null,
                 null
-            ).stream().map(
-                bucket -> toCandleStick(bucket, granularity)).collect(Collectors.toList());
+            ).stream()
+                .filter(bucket -> bucket.getClose() != null)
+                .map(bucket -> toCandleStick(instrument, bucket, granularity)).collect(Collectors.toList());
 
         } catch (ApiException apiException) {
             throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
@@ -86,14 +89,14 @@ public class BitmexHistoricMarketDataProvider implements HistoricMarketDataProvi
         }
     }
 
-    private CandleStick toCandleStick(TradeBin tradeBin, CandleStickGranularity granularity) {
+    private CandleStick toCandleStick(TradeableInstrument instrument, TradeBin tradeBin, CandleStickGranularity granularity) {
         return new CandleStick(
             tradeBin.getOpen(),
             tradeBin.getHigh(),
             tradeBin.getLow(),
             tradeBin.getClose(),
             tradeBin.getTimestamp(),
-            instrumentService.resolveTradeableInstrument(tradeBin.getSymbol()),
+            instrument,
             granularity
         );
     }

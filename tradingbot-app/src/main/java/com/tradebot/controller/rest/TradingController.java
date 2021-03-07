@@ -1,7 +1,9 @@
 package com.tradebot.controller.rest;
 
+import com.tradebot.response.CandleResponse;
 import com.tradebot.response.GridContextResponse;
 import com.tradebot.service.BitmexTradingBot;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,11 @@ public class TradingController {
     @GetMapping("/history/{symbol}")
     public Set<GridContextResponse> getContextHistory(@PathVariable String symbol) {
         return bitmexTradingBot.getContextHistory(symbol);
+    }
+
+    @GetMapping("/candle/{symbol}")
+    public Collection<CandleResponse> getCandlestickHistory(@PathVariable String symbol) {
+        return bitmexTradingBot.getCandleStickHistory(symbol);
     }
 
     @GetMapping("/symbols")

@@ -33,6 +33,7 @@ import com.tradebot.response.LimitResponse;
 import com.tradebot.response.MeshEntry;
 import com.tradebot.response.websocket.DataResponseMessage;
 import com.tradebot.util.GeneralConst;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -178,6 +180,24 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
         }
     }
 
+    public Collection<CandleResponse> getCandleStickHistory(String symbol) {
+        TradeableInstrument instrument =
+            instrumentService.resolveTradeableInstrument(symbol);
+
+        return historicMarketDataProvider.getCandleSticks(instrument, CandleStickGranularity.M1,
+            bitmexAccountConfiguration.getBitmex().getApi().getHistoryDepth()).stream()
+            .map(entry -> new CandleResponse(symbol, entry.getOpenPrice(), entry.getHighPrice(), entry.getLowPrice(), entry.getClosePrice(),
+                entry.getEventDate().getMillis()))
+
+            .collect(Collector.of(
+                ArrayDeque::new,
+                (deq, t) -> deq.addFirst(t),
+                (d1, d2) -> {
+                    d2.addAll(d1);
+                    return d2;
+                }));
+    }
+
 
     @Override
     public void onTradeSolution(CandleStick candleStick, CacheCandlestick cacheCandlestick) {
@@ -211,11 +231,13 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             bitmexOrderManager.onCandleCallback(candleStick, cacheCandlestick, tradingContext);
 
             sendTradeConfig(tradingContext);
-            sendTradeCharts(candleStick);
+
 
         } finally {
             tradingContextMapLock.writeLock().unlock();
         }
+
+        sendTradeCharts(candleStick);
 
     }
 
