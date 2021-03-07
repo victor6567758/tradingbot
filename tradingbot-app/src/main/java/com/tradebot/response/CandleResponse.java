@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class CandleResponse {
 
+    private String symbol;
     private double open;
     private double high;
     private double low;

@@ -1,4 +1,3 @@
-
 const WA_API = "/websocket";
 const REST_API = "/signal";
 
@@ -14,13 +13,9 @@ let candleStickSeries_ = null;
 let lastConfigUpdateTime_ = null;
 let lastConfigUpdateTimer_ = null;
 
-let ordersExecutionMap_ = null;
 
 $(document).ready(function () {
 
-    $("#dlgTradeForLevels").dialog({
-        autoOpen: false, modal: true, show: "blind", hide: "blind"
-    });
 
 
     lastConfigUpdateTimer_ = setInterval(() => {
@@ -58,14 +53,22 @@ $(document).ready(function () {
         },
     });
 
+    candleStickSeries_ = chart_.addCandlestickSeries({
+        upColor: '#11AA11',
+        downColor: '#AA1111',
+        borderUpColor: '#11AA11',
+        borderDownColor: '#AA1111',
+        wickUpColor: '#11AA11',
+        wickDownColor: '#AA1111',
+    });
+
 
     startTradingEventStreaming();
     getTradingEventsHistory();
 
     $('#pair').on('change', () => {
 
-        lastConfigUpdateTime_ = null;
-        deinitChart();
+        deinitVisualElements();
         getTradingEventsHistory();
     });
 
@@ -73,8 +76,7 @@ $(document).ready(function () {
     $("#btnReset").button().click(() => {
         resetTradingContext();
 
-        lastConfigUpdateTime_ = null;
-        deinitChart();
+        deinitVisualElements();
         getTradingEventsHistory();
 
     });
@@ -100,16 +102,12 @@ $(document).ready(function () {
         }).then(item => console.log("Cancelled all orders", item));
     });
 
-    $("#showExecutionHistory").button().click(() => {
-        showOrderExecutionHistory();
-    });
 
     $(window).bind('resize', function () {
         adjustChartSize();
     });
 
     adjustChartSize();
-
 
 
 });
@@ -159,8 +157,7 @@ function getTradingEventsHistory() {
 
                 item.forEach(
                     (parsedMessage) => {
-                        populateChartWithConfigMessage(parsedMessage);
-                        populateOrderExecutionHistory(parsedMessage.executionResponseList);
+                        populateChartWithMeshRealTimeHistory(parsedMessage);
                     }
                 );
 
@@ -178,35 +175,63 @@ function startTradingEventStreaming() {
 
 
     stompClient_.onConnect = frame => {
+
         console.log('WS connected: ' + frame);
+        const symbol = $("#pair").val();
+
         stompClient_.subscribe('/topic/tradeconfig', message => {
             let parsedMessage = JSON.parse(message.body).message;
-            console.log("WS message received", parsedMessage);
+            console.log("WS tradecondig message received", parsedMessage);
 
-            if ($("#pair").val() == parsedMessage.symbol) {
+            if (symbol == parsedMessage.symbol) {
 
                 lastConfigUpdateTime_ = new Date().getTime();
-                populateConfigurationList(parsedMessage);
-                populateChartWithConfigMessage(parsedMessage);
+
+                populateConfigurationListRealTime(parsedMessage);
+                populateChartWithMeshRealTimeHistory(parsedMessage);
             }
 
+        });
+
+        stompClient_.subscribe('/topic/charts', message => {
+            let candleMessage = JSON.parse(message.body).message;
+            console.log("WS candle message received", candleMessage);
+
+            if (symbol == candleMessage.symbol) {
+                lastConfigUpdateTime_ = new Date().getTime();
+
+                populateChartWithCandleRealTime(candleMessage);
+            }
+
+        });
+
+        stompClient_.subscribe('/topic/quotas', message => {
+            let limitMessage = JSON.parse(message.body).message;
+            console.log("WS quotas message received", limitMessage);
+            
+            populateLimitsRealTime(limitMessage);
         });
     };
 
     stompClient_.onWebsocketClose = () => {
         onsole.log('WS Disconnected');
         stompClient_.deactivate();
-        deinitChart();
+
+        deinitVisualElements();
     }
     stompClient_.activate();
 }
 
-function populateConfigurationList(parsedMessage) {
+function populateLimitsRealTime(limitResponse) {
+    $('#ordersLimitForMin').html(limitResponse.requestLimitPerMinute);
+    $('#remainingOrdersInMin').html(limitResponse.requestRemainingWithinMinute);
+    $('#remainingOrdersInSec').html(limitResponse.requestRemainingWithin1Sec);
+    $('#waitTimeToAllowTrading').html(new Date(limitResponse.limitResetTime).toISOString());
+}
 
-    if (parsedMessage.candleResponse != null) {
-        $('#lastContextdateTime').html(new Date(parsedMessage.candleResponse.dateTime).toISOString());
-    }
+function populateConfigurationListRealTime(parsedMessage) {
 
+    $('#lastContextdateTime').html(new Date(parsedMessage.dateTime).toISOString());
 
     const symbol = $("#pair").val();
 
@@ -222,24 +247,32 @@ function populateConfigurationList(parsedMessage) {
         $('#configList').append(configHtml);
     });
 
-    if (parsedMessage.limitResponse != null) {
-        $('#ordersLimitForMin').html(parsedMessage.limitResponse.requestLimitPerMinute);
-        $('#remainingOrdersInMin').html(parsedMessage.limitResponse.requestRemainingWithinMinute);
-        $('#remainingOrdersInSec').html(parsedMessage.limitResponse.requestRemainingWithin1Sec);
-        $('#waitTimeToAllowTrading').html(new Date(parsedMessage.limitResponse.limitResetTime).toISOString());
-    } else {
-        $('#ordersLimitForMin').html('N/A');
-        $('#remainingOrdersInMin').html('N/A');
-        $('#remainingOrdersInSec').html('N/A');
-        $('#waitTimeToAllowTrading').html('N/A');
-    }
-
 }
 
-function deinitChart() {
+function deinitVisualElements() {
+    lastConfigUpdateTime_ = null;
+
+    deinitLimitApiElements();
+    deinitConfigurationElements();
+    deinitChartIndicatorSeries();
+}
+
+function deinitLimitApiElements() {
+    $('#ordersLimitForMin').html('N/A');
+    $('#remainingOrdersInMin').html('N/A');
+    $('#remainingOrdersInSec').html('N/A');
+    $('#waitTimeToAllowTrading').html('N/A');
+}
+
+function deinitConfigurationElements() {
     $('#LastServerUpdate').html('N/A');
     $('#lastContextdateTime').html('N/A');
     $('#configList').html('<span>N/A</span>');
+}
+
+
+function deinitChartIndicatorSeries() {
+    deinitConfigurationElements();
 
     if (indicatorSerieses_ != null) {
         indicatorSerieses_.forEach(series => {
@@ -248,42 +281,10 @@ function deinitChart() {
         indicatorSerieses_ = null;
     }
 
-    if (candleStickSeries_ != null) {
-        chart_.removeSeries(candleStickSeries_);
-        candleStickSeries_ = null;
-    }
 }
 
-function populateOrderExecutionHistory(orderExecutionList) {
-    ordersExecutionMap_ = orderExecutionList;
-    console.log(ordersExecutionMap_);
-}
 
-function showOrderExecutionHistory() {
-
-    //$("#dlgTradeForLevels").dialog("open");
-
-    if (ordersExecutionMap_ == null) {
-        alert('There are no orders');
-        return;
-    }
-
-    for (var entry in ordersExecutionMap_) {
-        if (ordersExecutionMap_.hasOwnProperty(entry)) {
-            let executionEntry = ordersExecutionMap_[entry];
-            console.log("Execution log", entry, executionEntry);
-
-            executionEntry.forEach((item) => {
-                console.log("Operation", item);
-            });
-        }
-    }
-
-
-
-}
-
-function initChart(size) {
+function initChartIndicatorSeries(size) {
     if (indicatorSerieses_ == null) {
         indicatorSerieses_ = [];
 
@@ -303,41 +304,26 @@ function initChart(size) {
         }
     }
 
-    if (candleStickSeries_ == null) {
-        candleStickSeries_ = chart_.addCandlestickSeries({
-            upColor: '#11AA11',
-            downColor: '#AA1111',
-            borderUpColor: '#11AA11',
-            borderDownColor: '#AA1111',
-            wickUpColor: '#11AA11',
-            wickDownColor: '#AA1111',
-        });
-    }
 }
 
 
-function populateChartWithConfigMessage(parsedMessage) {
-    initChart(parsedMessage.mesh.length);
+function populateChartWithMeshRealTimeHistory(parsedMessage) {
+    initChartIndicatorSeries(parsedMessage.mesh.length);
 
-    if (parsedMessage.candleResponse != null) {
-
-        let timeStamp = parsedMessage.candleResponse.dateTime / 1000;
-
-        for (let i = 0; i < parsedMessage.mesh.length; i++) {
-            indicatorSerieses_[i].update({ time: timeStamp, value: parsedMessage.mesh[i].meshLevel });
-        }
-
-        candleStickSeries_.update({
-            time: timeStamp,
-            open: parsedMessage.candleResponse.open,
-            high: parsedMessage.candleResponse.high,
-            low: parsedMessage.candleResponse.low,
-            close: parsedMessage.candleResponse.close
-        });
+    for (let i = 0; i < parsedMessage.mesh.length; i++) {
+        indicatorSerieses_[i].update({ time: parsedMessage.dateTime / 1000, value: parsedMessage.mesh[i].meshLevel });
     }
 
-    populateOrderExecutionHistory(parsedMessage.executionResponseList);
+}
 
+function populateChartWithCandleRealTime(candleResponse) {
+    candleStickSeries_.update({
+        time: candleResponse.dateTime / 1000,
+        open: candleResponse.open,
+        high: candleResponse.high,
+        low: candleResponse.low,
+        close: candleResponse.close
+    });
 }
 
 function disconnect() {

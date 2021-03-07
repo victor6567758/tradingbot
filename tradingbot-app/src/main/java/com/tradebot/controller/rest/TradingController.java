@@ -27,11 +27,6 @@ public class TradingController {
         return bitmexTradingBot.getLastContextList();
     }
 
-    @GetMapping("/history")
-    public Set<GridContextResponse> getContextHistory() {
-        return bitmexTradingBot.getContextHistory();
-    }
-
     @GetMapping("/last/{symbol}")
     public List<GridContextResponse> getLastContextList(@PathVariable String symbol) {
         return bitmexTradingBot.getLastContextList(symbol)

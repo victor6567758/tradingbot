@@ -150,19 +150,10 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             .collect(
                 Collectors.toCollection(
                     () -> new TreeSet<>(
-                        Comparator.comparingLong(value -> value.getCandleResponse().getDateTime()))
+                        Comparator.comparingLong(GridContextResponse::getDateTime))
                 ));
     }
 
-    public Set<GridContextResponse> getContextHistory() {
-        return tradingContextCache.asMap().values().stream()
-            .map(tradingContext -> modelMapper.map(tradingContext, GridContextResponse.class))
-            .collect(
-                Collectors.toCollection(
-                    () -> new TreeSet<>(
-                        Comparator.comparingLong(value -> value.getCandleResponse().getDateTime()))
-                ));
-    }
 
     public Set<String> getAllSymbols() {
         return super.instruments.keySet().stream().map(TradeableInstrument::getInstrument)
@@ -222,6 +213,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             bitmexOrderManager.onCandleCallback(candleStick, cacheCandlestick, tradingContext);
 
             sendTradeConfig(tradingContext);
+            sendTradeCharts(candleStick);
 
         } finally {
             tradingContextMapLock.writeLock().unlock();
@@ -279,6 +271,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             if (orderResultContext instanceof BitmexOrderQuotas) {
                 BitmexOrderQuotas bitmexOrderQuotas = (BitmexOrderQuotas) orderResultContext;
                 tradingContext.getRecalculatedTradingContext().setBitmexOrderQuotas(bitmexOrderQuotas);
+                sendBitmexLimitResponse(bitmexOrderQuotas);
                 if (log.isDebugEnabled()) {
                     log.debug("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
                 }
@@ -289,7 +282,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             }
 
             bitmexOrderManager.onOrderResultCallback(tradingContext, orderResultContext);
-            sendTradeConfig(tradingContext);
+
         } finally {
             tradingContextMapLock.writeLock().unlock();
         }
@@ -386,16 +379,58 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     }
 
     private void sendTradeConfig(TradingContext tradingContext) {
+        if (log.isDebugEnabled()) {
+            log.debug("Sending trading context to WS clients {}", tradingContext.toString());
+        }
+
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("Sending trading context to WS clients {}", tradingContext.toString());
-            }
             simpMessagingTemplate
                 .convertAndSend(GeneralConst.WS_TOPIC + GeneralConst.WS_TOPIC_PUBLISH_TRADE_CONFIG,
                     new DataResponseMessage<>(
                         modelMapper.map(tradingContext, GridContextResponse.class)));
         } catch (MessagingException messagingException) {
-            log.error("Error sending data to websockets", messagingException);
+            log.error("Error trading context to websockets", messagingException);
+        }
+    }
+
+    private void sendTradeCharts(CandleStick candleStick) {
+        if (log.isDebugEnabled()) {
+            log.debug("Sending chart to WS clients {}", candleStick.toString());
+        }
+
+        try {
+            simpMessagingTemplate
+                .convertAndSend(GeneralConst.WS_TOPIC + GeneralConst.WS_TOPIC_PUBLISH_CHARTS,
+                    new DataResponseMessage<>(
+                        new CandleResponse(
+                            candleStick.getInstrument().getInstrument(),
+                            candleStick.getOpenPrice(),
+                            candleStick.getHighPrice(),
+                            candleStick.getLowPrice(),
+                            candleStick.getClosePrice(),
+                            candleStick.getEventDate().getMillis()
+                        )));
+        } catch (MessagingException messagingException) {
+            log.error("Error sending chart to websockets", messagingException);
+        }
+    }
+
+    private void sendBitmexLimitResponse(BitmexOrderQuotas bitmexOrderQuotas) {
+        if (log.isDebugEnabled()) {
+            log.debug("Sending Bitmex order quotas to WS clients {}", bitmexOrderQuotas.toString());
+        }
+        try {
+            simpMessagingTemplate
+                .convertAndSend(GeneralConst.WS_TOPIC + GeneralConst.WS_TOPIC_QUOTAS,
+                    new DataResponseMessage<>(
+                        new LimitResponse(
+                            bitmexOrderQuotas.getXRatelimitLimit(),
+                            bitmexOrderQuotas.getXRatelimitRemaining1s(),
+                            bitmexOrderQuotas.getXRatelimitRemaining(),
+                            bitmexOrderQuotas.getXRatelimitRemaining() * 1000L
+                        )));
+        } catch (MessagingException messagingException) {
+            log.error("Error sending Bitmex order quotas to websockets", messagingException);
         }
     }
 
@@ -404,19 +439,10 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             .setFieldMatchingEnabled(true)
             .setFieldAccessLevel(Configuration.AccessLevel.PRIVATE);
 
-        Converter<CandleStick, CandleResponse> candleStickConverter = context -> {
-            CandleStick candleStick = context.getSource();
-            return candleStick != null ? new CandleResponse(
-                candleStick.getOpenPrice(),
-                candleStick.getHighPrice(),
-                candleStick.getLowPrice(),
-                candleStick.getClosePrice(),
-                candleStick.getEventDate().getMillis()
-            ) : null;
-        };
-
         Converter<TradeableInstrument, String> locationCodeConverter = context -> context.getSource()
             .getInstrument();
+
+        Converter<CandleStick, Long> dateTimeConverter = context -> context.getSource().getEventDate().getMillis();
 
         Converter<Map<Integer, TradingDecision<TradingDecisionContext>>, List<MeshEntry>> tradeDecisionMapConverter =
             context -> {
@@ -424,18 +450,6 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 return source != null ? source.values().stream()
                     .map(decision -> new MeshEntry(decision.getLimitPrice(), decision.getContext().getLevel()))
                     .collect(Collectors.toList()) : Collections.emptyList();
-            };
-
-        Converter<BitmexOrderQuotas, LimitResponse> limitResponseConverter =
-            context -> {
-                BitmexOrderQuotas source = context.getSource();
-
-                return source != null ? new LimitResponse(
-                    source.getXRatelimitLimit(),
-                    source.getXRatelimitRemaining1s(),
-                    source.getXRatelimitRemaining(),
-                    source.getXRatelimitRemaining() * 1000L
-                ) : null;
             };
 
         Converter<Map<Integer, List<BitmexExecution>>, Map<Integer, List<ExecutionResponse>>> executionResponseListConverter =
@@ -470,17 +484,16 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 using(locationCodeConverter)
                     .map(source.getImmutableTradingContext().getTradeableInstrument())
                     .setSymbol(null);
+                using(dateTimeConverter)
+                    .map(source.getRecalculatedTradingContext().getCandleStick())
+                    .setDateTime(-1L);
                 using(tradeDecisionMapConverter)
                     .map(source.getRecalculatedTradingContext().getOpenTradingDecisions())
                     .setMesh(null);
-                using(candleStickConverter).map(source.getRecalculatedTradingContext().getCandleStick())
-                    .setCandleResponse(null);
                 using(executionResponseListConverter)
                     .map(source.getRecalculatedTradingContext().getExecutionChains())
                     .setExecutionResponseList(null);
-                using(limitResponseConverter)
-                    .map(source.getRecalculatedTradingContext().getBitmexOrderQuotas())
-                    .setLimitResponse(null);
+
             }
         });
     }

@@ -7,7 +7,6 @@ import org.joda.time.DateTime;
 @Getter
 public class CandleStick {
 
-    /*All prices are average of bid and ask ,i.e (bid+ask)/2*/
     private final double openPrice;
     private final double highPrice;
     private final double lowPrice;
