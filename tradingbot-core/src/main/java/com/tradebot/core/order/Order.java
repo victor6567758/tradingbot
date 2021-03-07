@@ -90,6 +90,26 @@ public class Order<N> {
             .build();
     }
 
+    public static <N> Order<N> buildStopMarketIfTouchedOrder(
+        TradeableInstrument instrument,
+        long units,
+        TradingSignal side,
+        double stopPrice,
+        double takeProfit,
+        double stopLoss
+    ) {
+        return Order.<N>builder()
+            .instrument(instrument)
+            .units(units)
+            .side(side)
+            .type(OrderType.MARKET_IF_TOUCHED)
+            .price(0.0)
+            .takeProfit(takeProfit)
+            .stopLoss(stopLoss)
+            .stopPrice(stopPrice)
+            .build();
+    }
+
     public static <N> Order<N> buildStopLimitOrder(
         TradeableInstrument instrument,
         long units,

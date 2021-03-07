@@ -37,7 +37,7 @@ bitmex:
           - H1
           - D
         algParameters:
-          priceEnd: 48650.0
+          priceEnd: 50900.0
           currentPriceAdjustDivider: 1000.0
           xPct: 1.0008
           linesNum: 1

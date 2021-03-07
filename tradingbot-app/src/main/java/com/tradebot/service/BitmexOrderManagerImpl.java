@@ -196,12 +196,15 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         TradingContext tradingContext,
         TradingDecision<TradingDecisionContext> openTradingDecision,
         int clientOrderId) {
-        Order<String> closeOrder = Order.buildStopMarketOrder(
+
+        double profitPrice = BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
+            bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus());
+
+        Order<String> closeOrder = Order.buildStopMarketIfTouchedOrder(
             tradingContext.getImmutableTradingContext().getTradeableInstrument(),
             openTradingDecision.getUnits(),
             TradingSignal.SHORT,
-            BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-                bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
+            profitPrice,
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE
         );
