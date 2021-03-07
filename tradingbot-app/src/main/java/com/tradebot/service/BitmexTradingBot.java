@@ -51,7 +51,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.modelmapper.Converter;
@@ -73,7 +72,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final BitmexOrderManager bitmexOrderManager;
     private final AtomicBoolean tradesEnabled = new AtomicBoolean(false);
-    private final Cache<Long, TradingContext> tradingContextCache;
+    private final Cache<Long, GridContextResponse> tradingContextCache;
 
     private Map<TradeableInstrument, TradingContext> tradingContextMap;
 
@@ -145,9 +144,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     public Set<GridContextResponse> getContextHistory(String symbol) {
 
         return tradingContextCache.asMap().values().stream()
-            .filter(entry -> entry.getImmutableTradingContext().getTradeableInstrument()
-                .getInstrument().equals(symbol))
-            .map(context -> modelMapper.map(context, GridContextResponse.class))
+            .filter(entry -> entry.getSymbol().equals(symbol))
             .collect(
                 Collectors.toCollection(
                     () -> new TreeSet<>(
@@ -210,8 +207,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
             calculateVarContextParameters(account, candleStick, tradingContext);
 
-            TradingContext contextDeepCopy = (TradingContext) SerializationUtils.clone(tradingContext);
-            tradingContextCache.put(System.currentTimeMillis(), contextDeepCopy);
+            tradingContextCache.put(System.currentTimeMillis(), modelMapper.map(tradingContext, GridContextResponse.class));
             bitmexOrderManager.onCandleCallback(candleStick, cacheCandlestick, tradingContext);
 
             sendTradeConfig(tradingContext);
