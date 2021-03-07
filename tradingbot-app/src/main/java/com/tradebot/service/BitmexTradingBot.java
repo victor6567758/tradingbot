@@ -51,6 +51,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joda.time.DateTime;
 import org.modelmapper.Converter;
@@ -209,7 +210,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
             calculateVarContextParameters(account, candleStick, tradingContext);
 
-            tradingContextCache.put(System.currentTimeMillis(), tradingContext);
+            TradingContext contextDeepCopy = (TradingContext) SerializationUtils.clone(tradingContext);
+            tradingContextCache.put(System.currentTimeMillis(), contextDeepCopy);
             bitmexOrderManager.onCandleCallback(candleStick, cacheCandlestick, tradingContext);
 
             sendTradeConfig(tradingContext);
@@ -335,13 +337,11 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
             return;
         }
 
-        if (tradingContext.getRecalculatedTradingContext().isTradeEnabled()) {
-            if (!tradingContext.getRecalculatedTradingContext().isOrdersProcessingStarted()) {
-                tradingContext.getRecalculatedTradingContext().setOrdersProcessingStarted(true);
+        if (!tradingContext.getRecalculatedTradingContext().isOrdersProcessingStarted()) {
+            tradingContext.getRecalculatedTradingContext().setOrdersProcessingStarted(true);
 
-                log.info("Trading setup has started for {}", tradingContext.toString());
-                bitmexOrderManager.startOrderEvolution(tradingContext);
-            }
+            log.info("Trading setup has started for {}", tradingContext.toString());
+            bitmexOrderManager.startOrderEvolution(tradingContext);
         }
 
     }
