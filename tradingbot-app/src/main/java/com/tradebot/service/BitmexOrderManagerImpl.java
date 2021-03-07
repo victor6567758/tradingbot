@@ -160,7 +160,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                         bitmexTradingBot.setGlobalTradesEnabled(false);
                         //bitmexTradingBot.resetTradingContext();
-                        bitmexTradingBot.cancelAllPendingOrders();
+                        //bitmexTradingBot.cancelAllPendingOrders();
 
                     }
                 }
@@ -200,10 +200,11 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         double profitPrice = BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
             bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus());
 
-        Order<String> closeOrder = Order.buildStopMarketIfTouchedOrder(
+        Order<String> closeOrder = Order.buildStopLimitIfTouchedOrder(
             tradingContext.getImmutableTradingContext().getTradeableInstrument(),
             openTradingDecision.getUnits(),
             TradingSignal.SHORT,
+            profitPrice,
             profitPrice,
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE

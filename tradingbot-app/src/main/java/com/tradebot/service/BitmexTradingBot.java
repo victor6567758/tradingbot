@@ -365,27 +365,32 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
     }
 
     private void initializeDetails() {
-        tradingContextMap = algParameters.entrySet()
-            .stream()
-            .map(
-                entry -> new ImmutablePair<>(
-                    entry.getKey(),
-                    new TradingContext(ImmutableTradingContext.builder()
-                        .xPct((Double) entry.getValue().get("xPct"))
-                        .currentPriceAdjustDivider(
-                            (Double) entry.getValue().get("currentPriceAdjustDivider"))
-                        .priceEnd((Double) entry.getValue().get("priceEnd"))
-                        .linesNum((Integer) entry.getValue().get("linesNum"))
-                        .orderPosUnits((Integer) entry.getValue().get("orderPosUnits"))
-                        .reportCurrency((String) entry.getValue().get("reportCurrency"))
-                        .tradeableInstrument(entry.getKey())
-                        .reportExchangePair(
-                            createReportExchangePair((String) entry.getValue().get("reportCurrency")))
-                        .build(), new RecalculatedTradingContext())
-                )
-            ).collect(Collectors.toMap(
-                ImmutablePair::getLeft,
-                ImmutablePair::getRight));
+        try {
+            tradingContextMap = algParameters.entrySet()
+                .stream()
+                .map(
+                    entry -> new ImmutablePair<>(
+                        entry.getKey(),
+                        new TradingContext(ImmutableTradingContext.builder()
+                            .xPct((Double) entry.getValue().get("xPct"))
+                            .currentPriceAdjustDivider(
+                                (Double) entry.getValue().get("currentPriceAdjustDivider"))
+                            .priceEnd((Double) entry.getValue().get("priceEnd"))
+                            .linesNum((Integer) entry.getValue().get("linesNum"))
+                            .orderPosUnits((Integer) entry.getValue().get("orderPosUnits"))
+                            .reportCurrency((String) entry.getValue().get("reportCurrency"))
+                            .tradeableInstrument(entry.getKey())
+                            .reportExchangePair(
+                                createReportExchangePair((String) entry.getValue().get("reportCurrency")))
+                            .build(), new RecalculatedTradingContext())
+                    )
+                ).collect(Collectors.toMap(
+                    ImmutablePair::getLeft,
+                    ImmutablePair::getRight));
+        } catch (RuntimeException runtimeException) {
+            log.error("Check the format of input parameters, it is not parsable", runtimeException);
+            tradingContextMap = Collections.emptyMap();
+        }
     }
 
     private String createReportExchangePair(String reportCurrency) {

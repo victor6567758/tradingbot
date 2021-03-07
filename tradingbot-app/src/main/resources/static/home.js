@@ -255,7 +255,7 @@ function populateConfigurationListRealTime(parsedMessage) {
 
     $('#configList').empty();
     parsedMessage.mesh.forEach((item, idx) => {
-        console.log('mesh element', item);
+
         let configHtml = `
             <div class="tradeconfig">
                 <div class="price">${roundTo(item.meshLevel, 3)}</div>
