@@ -4,6 +4,7 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
+import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.ExecutionType;
 import com.tradebot.core.TradingDecision;
 import com.tradebot.core.TradingSignal;
@@ -158,7 +159,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                         removeClientOrder(bitmexExecution.getClOrdID());
 
                         bitmexTradingBot.setGlobalTradesEnabled(false);
-                        bitmexTradingBot.resetTradingContext();
+                        //bitmexTradingBot.resetTradingContext();
                         bitmexTradingBot.cancelAllPendingOrders();
 
                     }
@@ -193,22 +194,14 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     private void commandToOpenCloseOrder(
         BitmexExecution bitmexExecution,
         TradingContext tradingContext,
-        TradingDecision openTradingDecision,
+        TradingDecision<TradingDecisionContext> openTradingDecision,
         int clientOrderId) {
-//        Order<String> closeOrder = Order.buildStopMarketOrder(
-//            tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-//            openTradingDecision.getUnits(),
-//            TradingSignal.SHORT,
-//            BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-//                bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
-//            CommonConsts.INVALID_PRICE,
-//            CommonConsts.INVALID_PRICE
-//        );
-
-        Order<String> closeOrder = Order.buildMarketOrder(
+        Order<String> closeOrder = Order.buildStopMarketOrder(
             tradingContext.getImmutableTradingContext().getTradeableInstrument(),
             openTradingDecision.getUnits(),
             TradingSignal.SHORT,
+            BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
+                bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus()),
             CommonConsts.INVALID_PRICE,
             CommonConsts.INVALID_PRICE
         );
@@ -218,7 +211,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
         // TODO - still need to check the validity of bitmexExecution.getLastPx()
         log.info("About to submit closing SHORT order {}, execution price for calculation the target is {}, profit plus {}",
-            closeOrder.toString(), bitmexExecution.getLastPx(),
+            closeOrder.toString(),
+            bitmexExecution.getLastPx(),
             tradingContext.getRecalculatedTradingContext().getProfitPlus());
         orderExecutionEngine.submit(closeOrder);
     }

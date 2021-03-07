@@ -20,7 +20,9 @@
         <td><b>Order Type</b></td>
         <td><b>Execution Type</b></td>
         <td><b>Order Status</b></td>
-        <td><b>Execution Price</b></td>
+        <td><b>Last Price</b></td>
+        <td><b>Price</b></td>
+        <td><b>Stop Price</b></td>
         <td><b>Lots</b></td>
         <td><b>Original Order ID</b></td>
       </tr>
@@ -33,7 +35,9 @@
         <td th:text="${execution.ordType}"></td>
         <td th:text="${execution.execType}"></td>
         <td th:text="${execution.ordStatus}"></td>
-        <td th:text="${execution.execPrice}"></td>
+        <td th:text="${execution.lastPx}"></td>
+        <td th:text="${execution.price}"></td>
+        <td th:text="${execution.stopPx}"></td>
         <td th:text="${execution.lots}"></td>
         <td th:text="${execution.originalOrderId}"></td>
       </tr>

@@ -4,13 +4,11 @@ import com.tradebot.core.ExecutionType;
 import com.tradebot.core.TradingSignal;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.order.OrderType;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 public class ExecutionResponse {
 
     private long dateTime;
@@ -23,7 +21,11 @@ public class ExecutionResponse {
 
     private OrderStatus ordStatus;
 
-    double execPrice;
+    private double lastPx;
+
+    private double price;
+
+    private double stopPx;
 
     private long lots;
 

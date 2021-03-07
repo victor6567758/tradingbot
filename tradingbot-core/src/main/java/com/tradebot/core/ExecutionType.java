@@ -10,6 +10,8 @@ public enum ExecutionType {
 
     TRADE("Trade"),
 
+    TRIGGRED_OR_ACTIVATED_BY_SYSTEM("TriggeredOrActivatedBySystem"),
+
     REJECTED("Rejected"),
 
     CANCELLED("Canceled"),

@@ -20,6 +20,10 @@ public class BitmexOrder {
 
     private double price;
 
+    private double stopPx;
+
+    private double avgPx;
+
     //Valid options: Buy, Sell.
     private TradingSignal side;
 

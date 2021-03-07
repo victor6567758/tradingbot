@@ -202,7 +202,12 @@ function startTradingEventStreaming() {
 }
 
 function populateConfigurationList(parsedMessage) {
-    $('#lastContextdateTime').html(new Date(parsedMessage.candleResponse.dateTime).toISOString());
+
+    if (parsedMessage.candleResponse != null) {
+        $('#lastContextdateTime').html(new Date(parsedMessage.candleResponse.dateTime).toISOString());
+    }
+
+
     const symbol = $("#pair").val();
 
     $('#configList').empty();
@@ -314,19 +319,22 @@ function initChart(size) {
 function populateChartWithConfigMessage(parsedMessage) {
     initChart(parsedMessage.mesh.length);
 
-    let timeStamp = parsedMessage.candleResponse.dateTime / 1000;
+    if (parsedMessage.candleResponse != null) {
 
-    for (let i = 0; i < parsedMessage.mesh.length; i++) {
-        indicatorSerieses_[i].update({ time: timeStamp, value: parsedMessage.mesh[i].meshLevel });
+        let timeStamp = parsedMessage.candleResponse.dateTime / 1000;
+
+        for (let i = 0; i < parsedMessage.mesh.length; i++) {
+            indicatorSerieses_[i].update({ time: timeStamp, value: parsedMessage.mesh[i].meshLevel });
+        }
+
+        candleStickSeries_.update({
+            time: timeStamp,
+            open: parsedMessage.candleResponse.open,
+            high: parsedMessage.candleResponse.high,
+            low: parsedMessage.candleResponse.low,
+            close: parsedMessage.candleResponse.close
+        });
     }
-
-    candleStickSeries_.update({
-        time: timeStamp,
-        open: parsedMessage.candleResponse.open,
-        high: parsedMessage.candleResponse.high,
-        low: parsedMessage.candleResponse.low,
-        close: parsedMessage.candleResponse.close
-    });
 
     populateOrderExecutionHistory(parsedMessage.executionResponseList);
 

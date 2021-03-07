@@ -406,13 +406,13 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
 
         Converter<CandleStick, CandleResponse> candleStickConverter = context -> {
             CandleStick candleStick = context.getSource();
-            return new CandleResponse(
+            return candleStick != null ? new CandleResponse(
                 candleStick.getOpenPrice(),
                 candleStick.getHighPrice(),
                 candleStick.getLowPrice(),
                 candleStick.getClosePrice(),
                 candleStick.getEventDate().getMillis()
-            );
+            ) : null;
         };
 
         Converter<TradeableInstrument, String> locationCodeConverter = context -> context.getSource()
@@ -445,15 +445,18 @@ public class BitmexTradingBot extends BitmexTradingBotBase {
                 return source != null ? source.entrySet().stream()
                     .map(entry -> new ImmutablePair<>(entry.getKey(),
                         entry.getValue().stream().map(bitmexExecution ->
-                            new ExecutionResponse(
-                                bitmexExecution.getTimestamp().getMillis(),
-                                bitmexExecution.getSide(),
-                                bitmexExecution.getOrdType(),
-                                bitmexExecution.getExecType(),
-                                bitmexExecution.getOrdStatus(),
-                                bitmexExecution.getLastPx(),
-                                bitmexExecution.getOrderQty(),
-                                bitmexExecution.getOrderID())
+                            ExecutionResponse.builder()
+                                .lots(bitmexExecution.getOrderQty())
+                                .ordStatus(bitmexExecution.getOrdStatus())
+                                .execType(bitmexExecution.getExecType())
+                                .ordType(bitmexExecution.getOrdType())
+                                .dateTime(bitmexExecution.getTimestamp().getMillis())
+                                .lastPx(bitmexExecution.getLastPx())
+                                .originalOrderId(bitmexExecution.getOrderID())
+                                .price(bitmexExecution.getPrice())
+                                .stopPx(bitmexExecution.getStopPx())
+                                .side(bitmexExecution.getSide())
+                                .build()
                         ).collect(Collectors.toList())
                     ))
                     .collect(Collectors.toMap(

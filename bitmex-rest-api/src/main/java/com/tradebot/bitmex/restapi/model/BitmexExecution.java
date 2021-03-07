@@ -26,6 +26,8 @@ public class BitmexExecution {
 
     private double price;
 
+    private double stopPx;
+
     private long orderQty;
 
     //Valid options: Buy, Sell.
