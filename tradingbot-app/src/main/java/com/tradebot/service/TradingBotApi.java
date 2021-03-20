@@ -1,20 +1,21 @@
 package com.tradebot.service;
 
 import com.tradebot.response.CandleResponse;
-import com.tradebot.response.GridContextResponse;
+import com.tradebot.response.ExecutionResponse;
+import com.tradebot.response.MeshResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public interface TradingBotRestApi {
+public interface TradingBotApi {
 
-  Map<String, GridContextResponse> getLastContextList();
+  Map<String, MeshResponse> getLastMesh();
 
-  Optional<GridContextResponse> getLastContextList(String symbol);
+  Optional<MeshResponse> getLastMesh(String symbol);
 
-  Set<GridContextResponse> getContextHistory(String symbol);
+  Set<MeshResponse> getMeshHistory(String symbol);
 
   Set<String> getAllSymbols();
 
@@ -25,5 +26,7 @@ public interface TradingBotRestApi {
   void resetTradingContext();
 
   Collection<CandleResponse> getCandleStickHistory(String symbol);
+
+  List<ExecutionResponse> getLastExecutionResponseList(String symbol, int level);
 
 }

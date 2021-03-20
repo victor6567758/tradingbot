@@ -1,8 +1,6 @@
 const WA_API = "/websocket";
 const REST_API = "/signal";
 
-// const WS_QUOT_API = 'wss://fstream.binance.com/ws';
-// const FUT_QUOT_API = 'https://fabi.binance.com';
 
 let stompClient_ = null;
 let chart_ = null;
@@ -197,15 +195,15 @@ function startAllStreaming() {
         console.log('WS connected: ' + frame);
         const symbol = $("#pair").val();
 
-        stompClient_.subscribe('/topic/tradeconfig', message => {
+        stompClient_.subscribe('/topic/meshconfig', message => {
             let parsedMessage = JSON.parse(message.body).message;
-            console.log("WS tradecondig message received", parsedMessage);
+            console.log("WS mesh message received", parsedMessage);
 
             if (symbol == parsedMessage.symbol) {
 
                 lastConfigUpdateTime_ = new Date().getTime();
 
-                populateConfigurationListRealTime(parsedMessage);
+                populateMeshListRealTime(parsedMessage);
                 populateChartWithMeshRealTimeHistory(parsedMessage);
             }
 
@@ -247,8 +245,8 @@ function populateLimitsRealTime(limitResponse) {
     $('#waitTimeToAllowTrading').html(new Date(limitResponse.limitResetTime).toISOString());
 }
 
-function populateConfigurationListRealTime(parsedMessage) {
-
+function populateMeshListRealTime(parsedMessage) {
+  
     $('#lastContextdateTime').html(new Date(parsedMessage.dateTime).toISOString());
 
     const symbol = $("#pair").val();
@@ -326,6 +324,7 @@ function initChartIndicatorSeries(size) {
 
 
 function populateChartWithMeshRealTimeHistory(parsedMessage) {
+    
     initChartIndicatorSeries(parsedMessage.mesh.length);
 
     for (let i = 0; i < parsedMessage.mesh.length; i++) {
@@ -350,22 +349,3 @@ function disconnect() {
     }
 }
 
-// function setHistoryCandles(pair, interval) {
-//     fetch(`${FUT_QUOT_API}/fapi/v1/klines?symbol=${pair}&interval=${interval}&limit=1500`,
-//         {
-//             mode: 'no-cors',
-//         })
-//         .then(resp => resp.json())
-//         .then(candlesArr => candlestickSeries_.setData(
-//             candlesArr.map(([time, open, high, low, close]) =>
-//                 ({ time: time / 1000, open, high, low, close }))
-//         ));
-// }
-
-// function streamCandles(pair, interval) {
-//     candleStream = new WebSocket(`${WS_QUOT_API}/${pair.toLowerCase()}@kline_${interval}`);
-//     candleStream.onmessage = event => {
-//         const { t: time, o: open, h: high, l: low, c: close } = JSON.parse(event.data).k;
-//         candlestickSeries_.update({ time: time / 1000, open, high, low, close });
-//     };
-// }

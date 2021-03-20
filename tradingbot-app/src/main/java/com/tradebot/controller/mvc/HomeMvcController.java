@@ -1,8 +1,7 @@
 package com.tradebot.controller.mvc;
 
 import com.tradebot.response.ExecutionResponse;
-import com.tradebot.response.GridContextResponse;
-import com.tradebot.service.BitmexTradingBot;
+import com.tradebot.service.TradingBotApi;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class HomeMvcController {
 
-    private final BitmexTradingBot bitmexTradingBot;
+    private final TradingBotApi tradingBotApi;
 
     private final Environment environment;
 
@@ -29,7 +28,7 @@ public class HomeMvcController {
     @GetMapping("/")
     public String homePage(Model model) {
         model.addAttribute("appName", appName);
-        model.addAttribute("symbolList", bitmexTradingBot.getAllSymbols());
+        model.addAttribute("symbolList", tradingBotApi.getAllSymbols());
         model.addAttribute("buildVersion", createBuildInfo());
         model.addAttribute("activeProfiles", String.join(", ", environment.getActiveProfiles()));
 
@@ -40,18 +39,12 @@ public class HomeMvcController {
     public String levelInfo(Model model, @RequestParam int level, @RequestParam String symbol) {
         model.addAttribute("level", level);
 
-        GridContextResponse gridContextResponse = bitmexTradingBot.getLastContextList().get(symbol);
-        if (gridContextResponse == null) {
-            throw new IllegalArgumentException("Invalid symbol");
-        }
-
-        List<ExecutionResponse> levelExecutions = gridContextResponse.getExecutionResponseList().get(level);
+        List<ExecutionResponse> levelExecutions = tradingBotApi.getLastExecutionResponseList(symbol, level);
         if (levelExecutions == null) {
             throw new IllegalArgumentException("Invalid data for passed level");
         }
 
         model.addAttribute("levelExecutions", levelExecutions);
-
         return "levelinfo";
     }
 

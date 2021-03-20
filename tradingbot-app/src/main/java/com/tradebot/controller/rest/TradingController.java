@@ -1,8 +1,8 @@
 package com.tradebot.controller.rest;
 
 import com.tradebot.response.CandleResponse;
-import com.tradebot.response.GridContextResponse;
-import com.tradebot.service.TradingBotRestApi;
+import com.tradebot.response.MeshResponse;
+import com.tradebot.service.TradingBotApi;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -22,22 +22,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TradingController {
 
-  private final TradingBotRestApi tradingBotRestApi;
+  private final TradingBotApi tradingBotRestApi;
 
   @GetMapping("/last")
-  public Map<String, GridContextResponse> getLastContextList() {
-    return tradingBotRestApi.getLastContextList();
+  public Map<String, MeshResponse> getLastMesh() {
+    return tradingBotRestApi.getLastMesh();
   }
 
   @GetMapping("/last/{symbol}")
-  public List<GridContextResponse> getLastContextList(@PathVariable String symbol) {
-    return tradingBotRestApi.getLastContextList(symbol)
+  public List<MeshResponse> getLastMesh(@PathVariable String symbol) {
+    return tradingBotRestApi.getLastMesh(symbol)
         .map(Collections::singletonList).orElse(Collections.emptyList());
   }
 
   @GetMapping("/history/{symbol}")
-  public Set<GridContextResponse> getContextHistory(@PathVariable String symbol) {
-    return tradingBotRestApi.getContextHistory(symbol);
+  public Set<MeshResponse> getMeshHistory(@PathVariable String symbol) {
+    return tradingBotRestApi.getMeshHistory(symbol);
   }
 
   @GetMapping("/candle/{symbol}")

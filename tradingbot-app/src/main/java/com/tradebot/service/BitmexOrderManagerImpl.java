@@ -149,13 +149,11 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                 } else {
                     log.info("Short filled {}", resolvedLevel);
 
-
-
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == 0)) {
                         log.info("Short volume reached the level to stop the trade {}", resolvedLevel);
                         removeClientOrder(bitmexExecution.getClOrdID());
 
-                        // level 0 - need to restart trdaing
+                        // level 0 - need to restart trading
                         // other levels need to repeat level scenario
                         if (resolvedLevel == 0) {
                             log.info("Restart trading");

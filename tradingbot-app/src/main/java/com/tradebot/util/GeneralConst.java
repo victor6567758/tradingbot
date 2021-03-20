@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class GeneralConst {
-    public static final String WS_TOPIC_PUBLISH_TRADE_CONFIG = "/tradeconfig";
+    public static final String WS_TOPIC_PUBLISH_MESH_CONFIG = "/meshconfig";
     public static final String WS_TOPIC_PUBLISH_CHARTS = "/charts";
     public static final String WS_TOPIC_QUOTAS = "/quotas";
 
