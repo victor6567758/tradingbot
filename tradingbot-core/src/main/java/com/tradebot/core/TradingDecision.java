@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 @Getter
-@ToString
+@ToString(exclude = {"context"})
 @Builder
 public class TradingDecision<C> {
 

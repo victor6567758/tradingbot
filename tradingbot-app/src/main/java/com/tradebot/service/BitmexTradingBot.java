@@ -246,8 +246,9 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
     @Override
     public void onTradeSolution(CandleStick candleStick, CacheCandlestick cacheCandlestick) {
-        if (candleStick.getCandleGranularity() == CandleStickGranularity.M1) {
-            log.info("Trade solution detected on this candle {}", candleStick.toString());
+        if (candleStick.getCandleGranularity() != CandleStickGranularity.M1) {
+            log.info("Trade solution cannot be detected in other interval than M1");
+            return;
         }
 
         Account<Long> account = accountDataProvider
@@ -264,13 +265,13 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
             if (!tradingContext.getRecalculatedTradingContext().isOneTimeInitialized()) {
                 tradingContext.getRecalculatedTradingContext().setOneTimeInitialized(true);
-                calculateInitialContextParameters(account, candleStick, tradingContext);
+                calculateParametersOnce(account, candleStick, tradingContext);
                 if (log.isDebugEnabled()) {
                     log.debug("Initial context setup is done: {}", tradingContext.toString());
                 }
             }
 
-            calculateVarContextParameters(account, candleStick, tradingContext);
+            calculateParametersPerCandle(account, candleStick, tradingContext);
 
             meshCache.put(System.currentTimeMillis(),
                 modelMapper.map(tradingContext, MeshResponse.class));
@@ -355,7 +356,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
 
     @SneakyThrows
-    private void calculateInitialContextParameters(
+    private void calculateParametersOnce(
         Account<Long> account,
         CandleStick candleStick,
         TradingContext tradingContext) {
@@ -389,7 +390,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
     }
 
-    private void calculateVarContextParameters(
+    private void calculateParametersPerCandle(
         Account<Long> account,
         CandleStick candleStick,
         TradingContext tradingContext) {

@@ -87,8 +87,14 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void startOrderEvolution(TradingContext tradingContext) {
-        tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(
-            this::submitDecisionHelper);
+
+        log.info(">>>> START EVOLUTION >>>>");
+        log.info("Profit plus {}", tradingContext.getRecalculatedTradingContext().getProfitPlus());
+        tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
+            log.info("Trading decision {}, {}", decision.getContext().getLevel(), decision.toString());
+            submitDecisionHelper(decision);
+        });
+        log.info(">>>>>>>>>>>>>>>");
     }
 
     @Override
@@ -108,7 +114,6 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     public void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event) {
         BitmexExecution bitmexExecution = event.getPayLoad();
         log.info("Order execution callback {}", bitmexExecution.toString());
-
 
         int resolvedLevel = resolveClientLevel(bitmexExecution, tradingContext, event);
         if (resolvedLevel < 0) {
@@ -162,7 +167,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                             bitmexTradingBot.cancelAllPendingOrders();
                             bitmexTradingBot.resetTradingContext();
                         } else {
-                            log.info("Restart level only");
+                            log.info("Restart level only {}", resolvedLevel);
                             submitDecisionHelper(openTradingDecision);
                         }
                     }
