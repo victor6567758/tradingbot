@@ -1,8 +1,8 @@
 package com.tradebot.model;
 
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
-import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
-import com.tradebot.core.TradingDecision;
+import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
+import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import java.util.HashMap;
 import java.util.List;
@@ -26,5 +26,5 @@ public class RecalculatedTradingContext {
   private final Map<Integer, List<BitmexExecution>> executionChains = new HashMap<>();
   private boolean ordersProcessingStarted;
   private boolean oneTimeInitialized;
-  private BitmexOrderQuotas bitmexOrderQuotas;
+  private BitmexOperationQuotas<?> bitmexOrderQuotas;
 }

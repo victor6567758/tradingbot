@@ -8,12 +8,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.tradebot.core.model.OperationResultContext;
 import java.util.Collection;
 
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.instrument.TradeableInstrument;
 
@@ -26,8 +27,8 @@ public class OrderInfoServiceTest<N> {
 		OrderInfoService<Long, Long> service = new OrderInfoService<>(orderManagementProvider);
 
 		Collection<Order<Long>> orders = createOrders();
-		OrderResultContext<Collection<Order<Long>>> orderResultsList = new OrderResultContext<>(orders);
-		OrderResultContext<Order<Long>> orderResult = new OrderResultContext<>(orders.iterator().next());
+		OperationResultContext<Collection<Order<Long>>> orderResultsList = new OperationResultContext<>(orders);
+		OperationResultContext<Order<Long>> orderResult = new OperationResultContext<>(orders.iterator().next());
 
 		when(orderManagementProvider.allPendingOrders()).thenReturn(orderResultsList);
 		when(orderManagementProvider.pendingOrdersForAccount(TradingTestConstants.ACCOUNT_ID_1))

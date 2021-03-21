@@ -8,9 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
-import com.tradebot.core.BaseTradingConfig;
-import com.tradebot.core.TradingConstants;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.BaseTradingConfig;
+import com.tradebot.core.utils.TradingConstants;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;

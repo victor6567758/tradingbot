@@ -13,7 +13,7 @@ package com.tradebot.bitmex.restapi.trade.utils;
 //import com.tradebot.bitmex.restapi.events.payload.TradeEventPayLoad;
 //import com.tradebot.bitmex.restapi.events.TradeEvents;
 //import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-//import com.tradebot.core.TradingSignal;
+//import com.tradebot.core.model.TradingSignal;
 //import com.tradebot.core.order.OrderType;
 //import org.junit.Test;
 //

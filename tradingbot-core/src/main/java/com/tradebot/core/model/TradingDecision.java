@@ -1,4 +1,4 @@
-package com.tradebot.core;
+package com.tradebot.core.model;
 
 import com.tradebot.core.instrument.TradeableInstrument;
 import lombok.Builder;

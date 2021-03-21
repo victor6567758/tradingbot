@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.tradebot.core.BaseTradingConfig;
+import com.tradebot.core.model.BaseTradingConfig;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.helper.ProviderHelper;
 import com.tradebot.core.instrument.InstrumentDataProvider;

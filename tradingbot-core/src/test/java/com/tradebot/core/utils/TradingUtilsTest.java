@@ -20,8 +20,7 @@ import org.apache.http.StatusLine;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import com.tradebot.core.TradingConstants;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.TradingTestConstants;
 
 import static org.assertj.core.api.Assertions.assertThat;

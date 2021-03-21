@@ -6,10 +6,8 @@ import com.google.common.eventbus.EventBus;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
-import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
+import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.TradingDecision;
-import com.tradebot.core.TradingSignal;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.helper.CacheCandlestick;
@@ -19,8 +17,10 @@ import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
+import com.tradebot.core.model.OperationResultContext;
+import com.tradebot.core.model.TradingDecision;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.order.Order;
-import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.ImmutableTradingContext;
 import com.tradebot.model.RecalculatedTradingContext;
@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -326,28 +327,28 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
     }
 
     @Override
-    public void onOrderResult(OrderResultContext<String> orderResultContext) {
-        TradeableInstrument instrument =
-            instrumentService.resolveTradeableInstrument(orderResultContext.getSymbol());
+    public void onOrderResult(OperationResultContext<String> operationResultContext) {
 
         tradingContextMapLock.writeLock().lock();
         try {
-            TradingContext tradingContext = tradingContextMap.get(instrument);
+            for (Entry<TradeableInstrument, TradingContext> entry : tradingContextMap.entrySet()) {
+                TradingContext tradingContext = entry.getValue();
 
-            if (orderResultContext instanceof BitmexOrderQuotas) {
-                BitmexOrderQuotas bitmexOrderQuotas = (BitmexOrderQuotas) orderResultContext;
-                tradingContext.getRecalculatedTradingContext().setBitmexOrderQuotas(bitmexOrderQuotas);
-                sendBitmexLimitResponse(bitmexOrderQuotas);
-                if (log.isDebugEnabled()) {
-                    log.debug("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
+                if (operationResultContext instanceof BitmexOperationQuotas) {
+                    BitmexOperationQuotas<?> bitmexOrderQuotas = (BitmexOperationQuotas<?>) operationResultContext;
+                    tradingContext.getRecalculatedTradingContext().setBitmexOrderQuotas(bitmexOrderQuotas);
+                    sendBitmexLimitResponse(bitmexOrderQuotas);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Order result callback {}", operationResultContext.toString());
+                    }
                 }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Order result callback {}", orderResultContext.toString());
-                }
+
             }
-
-            bitmexOrderManager.onOrderResultCallback(tradingContext, orderResultContext);
 
         } finally {
             tradingContextMapLock.writeLock().unlock();
@@ -402,10 +403,11 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
         }
 
         if (!tradingContext.getRecalculatedTradingContext().isOrdersProcessingStarted()) {
-            tradingContext.getRecalculatedTradingContext().setOrdersProcessingStarted(true);
 
-            log.info("Trading setup has started for {}", tradingContext.toString());
-            bitmexOrderManager.startOrderEvolution(tradingContext);
+            boolean result = bitmexOrderManager.startOrderEvolution(tradingContext);
+            tradingContext.getRecalculatedTradingContext().setOrdersProcessingStarted(result);
+
+            log.info("Trading setup attempt for {} with result {}", tradingContext.toString(), result);
         }
 
     }
@@ -484,7 +486,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
         }
     }
 
-    private void sendBitmexLimitResponse(BitmexOrderQuotas bitmexOrderQuotas) {
+    private void sendBitmexLimitResponse(BitmexOperationQuotas bitmexOrderQuotas) {
         if (log.isDebugEnabled()) {
             log.debug("Sending Bitmex order quotas to WS clients {}", bitmexOrderQuotas.toString());
         }
@@ -496,7 +498,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
                             bitmexOrderQuotas.getXRatelimitLimit(),
                             bitmexOrderQuotas.getXRatelimitRemaining1s(),
                             bitmexOrderQuotas.getXRatelimitRemaining(),
-                            bitmexOrderQuotas.getXRatelimitRemaining() * 1000L
+                            bitmexOrderQuotas.getXRatelimitReset()
                         )));
         } catch (MessagingException messagingException) {
             log.error("Error sending Bitmex order quotas to websockets", messagingException);

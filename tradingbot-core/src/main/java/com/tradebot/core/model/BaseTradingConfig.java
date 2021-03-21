@@ -1,4 +1,4 @@
-package com.tradebot.core;
+package com.tradebot.core.model;
 
 import lombok.Getter;
 import lombok.Setter;

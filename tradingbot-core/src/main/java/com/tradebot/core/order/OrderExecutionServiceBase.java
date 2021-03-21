@@ -1,6 +1,7 @@
 package com.tradebot.core.order;
 
-import com.tradebot.core.TradingDecision;
+import com.tradebot.core.model.TradingDecision;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.utils.CommonUtils;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +48,7 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
             return Optional.empty();
         }
 
-        OrderResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
+        OperationResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
         order.setOrderId(result.getData());
 
         orderExecutionServiceCallback.onOrderResult(result);
@@ -67,7 +68,7 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
 
         List<Order<N>> ordersGenerated = createOrderListFromDecision(decision);
         ordersGenerated.forEach(order -> {
-            OrderResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
+            OperationResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
             order.setOrderId(result.getData());
 
             orderExecutionServiceCallback.onOrderResult(result);

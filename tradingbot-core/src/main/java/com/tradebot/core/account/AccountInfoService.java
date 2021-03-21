@@ -1,6 +1,6 @@
 package com.tradebot.core.account;
 
-import com.tradebot.core.BaseTradingConfig;
+import com.tradebot.core.model.BaseTradingConfig;
 import com.tradebot.core.helper.ProviderHelper;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;

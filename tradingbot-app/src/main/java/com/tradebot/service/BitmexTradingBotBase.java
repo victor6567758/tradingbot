@@ -26,7 +26,7 @@ import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
-import com.tradebot.core.order.OrderResultContext;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.streaming.events.EventsStreamingService;
 import com.tradebot.core.streaming.marketdata.MarketDataStreamingService;
 import com.tradebot.event.callback.MarketDataPayLoadSinkCallback;
@@ -196,7 +196,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
     public abstract void onTradeSolution(Price price,
         Cache<DateTime, Price> instrumentRecentPricesCache);
 
-    public abstract void onOrderResult(OrderResultContext<String> orderResultContext);
+    public abstract void onOrderResult(OperationResultContext<String> operationResultContext);
 
     private void initInternalCaches() {
         for (TradeableInstrument instrument : instruments.keySet()) {

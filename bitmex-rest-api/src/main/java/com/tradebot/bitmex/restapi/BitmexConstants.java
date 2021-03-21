@@ -1,6 +1,6 @@
 package com.tradebot.bitmex.restapi;
 
-import com.tradebot.core.TradingConstants;
+import com.tradebot.core.utils.TradingConstants;
 import lombok.experimental.UtilityClass;
 
 

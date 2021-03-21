@@ -242,7 +242,7 @@ function populateLimitsRealTime(limitResponse) {
     $('#ordersLimitForMin').html(limitResponse.requestLimitPerMinute);
     $('#remainingOrdersInMin').html(limitResponse.requestRemainingWithinMinute);
     $('#remainingOrdersInSec').html(limitResponse.requestRemainingWithin1Sec);
-    $('#waitTimeToAllowTrading').html(new Date(limitResponse.limitResetTime).toISOString());
+    $('#waitTimeToAllowTrading').html(limitResponse.limitResetTime);
 }
 
 function populateMeshListRealTime(parsedMessage) {

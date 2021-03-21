@@ -1,8 +1,8 @@
 package com.tradebot.bitmex.restapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.tradebot.core.ExecutionType;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.ExecutionType;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.order.OrderType;
 import lombok.Data;

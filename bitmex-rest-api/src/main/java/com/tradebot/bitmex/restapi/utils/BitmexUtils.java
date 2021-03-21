@@ -3,9 +3,14 @@ package com.tradebot.bitmex.restapi.utils;
 import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
+import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
@@ -13,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
@@ -125,5 +131,24 @@ public class BitmexUtils {
             apiException.getResponseBody());
     }
 
+    public static <N, R> void prepareResult(ApiResponse<N> apiResponse, BitmexOperationQuotas<R> result) {
+        result.setXRatelimitLimit(getIntHeaderValue("x-ratelimit-limit", apiResponse.getHeaders()));
+        result.setXRatelimitRemaining(getIntHeaderValue("x-ratelimit-remaining", apiResponse.getHeaders()));
+        result.setXRatelimitReset(getIntHeaderValue("x-ratelimit-reset", apiResponse.getHeaders()) * 1000L);
+        result.setXRatelimitRemaining1s(getIntHeaderValue("x-ratelimit-remaining-1s", apiResponse.getHeaders()));
+    }
+
+    public static <N, R> BitmexOperationQuotas<R> prepareResultReturned(ApiResponse<N> apiResponse, BitmexOperationQuotas<R> result) {
+        result.setXRatelimitLimit(getIntHeaderValue("x-ratelimit-limit", apiResponse.getHeaders()));
+        result.setXRatelimitRemaining(getIntHeaderValue("x-ratelimit-remaining", apiResponse.getHeaders()));
+        result.setXRatelimitReset(getIntHeaderValue("x-ratelimit-reset", apiResponse.getHeaders()) * 1000L);
+        result.setXRatelimitRemaining1s(getIntHeaderValue("x-ratelimit-remaining-1s", apiResponse.getHeaders()));
+
+        return result;
+    }
+
+    public static int getIntHeaderValue(String name, Map<String, List<String>> headers) {
+        return NumberUtils.toInt(headers.getOrDefault(name, Collections.singletonList("-1")).get(0), -1);
+    }
 
 }

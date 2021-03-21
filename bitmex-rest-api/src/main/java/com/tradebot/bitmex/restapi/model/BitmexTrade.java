@@ -1,7 +1,7 @@
 package com.tradebot.bitmex.restapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import lombok.Data;
 
 @Data

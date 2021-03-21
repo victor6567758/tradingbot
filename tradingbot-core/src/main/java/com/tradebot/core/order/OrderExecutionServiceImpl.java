@@ -1,8 +1,8 @@
 package com.tradebot.core.order;
 
-import com.tradebot.core.BaseTradingConfig;
-import com.tradebot.core.TradingDecision;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.BaseTradingConfig;
+import com.tradebot.core.model.TradingDecision;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.account.AccountInfoService;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;

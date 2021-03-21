@@ -1,6 +1,6 @@
 package com.tradebot.bitmex.restapi.helper;
 
-import com.tradebot.core.TradingConstants;
+import com.tradebot.core.utils.TradingConstants;
 import com.tradebot.core.helper.ProviderHelper;
 import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;

@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;

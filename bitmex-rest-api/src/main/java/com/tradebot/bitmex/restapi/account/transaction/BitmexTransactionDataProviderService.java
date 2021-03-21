@@ -8,7 +8,7 @@ import com.tradebot.bitmex.restapi.generated.model.Transaction;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.tradebot.core.order;
 
-import com.tradebot.core.TradingDecision;
+import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.utils.CommonConsts;
 import java.util.Collections;
 import java.util.List;

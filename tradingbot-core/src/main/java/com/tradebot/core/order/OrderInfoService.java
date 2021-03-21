@@ -1,5 +1,6 @@
 package com.tradebot.core.order;
 
+import com.tradebot.core.model.OperationResultContext;
 import java.util.Collection;
 
 import com.tradebot.core.instrument.TradeableInstrument;
@@ -16,7 +17,7 @@ public class OrderInfoService<N, K> {
     }
 
     public Collection<Order<N>> allPendingOrders() {
-        OrderResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.allPendingOrders();
+        OperationResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.allPendingOrders();
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }
@@ -24,7 +25,7 @@ public class OrderInfoService<N, K> {
     }
 
     public Collection<Order<N>> pendingOrdersForAccount(K accountId) {
-        OrderResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.pendingOrdersForAccount(accountId);
+        OperationResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.pendingOrdersForAccount(accountId);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }
@@ -32,7 +33,7 @@ public class OrderInfoService<N, K> {
     }
 
     public Collection<Order<N>> pendingOrdersForInstrument(TradeableInstrument instrument) {
-        OrderResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.pendingOrdersForInstrument(instrument);
+        OperationResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.pendingOrdersForInstrument(instrument);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }
@@ -40,7 +41,7 @@ public class OrderInfoService<N, K> {
     }
 
     public Order<N> pendingOrderForAccount(N orderId, K accountId) {
-        OrderResultContext<Order<N>> pendingOrderResult = orderManagementProvider.pendingOrderForAccount(orderId, accountId);
+        OperationResultContext<Order<N>> pendingOrderResult = orderManagementProvider.pendingOrderForAccount(orderId, accountId);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }

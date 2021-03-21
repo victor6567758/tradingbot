@@ -14,7 +14,7 @@ import com.tradebot.bitmex.restapi.generated.api.PositionApi;
 import com.tradebot.bitmex.restapi.generated.model.Position;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package com.tradebot.core.order;
 
-import com.tradebot.core.BaseTradingConfig;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.BaseTradingConfig;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.historic.CandleStickGranularity;
 import com.tradebot.core.marketdata.historic.MovingAverageCalculationService;

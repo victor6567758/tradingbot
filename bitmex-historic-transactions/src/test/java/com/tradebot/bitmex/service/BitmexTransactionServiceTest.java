@@ -20,7 +20,7 @@ import com.tradebot.bitmex.restapi.events.BitmexTransactionTypeEvent;
 import com.tradebot.bitmex.restapi.generated.model.Transaction;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
@@ -30,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -55,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 @EnableJpaRepositories(basePackageClasses = BimexAccounRepository.class)
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
-@Ignore
 public class BitmexTransactionServiceTest {
 
     private final JSON json = new JSON();

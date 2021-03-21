@@ -4,10 +4,11 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
+import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.ExecutionType;
-import com.tradebot.core.TradingDecision;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.ExecutionType;
+import com.tradebot.core.model.TradingDecision;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.marketdata.historic.CandleStick;
 import com.tradebot.core.order.Order;
@@ -15,7 +16,7 @@ import com.tradebot.core.order.OrderExecutionServiceBase;
 import com.tradebot.core.order.OrderExecutionServiceCallback;
 import com.tradebot.core.order.OrderExecutionSimpleServiceImpl;
 import com.tradebot.core.order.OrderManagementProvider;
-import com.tradebot.core.order.OrderResultContext;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.TradingContext;
@@ -32,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.joda.time.Instant;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -72,8 +74,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                 }
 
                 @Override
-                public void onOrderResult(OrderResultContext<String> orderResultContext) {
-                    bitmexTradingBot.onOrderResult(orderResultContext);
+                public void onOrderResult(OperationResultContext<String> operationResultContext) {
+                    bitmexTradingBot.onOrderResult(operationResultContext);
                 }
             });
 
@@ -86,15 +88,17 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     }
 
     @Override
-    public void startOrderEvolution(TradingContext tradingContext) {
+    public boolean startOrderEvolution(TradingContext tradingContext) {
 
         log.info(">>>> START EVOLUTION >>>>");
         log.info("Profit plus {}", tradingContext.getRecalculatedTradingContext().getProfitPlus());
         tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
             log.info("Trading decision {}, {}", decision.getContext().getLevel(), decision.toString());
-            submitDecisionHelper(decision);
+            submitDecisionHelper(tradingContext, decision);
         });
         log.info(">>>>>>>>>>>>>>>");
+
+        return true;
     }
 
     @Override
@@ -146,7 +150,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == bitmexExecution.getOrderQty())) {
                         log.info("Long volume reached the level to open short order {}", resolvedLevel);
-                        removeClientOrder(bitmexExecution.getClOrdID());
+                        removeClientOrderReference(bitmexExecution.getClOrdID());
 
                         commandToOpenCloseOrder(bitmexExecution, tradingContext, openTradingDecision, resolvedLevel);
                     }
@@ -156,19 +160,19 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == 0)) {
                         log.info("Short volume reached the level to stop the trade {}", resolvedLevel);
-                        removeClientOrder(bitmexExecution.getClOrdID());
+                        removeClientOrderReference(bitmexExecution.getClOrdID());
 
                         // level 0 - need to restart trading
                         // other levels need to repeat level scenario
                         if (resolvedLevel == 0) {
-                            log.info("Restart trading");
+                            log.info("Restart trading fully as zero level");
 
                             // TODO  - need to make sure this done within 1 min, otherwise it's bad design
                             bitmexTradingBot.cancelAllPendingOrders();
                             bitmexTradingBot.resetTradingContext();
                         } else {
-                            log.info("Restart level only {}", resolvedLevel);
-                            submitDecisionHelper(openTradingDecision);
+                            log.info("Restart trading at level {} only", resolvedLevel);
+                            submitDecisionHelper(tradingContext, openTradingDecision);
                         }
                     }
                 }
@@ -178,13 +182,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     }
 
     @Override
-    public void onOrderResultCallback(TradingContext tradingContext, OrderResultContext<String> orderResultContext) {
-
-    }
-
-    @Override
     public Collection<Order<String>> cancelAllPendingOrders() {
-        OrderResultContext<Collection<Order<String>>> pendingOrders = orderManagementProvider.allPendingOrders();
+        OperationResultContext<Collection<Order<String>>> pendingOrders = orderManagementProvider.allPendingOrders();
         if (!pendingOrders.isResult()) {
             throw new IllegalArgumentException(String.format("Invalid pending order retrieval %s", pendingOrders.getMessage()));
         }
@@ -209,7 +208,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         return tradingDecisionContext.getLevel();
     }
 
-    private void removeClientOrder(String clientOrderId) {
+    private void removeClientOrderReference(String clientOrderId) {
         if (clientOrderIdLevelMap.remove(clientOrderId) == null) {
             log.error("Could not find previous client order id {}", clientOrderId);
         }
@@ -234,14 +233,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             CommonConsts.INVALID_PRICE
         );
 
-        closeOrder.setClientOrderId(UUID.randomUUID().toString());
-        clientOrderIdLevelMap.put(closeOrder.getClientOrderId(), new TradingDecisionContext(clientOrderId));
-
-        log.info("About to submit closing SHORT order {}, execution price for calculation the target is {}, profit plus {}",
-            closeOrder.toString(),
-            bitmexExecution.getLastPx(),
-            tradingContext.getRecalculatedTradingContext().getProfitPlus());
-        orderExecutionEngine.submit(closeOrder);
+        submitOrderHelper(tradingContext, closeOrder, new TradingDecisionContext(clientOrderId));
     }
 
     private boolean updateVolumeAndCheck(
@@ -256,17 +248,32 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         return volumePredicate.test(totalVolume);
     }
 
-    private void submitDecisionHelper(TradingDecision<TradingDecisionContext> decision) {
+
+    private void submitDecisionHelper(TradingContext tradingContext, TradingDecision<TradingDecisionContext> decision) {
         List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision);
         if (orders.size() != 1) {
             throw new IllegalArgumentException("At this strategy 1 order per a single decision");
         }
 
-        Order<String> order = orders.get(0);
-        order.setClientOrderId(UUID.randomUUID().toString());
-        clientOrderIdLevelMap.put(order.getClientOrderId(), decision.getContext());
+        submitOrderHelper(tradingContext, orders.get(0), decision.getContext());
+    }
 
-        orderExecutionEngine.submit(orders.get(0));
+    private void submitOrderHelper(TradingContext tradingContext, Order<String> order, TradingDecisionContext tradingDecisionContext) {
+        BitmexOperationQuotas currentOrderLimitation = tradingContext.getRecalculatedTradingContext().getBitmexOrderQuotas();
+        if (currentOrderLimitation != null &&
+            (currentOrderLimitation.getXRatelimitRemaining() <= 0 || currentOrderLimitation.getXRatelimitRemaining1s() <= 0)) {
+            log.warn("Bitmex order time restriction happened, reset time {}",
+                Instant.ofEpochMilli(currentOrderLimitation.getXRatelimitReset()).toString());
+        }
+
+        order.setClientOrderId(UUID.randomUUID().toString());
+        clientOrderIdLevelMap.put(order.getClientOrderId(), tradingDecisionContext);
+
+        log.info("About to submit order {}, profit plus {}",
+            order.toString(),
+            tradingContext.getRecalculatedTradingContext().getProfitPlus());
+
+        orderExecutionEngine.submit(order);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.tradebot.response;
 
-import com.tradebot.core.ExecutionType;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.ExecutionType;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.order.OrderType;
 import lombok.Builder;

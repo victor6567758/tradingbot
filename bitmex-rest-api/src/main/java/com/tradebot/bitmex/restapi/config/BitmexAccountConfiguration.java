@@ -1,7 +1,7 @@
 package com.tradebot.bitmex.restapi.config;
 
 
-import com.tradebot.core.BaseTradingConfig;
+import com.tradebot.core.model.BaseTradingConfig;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;

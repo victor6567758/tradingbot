@@ -1,12 +1,13 @@
 
 package com.tradebot.core.utils;
 
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -17,10 +18,10 @@ import org.apache.http.util.EntityUtils;
 import org.joda.time.DateTime;
 
 @Slf4j
+@UtilityClass
 public class TradingUtils {
 
-    private TradingUtils() {
-    }
+
 
     public static final int CCY_PAIR_LEN = 7;
     public static final int CCY_SEP_CHR_POS = 3;

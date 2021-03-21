@@ -6,30 +6,27 @@ import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.model.Order;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
-import com.tradebot.bitmex.restapi.model.BitmexOrderQuotas;
+import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.bitmex.restapi.utils.converters.OrderTypeConvertible;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.order.OrderManagementProvider;
-import com.tradebot.core.order.OrderResultContext;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.utils.CommonConsts;
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.http.HttpStatus;
 
 @Slf4j
 public class BitmexOrderManagementProvider implements OrderManagementProvider<String, Long> {
@@ -51,11 +48,11 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
 
 
     @Override
-    public OrderResultContext<String> placeOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
+    public OperationResultContext<String> placeOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
 
         try {
 
-            ApiResponse<Order> newOrder = getOrderApi().orderNewWithHttpInfo(
+            ApiResponse<Order> newOrderResponse = getOrderApi().orderNewWithHttpInfo(
                 order.getInstrument().getInstrument(), // symbol
                 TradingSignalConvertible.toString(order.getSide()), // side
                 null, // simpleOrderQty
@@ -74,22 +71,19 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 order.getText() // text
             );
 
-            if (newOrder.getStatusCode() != HttpStatus.SC_OK) {
-                throw new IllegalArgumentException("Open order returned wrong HTTP code");
-            }
-            return prepareResult(newOrder);
+            return BitmexUtils.prepareResultReturned(newOrderResponse, new BitmexOperationQuotas<>(newOrderResponse.getData().getOrderID()));
 
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(order.getInstrument().getInstrument(), apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
     }
 
     @Override
-    public OrderResultContext<String> modifyOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
+    public OperationResultContext<String> modifyOrder(com.tradebot.core.order.Order<String> order, Long accountId) {
 
         try {
-            ApiResponse<Order> amendedOrder = getOrderApi().orderAmendWithHttpInfo(
+            ApiResponse<Order> amendedOrderResponse = getOrderApi().orderAmendWithHttpInfo(
                 order.getOrderId(),
                 null,
                 order.getClientOrderId(),
@@ -103,99 +97,107 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
                 order.getText()
             );
 
-            if (amendedOrder.getStatusCode() != HttpStatus.SC_OK) {
-                throw new IllegalArgumentException("Amend order returned wrong HTTP code");
-            }
-            return prepareResult(amendedOrder);
+            return BitmexUtils.prepareResultReturned(amendedOrderResponse, new BitmexOperationQuotas<>(amendedOrderResponse.getData().getOrderID()));
 
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(order.getInstrument().getInstrument(), apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
     }
 
     @Override
-    public OrderResultContext<String> closeOrder(String orderId, Long accountId) {
+    public OperationResultContext<String> closeOrder(String orderId, Long accountId) {
         try {
-            ApiResponse<List<Order>> cancelled = getOrderApi().orderCancelWithHttpInfo(orderId, null, null);
-            if (cancelled.getStatusCode() != HttpStatus.SC_OK) {
-                throw new IllegalArgumentException("Amend order returned wrong HTTP code");
-            }
+            ApiResponse<List<Order>> cancelledResponse = getOrderApi().orderCancelWithHttpInfo(orderId, null, null);
 
-            Order cancelledOrder =
-                cancelled.getData().stream().filter(order -> orderId.equals(order.getOrderID())).findAny().orElse(null);
-
-            return cancelledOrder != null ? new OrderResultContext<>(orderId, cancelledOrder.getSymbol()) :
-                new OrderResultContext<>(orderId, null, "No order was cancelled");
+            return cancelledResponse.getData().stream()
+                .filter(order -> orderId.equals(order.getOrderID())).findAny()
+                .map(cancelledOrder -> BitmexUtils.prepareResultReturned(cancelledResponse,
+                    new BitmexOperationQuotas<>(cancelledOrder.getOrderID())))
+                .orElseGet(() -> BitmexUtils.prepareResultReturned(cancelledResponse, new BitmexOperationQuotas<>(null)));
 
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(null, apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
     }
 
     @Override
-    public OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> allPendingOrders() {
+    public OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> allPendingOrders() {
         try {
-            return new OrderResultContext<>(getAllOrders().stream().filter(
-                order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
-                    order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText())
-            ).map(this::toOrder).collect(Collectors.toList()));
+
+            ApiResponse<List<Order>> apiAllOrdersResponse = getAllOrders();
+
+            List<Order> orders = apiAllOrdersResponse.getData();
+            List<com.tradebot.core.order.Order<String>> filteredOrders = orders != null ? applyStandardFilteringCriteria(orders.stream())
+                .map(this::toOrder).collect(Collectors.toList()) : null;
+            return BitmexUtils.prepareResultReturned(apiAllOrdersResponse, new BitmexOperationQuotas<>(filteredOrders));
+
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(null, apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
 
     }
 
     @Override
-    public OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrdersForAccount(Long accountId) {
+    public OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrdersForAccount(Long accountId) {
         try {
-            return new OrderResultContext<>(getAllOrders().stream()
+            ApiResponse<List<Order>> apiAllOrdersResponse = getAllOrders();
+
+            List<Order> orders = apiAllOrdersResponse.getData();
+            List<com.tradebot.core.order.Order<String>> filteredOrders = orders != null ? applyStandardFilteringCriteria(orders.stream())
                 .filter(order -> order.getAccount().longValue() == accountId)
-                .filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
-                    order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText())
-                ).map(this::toOrder).collect(Collectors.toList()));
+                .map(this::toOrder).collect(Collectors.toList()) : null;
+            return BitmexUtils.prepareResultReturned(apiAllOrdersResponse, new BitmexOperationQuotas<>(filteredOrders));
 
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(null, apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
     }
 
     @Override
-    public OrderResultContext<com.tradebot.core.order.Order<String>> pendingOrderForAccount(String orderId, Long accountId) {
+    public OperationResultContext<com.tradebot.core.order.Order<String>> pendingOrderForAccount(String orderId, Long accountId) {
         try {
-            return new OrderResultContext<>(getAllOrders().stream()
+            ApiResponse<List<Order>> apiAllOrdersResponse = getAllOrders();
+
+            List<Order> orders = apiAllOrdersResponse.getData();
+            com.tradebot.core.order.Order<String> filteredOrder = orders != null ? applyStandardFilteringCriteria(orders.stream())
                 .filter(order -> order.getAccount().longValue() == accountId)
-                .filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
-                    order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText())
-                ).filter(order -> order.getOrderID().equals(orderId))
-                .map(this::toOrder).findAny().orElseThrow());
+                .filter(order -> order.getOrderID().equals(orderId))
+                .findAny().map(this::toOrder).orElse(null) : null;
+
+            return BitmexUtils.prepareResultReturned(apiAllOrdersResponse, new BitmexOperationQuotas<>(filteredOrder));
+
 
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(null, apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
     }
 
     @Override
-    public OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrdersForInstrument(TradeableInstrument instrument) {
+    public OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrdersForInstrument(TradeableInstrument instrument) {
         try {
-            return new OrderResultContext<>(getAllOrders().stream()
+
+            ApiResponse<List<Order>> apiAllOrdersResponse = getAllOrders();
+
+            List<Order> orders = apiAllOrdersResponse.getData();
+            List<com.tradebot.core.order.Order<String>> filteredOrders = orders != null ? applyStandardFilteringCriteria(orders.stream())
                 .filter(order -> order.getSymbol().equals(instrument.getInstrument()))
-                .filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
-                    order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText())
-                ).map(this::toOrder).collect(Collectors.toList()));
+                .map(this::toOrder).collect(Collectors.toList()) : null;
+            return BitmexUtils.prepareResultReturned(apiAllOrdersResponse, new BitmexOperationQuotas<>(filteredOrders));
 
         } catch (ApiException apiException) {
             log.error(ORDER_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
-            return prepareErrorResult(null, apiException);
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
     }
 
-    private List<Order> getAllOrders() throws ApiException {
-        return getOrderApi().orderGetOrders(
+
+    private ApiResponse<List<Order>> getAllOrders() throws ApiException {
+        return getOrderApi().orderGetOrdersWithHttpInfo(
             null,
             null,
             null,
@@ -208,9 +210,9 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
     }
 
     private com.tradebot.core.order.Order<String> toOrder(Order order) {
-        TradeableInstrument instrument = instrumentService.resolveTradeableInstrument(order.getSymbol());
+
         com.tradebot.core.order.Order<String> convertedOrder = com.tradebot.core.order.Order.<String>builder()
-            .instrument(instrument)
+            .instrument(instrumentService.resolveTradeableInstrument(order.getSymbol()))
             .units(order.getOrderQty().longValue())
             .side(TradingSignalConvertible.fromString(order.getSide()))
             .type(OrderTypeConvertible.fromString(order.getOrdType()))
@@ -223,23 +225,8 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
         return convertedOrder;
     }
 
-    private BitmexOrderQuotas prepareResult(ApiResponse<Order> apiResponse) {
-        BitmexOrderQuotas result = new BitmexOrderQuotas(apiResponse.getData().getOrderID(), apiResponse.getData().getSymbol());
-        result.setXRatelimitLimit(getIntHeaderValue("x-ratelimit-limit", apiResponse.getHeaders()));
-        result.setXRatelimitRemaining(getIntHeaderValue("x-ratelimit-remaining", apiResponse.getHeaders()));
-        result.setXRatelimitReset(getIntHeaderValue("x-ratelimit-reset", apiResponse.getHeaders()));
-        result.setXRatelimitRemaining1s(getIntHeaderValue("x-ratelimit-remaining-1s", apiResponse.getHeaders()));
-
-        return result;
+    private static Stream<Order> applyStandardFilteringCriteria(Stream<Order> inputOrderStream) {
+        return inputOrderStream.filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText()) ||
+            order.getOrdStatus().equals(OrderStatus.PARTIALLY_FILLED.getStatusText()));
     }
-
-    private static <RT> OrderResultContext<RT> prepareErrorResult(String symbol, ApiException apiException) {
-        return new OrderResultContext<>(null, symbol, BitmexUtils.errorMessageFromApiException(apiException));
-    }
-
-    private static int getIntHeaderValue(String name, Map<String, List<String>> headers) {
-        return NumberUtils.toInt(headers.getOrDefault(name, Collections.singletonList("-1")).get(0), -1);
-    }
-
-
 }

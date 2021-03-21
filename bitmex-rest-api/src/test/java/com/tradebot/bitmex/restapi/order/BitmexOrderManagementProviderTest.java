@@ -13,18 +13,22 @@ import com.google.gson.reflect.TypeToken;
 import com.tradebot.bitmex.restapi.generated.api.OrderApi;
 import com.tradebot.bitmex.restapi.generated.model.Order;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
-import com.tradebot.core.order.OrderResultContext;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.order.OrderStatus;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BitmexOrderManagementProviderTest {
@@ -58,7 +62,8 @@ public class BitmexOrderManagementProviderTest {
             }.getType());
         newOrder = orders.stream().filter(order -> order.getOrdStatus().equals(OrderStatus.NEW.getStatusText())).findAny().orElseThrow();
 
-        doReturn(orders).when(orderApi).orderGetOrders(
+        ApiResponse<List<Order>> ordersResponse = new ApiResponse(HttpStatus.SC_OK, Collections.emptyMap(), orders);
+        doReturn(ordersResponse).when(orderApi).orderGetOrdersWithHttpInfo(
             isNull(),
             isNull(),
             isNull(),
@@ -75,7 +80,7 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrders() {
-        OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
+        OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
         assertThat(pendingOrders.getData()).hasSize(1);
 
         com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.getData().iterator().next();
@@ -87,7 +92,7 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrdersForAccount() {
-        OrderResultContext<com.tradebot.core.order.Order<String>> pendingOrder =
+        OperationResultContext<com.tradebot.core.order.Order<String>> pendingOrder =
             bitmexOrderManagementProviderSpy.pendingOrderForAccount(newOrder.getOrderID(), newOrder.getAccount().longValue());
 
         assertThat(pendingOrder.getData().getOrderId()).isEqualTo(newOrder.getOrderID());
@@ -97,7 +102,7 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrdersForInstrument() {
-        OrderResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders =
+        OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders =
             bitmexOrderManagementProviderSpy.pendingOrdersForInstrument(new TradeableInstrument(
                 newOrder.getSymbol(), newOrder.getSymbol(), 0.001, null, null, null, null, null));
         assertThat(pendingOrders.getData()).hasSize(1);

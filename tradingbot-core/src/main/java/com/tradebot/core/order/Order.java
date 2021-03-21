@@ -1,6 +1,6 @@
 package com.tradebot.core.order;
 
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.instrument.TradeableInstrument;
 import lombok.Builder;
 import lombok.Getter;

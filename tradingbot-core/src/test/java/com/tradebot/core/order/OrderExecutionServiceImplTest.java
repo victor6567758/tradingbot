@@ -9,15 +9,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.tradebot.core.BaseTradingConfig;
-import com.tradebot.core.TradingDecision;
-import com.tradebot.core.TradingDecision.SrcDecison;
-import com.tradebot.core.TradingSignal;
+import com.tradebot.core.model.BaseTradingConfig;
+import com.tradebot.core.model.TradingDecision;
+import com.tradebot.core.model.TradingDecision.SrcDecison;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.TradingTestConstants;
 import com.tradebot.core.account.AccountInfoService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.utils.CommonConsts;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +38,7 @@ import org.junit.Test;
 public class OrderExecutionServiceImplTest<N> {
 
     private static final int ALLOWED_SUBMISSIONS = 20;
-    private static final OrderResultContext<Long> ORDER_RESULT_CONTEXT = new OrderResultContext<>(1L, "GBP_AUD");
+    private static final OperationResultContext<Long> ORDER_RESULT_CONTEXT = new OperationResultContext<>(1L, "GBP_AUD");
 
     private final AccountInfoService<Long> accountInfoService = mock(AccountInfoService.class);
     private final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
@@ -106,7 +107,7 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OrderResultContext<Long> orderResultContext) {
+            public void onOrderResult(OperationResultContext<Long> orderResultContext) {
 
             }
         };
@@ -154,7 +155,7 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OrderResultContext<Long> orderResultContext) {
+            public void onOrderResult(OperationResultContext<Long> orderResultContext) {
 
             }
         };
