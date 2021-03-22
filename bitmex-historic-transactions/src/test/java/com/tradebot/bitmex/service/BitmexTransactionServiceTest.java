@@ -20,6 +20,7 @@ import com.tradebot.bitmex.restapi.events.BitmexTransactionTypeEvent;
 import com.tradebot.bitmex.restapi.generated.model.Transaction;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
@@ -31,12 +32,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.platform.commons.util.StringUtils;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
@@ -49,7 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
     TestDatasourceConfig.class,
-    BitmexTransactionService.class
+    BitmexTransactionService.class,
+    BitmexAccountDataProviderService.class
 })
 @EnableJpaRepositories(basePackageClasses = BimexAccounRepository.class)
 @TestPropertySource(locations = "classpath:application-test.properties")
@@ -57,8 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class BitmexTransactionServiceTest {
 
     private final JSON json = new JSON();
-
-    private AccountDataProvider<Long> accountDataProviderMock;
 
     private TransactionDataProvider<String, Long> transactionDataProviderMock;
 
@@ -71,6 +71,9 @@ public class BitmexTransactionServiceTest {
     @Autowired
     private BitmexTransactionRepository bitmexTransactionRepository;
 
+    @MockBean
+    private AccountDataProvider<Long> accountDataProvider;
+
     @SpyBean
     private BitmexTransactionService bitmexTransactionService;
 
@@ -80,8 +83,7 @@ public class BitmexTransactionServiceTest {
             new TypeToken<List<Transaction>>() {
             }.getType());
 
-        accountDataProviderMock = mock(BitmexAccountDataProviderService.class);
-        doReturn(createAccount1()).when(accountDataProviderMock).getLatestAccountsInfo();
+        doReturn(new OperationResultContext<>(createAccount1())).when(accountDataProvider).getLatestAccountsInfo();
 
         transactionDataProviderMock = mock(BitmexTransactionDataProviderService.class);
         List<com.tradebot.core.account.transaction.Transaction<String, Long>> newTransactions =
@@ -92,7 +94,6 @@ public class BitmexTransactionServiceTest {
         doReturn(newTransactions).when(transactionDataProviderMock)
             .getTransactionsGreaterThanDateTime(isNull(), any(Long.class));
 
-        doReturn(accountDataProviderMock).when(bitmexTransactionService).getBitmexAccountDataProvider();
         doReturn(transactionDataProviderMock).when(bitmexTransactionService).getBitmexTransactiondataProvider();
 
     }
@@ -108,9 +109,7 @@ public class BitmexTransactionServiceTest {
 
     @Test
     public void saveNewTransactionsNewAccountTest() {
-        accountDataProviderMock = mock(BitmexAccountDataProviderService.class);
-        doReturn(createAccount2()).when(accountDataProviderMock).getLatestAccountsInfo();
-        doReturn(accountDataProviderMock).when(bitmexTransactionService).getBitmexAccountDataProvider();
+        doReturn(new OperationResultContext<>(createAccount2())).when(accountDataProvider).getLatestAccountsInfo();
 
         bitmexTransactionService.saveNewTransactions();
 

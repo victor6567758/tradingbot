@@ -80,7 +80,8 @@ public class BitmexOrderManagementProviderTest {
 
     @Test
     public void testAllPendingOrders() {
-        OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders = bitmexOrderManagementProviderSpy.allPendingOrders();
+        OperationResultContext<Collection<com.tradebot.core.order.Order<String>>> pendingOrders =
+            bitmexOrderManagementProviderSpy.allPendingOrders();
         assertThat(pendingOrders.getData()).hasSize(1);
 
         com.tradebot.core.order.Order<String> pendingOrder = pendingOrders.getData().iterator().next();

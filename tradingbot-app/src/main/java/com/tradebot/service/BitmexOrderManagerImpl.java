@@ -6,18 +6,20 @@ import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
-import com.tradebot.core.model.ExecutionType;
-import com.tradebot.core.model.TradingDecision;
-import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.marketdata.historic.CandleStick;
+import com.tradebot.core.model.ExecutionType;
+import com.tradebot.core.model.OperationResultContext;
+import com.tradebot.core.model.OrderExecutionServiceCallback;
+import com.tradebot.core.model.TradingDecision;
+import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderExecutionServiceBase;
-import com.tradebot.core.order.OrderExecutionServiceCallback;
 import com.tradebot.core.order.OrderExecutionSimpleServiceImpl;
 import com.tradebot.core.order.OrderManagementProvider;
-import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.order.OrderStatus;
+import com.tradebot.core.position.PositionManagementProvider;
+import com.tradebot.core.position.PositionService;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.model.TradingContext;
 import com.tradebot.model.TradingDecisionContext;
@@ -42,9 +44,11 @@ import org.springframework.stereotype.Service;
 public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     private final OrderManagementProvider<String, Long> orderManagementProvider;
+    private final PositionManagementProvider<Long> positionManagementProvider;
     private final BitmexTradingBot bitmexTradingBot;
 
     private OrderExecutionServiceBase<String, Long, TradingDecisionContext> orderExecutionEngine;
+    private PositionService<Long> positionService;
     private BitmexAccountConfiguration bitmexAccountConfiguration;
 
     private AtomicReference<DateTime> lastOrderFireTime = new AtomicReference<>();
@@ -56,7 +60,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         orderExecutionEngine = new OrderExecutionSimpleServiceImpl<>(
             orderManagementProvider,
             () -> accountId,
-            new OrderExecutionServiceCallback<>() {
+            new OrderExecutionServiceCallback() {
 
                 @Override
                 public void fired() {
@@ -74,10 +78,13 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                 }
 
                 @Override
-                public void onOrderResult(OperationResultContext<String> operationResultContext) {
-                    bitmexTradingBot.onOrderResult(operationResultContext);
+                public void onOrderResult(OperationResultContext<?> operationResultContext) {
+                    bitmexTradingBot.onOperationResult(operationResultContext);
                 }
             });
+
+        positionService = new PositionService<>(positionManagementProvider,
+            bitmexTradingBot::onOperationResult);
 
         this.bitmexAccountConfiguration = bitmexAccountConfiguration;
     }

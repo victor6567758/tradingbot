@@ -4,7 +4,7 @@ package com.tradebot.core.trade;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tradebot.core.account.Account;
-import com.tradebot.core.account.AccountDataProvider;
+import com.tradebot.core.account.AccountInfoService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.utils.TradingUtils;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import org.apache.commons.collections4.MapUtils;
 public class TradeInfoService<M, K> {
 
     private final TradeManagementProvider<M, K> tradeManagementProvider;
-    private final AccountDataProvider<K> accountDataProvider;
+    private final AccountInfoService<K> accountInfoService;
 
     private final ConcurrentMap<K, Map<TradeableInstrument, Collection<Trade<M, K>>>> tradesCache = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -54,7 +54,7 @@ public class TradeInfoService<M, K> {
         lock.writeLock().lock();
         try {
             tradesCache.clear();
-            for (Account<K> account : accountDataProvider.getLatestAccountsInfo()) {
+            for (Account<K> account : accountInfoService.getAllAccounts()) {
                 tradesCache.put(account.getAccountId(), getTradesPerInstrumentForAccount(
                     account.getAccountId()));
             }

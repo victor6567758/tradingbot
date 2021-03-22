@@ -1,6 +1,7 @@
 
 package com.tradebot.core.position;
 
+import com.tradebot.core.model.OperationResultContext;
 import java.util.Collection;
 
 import com.tradebot.core.instrument.TradeableInstrument;
@@ -8,10 +9,10 @@ import com.tradebot.core.instrument.TradeableInstrument;
 
 public interface PositionManagementProvider<K> {
 
-    Position getPositionForInstrument(K accountId, TradeableInstrument instrument);
+    OperationResultContext<Position> getPositionForInstrument(K accountId, TradeableInstrument instrument);
 
-    Collection<Position> getPositionsForAccount(K accountId);
+    OperationResultContext<Collection<Position>> getPositionsForAccount(K accountId);
 
-    boolean closePosition(K accountId, TradeableInstrument instrument, double price);
+    OperationResultContext<String> closePosition(K accountId, TradeableInstrument instrument, double price);
 
 }

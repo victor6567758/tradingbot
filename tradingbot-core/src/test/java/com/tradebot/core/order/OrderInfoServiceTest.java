@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.core.model.OperationResultContext;
+import com.tradebot.core.model.OrderExecutionServiceCallback;
 import java.util.Collection;
 
 import org.junit.Test;
@@ -23,8 +24,31 @@ public class OrderInfoServiceTest<N> {
 
 	@Test
 	public void netPositionCountForCurrencyTest() {
-		final OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
-		OrderInfoService<Long, Long> service = new OrderInfoService<>(orderManagementProvider);
+		OrderManagementProvider<Long, Long> orderManagementProvider = mock(OrderManagementProvider.class);
+
+		OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
+
+
+			@Override
+			public void fired() {
+			}
+
+			@Override
+			public boolean ifTradeAllowed() {
+				return true;
+			}
+
+			@Override
+			public String getReason() {
+				return null;
+			}
+
+			@Override
+			public void onOrderResult(OperationResultContext<?> orderResultContext) {
+
+			}
+		};
+		OrderInfoService<Long, Long> service = new OrderInfoService<>(orderManagementProvider, orderExecutionServiceCallback);
 
 		Collection<Order<Long>> orders = createOrders();
 		OperationResultContext<Collection<Order<Long>>> orderResultsList = new OperationResultContext<>(orders);

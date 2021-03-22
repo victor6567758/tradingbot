@@ -1,5 +1,6 @@
 package com.tradebot.core.order;
 
+import com.tradebot.core.model.OrderExecutionServiceCallback;
 import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.utils.CommonUtils;
@@ -19,7 +20,7 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
 
     private static final long SHUTDOWN_WAIT_TIME = 5000L;
 
-    private final OrderExecutionServiceCallback<N> orderExecutionServiceCallback;
+    private final OrderExecutionServiceCallback orderExecutionServiceCallback;
     private final OrderManagementProvider<N, K> orderManagementProvider;
     private final Supplier<K> accountIdSupplier;
 

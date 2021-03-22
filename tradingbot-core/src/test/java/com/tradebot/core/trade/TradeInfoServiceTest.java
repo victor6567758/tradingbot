@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.tradebot.core.account.AccountInfoService;
+import com.tradebot.core.instrument.InstrumentService;
 import java.util.Collection;
 
 import org.joda.time.DateTime;
@@ -88,15 +90,16 @@ public class TradeInfoServiceTest {
 	@SuppressWarnings("unchecked")
 	private TradeInfoService<Long, Long> createService() {
 		TradeManagementProvider<Long, Long> tradeManagementProvider = mock(TradeManagementProvider.class);
-		AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-		TradeInfoService<Long, Long> service = new TradeInfoService<>(tradeManagementProvider,
-				accountDataProvider);
+		AccountInfoService<Long> accInfoService = mock(AccountInfoService.class);
+
+
+		TradeInfoService<Long, Long> service = new TradeInfoService<>(tradeManagementProvider, accInfoService);
 		service.init();
 		Account<Long> account1 = mock(Account.class);
 		Account<Long> account2 = mock(Account.class);
 		when(account1.getAccountId()).thenReturn(TradingTestConstants.ACCOUNT_ID_1);
 		when(account2.getAccountId()).thenReturn(TradingTestConstants.ACCOUNT_ID_2);
-		when(accountDataProvider.getLatestAccountsInfo()).thenReturn(Lists.newArrayList(account1, account2));
+		when(accInfoService.getAllAccounts()).thenReturn(Lists.newArrayList(account1, account2));
 		when(tradeManagementProvider.getTradesForAccount(TradingTestConstants.ACCOUNT_ID_1))
 				.thenReturn(createSampleTrades1());
 		when(tradeManagementProvider.getTradesForAccount(TradingTestConstants.ACCOUNT_ID_2))

@@ -6,6 +6,8 @@ import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
 import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.utils.TradingConstants;
+import com.tradebot.core.utils.TradingUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -145,6 +147,20 @@ public class BitmexUtils {
         result.setXRatelimitRemaining1s(getIntHeaderValue("x-ratelimit-remaining-1s", apiResponse.getHeaders()));
 
         return result;
+    }
+
+    public static String fromIsoFormat(String instrument) {
+        return BitmexUtils.isoCcyToExchangeCcy(instrument);
+    }
+
+    public static String fromPairSeparatorFormat(String instrument) {
+        String[] pair = TradingUtils.splitInstrumentPair(instrument);
+        return String.format("%s%s%s", pair[0], BitmexConstants.CCY_PAIR_SEP, pair[1]);
+    }
+
+    public static String toIsoFormat(String instrument) {
+        String[] tokens = TradingUtils.splitCcyPair(instrument, TradingConstants.CURRENCY_PAIR_SEP_UNDERSCORE);
+        return tokens[0] + tokens[1];
     }
 
     public static int getIntHeaderValue(String name, Map<String, List<String>> headers) {

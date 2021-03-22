@@ -4,11 +4,11 @@ import com.tradebot.bitmex.model.BitmexAccount;
 import com.tradebot.bitmex.model.BitmexTransaction;
 import com.tradebot.bitmex.repository.BimexAccounRepository;
 import com.tradebot.bitmex.repository.BitmexTransactionRepository;
-import com.tradebot.bitmex.restapi.account.BitmexAccountDataProviderService;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.Transaction;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.model.OperationResultContext;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -26,8 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BitmexTransactionService {
 
-    @Getter(AccessLevel.PACKAGE)
-    private final AccountDataProvider<Long> bitmexAccountDataProvider = new BitmexAccountDataProviderService();
+    private final AccountDataProvider<Long> accountDataProvider;
 
     private final BitmexTransactionRepository bitmexTransactionRepository;
 
@@ -37,7 +36,12 @@ public class BitmexTransactionService {
     private final TransactionDataProvider<String, Long> bitmexTransactiondataProvider;
 
     public void saveNewTransactions() {
-        Collection<Account<Long>> allAccounts = getBitmexAccountDataProvider().getLatestAccountsInfo();
+        OperationResultContext<Collection<Account<Long>>> allAccountsWithContext = accountDataProvider.getLatestAccountsInfo();
+        if (!allAccountsWithContext.isResult()) {
+            throw new IllegalArgumentException("Cannot obtain account information");
+        }
+
+        Collection<Account<Long>> allAccounts = allAccountsWithContext.getData();
 
         for (Account<Long> account : allAccounts) {
             BitmexAccount bitmexAcc = bitmexAccountRepository.findByAccountId(account.getAccountId())

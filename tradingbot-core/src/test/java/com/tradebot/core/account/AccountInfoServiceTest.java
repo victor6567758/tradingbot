@@ -17,6 +17,8 @@ import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
+import com.tradebot.core.model.OperationResultCallback;
+import com.tradebot.core.model.OperationResultContext;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -49,11 +51,15 @@ public class AccountInfoServiceTest {
         when(baseTradingConfig.getMinAmountRequired()).thenReturn(200.00);
 
         AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-        AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
-            null, baseTradingConfig, null, new InstrumentService(instrumentDataProvider));
+        AccountInfoService<Long> accInfoService = new AccountInfoService<>(
+            accountDataProvider,
+            baseTradingConfig,
+            operationResultContext -> {
+
+            });
         List<Account<Long>> accounts = createAccounts();
 
-        when(accountDataProvider.getLatestAccountsInfo()).thenReturn(accounts);
+        when(accountDataProvider.getLatestAccountsInfo()).thenReturn(new OperationResultContext<>(accounts));
         Collection<Long> eligibleAccounts = accInfoService.findAccountsToTrade();
         assertEquals(1, eligibleAccounts.size());
 
@@ -61,68 +67,6 @@ public class AccountInfoServiceTest {
         assertEquals(1001L, eligibleAccount);
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void marginRateWhenAccountCurrencyNominatedTest() {
-        /*account currency CHF and calculate margin for GBPUSD, effectively using GBPCHF rate*/
-        AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-        CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
-        ProviderHelper<?> providerHelper = mock(ProviderHelper.class);
-        AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
-            currentPriceInfoProvider, null, providerHelper, new InstrumentService(instrumentDataProvider));
-        TradeableInstrument gbpusd = new TradeableInstrument("GBP_USD","GBP_USD", 0.001, null, null, null, null, null);
-        TradeableInstrument gbpchf = new TradeableInstrument("GBP_CHF","GBP_CHF", 0.001, null, null, null, null, null);
-        Account<Long> account = mock(Account.class);
-
-        when(accountDataProvider.getLatestAccountInfo(TradingTestConstants.ACCOUNT_ID_1)).thenReturn(account);
-        when(account.getCurrency()).thenReturn("CHF");
-        when(account.getMarginRate()).thenReturn(new BigDecimal(MARGIN_RATE));
-        when(providerHelper.fromIsoFormat(eq("GBPCHF"))).thenReturn(gbpchf.getInstrument());
-
-        Map<TradeableInstrument, Price> priceInfoMap = Maps.newHashMap();
-        priceInfoMap.put(gbpchf, new Price(gbpchf, 1.4811, 1.4813, DateTime.now()));
-        when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(gbpchf)))).thenReturn(
-            priceInfoMap);
-
-        double marginRate = accInfoService.calculateMarginForTrade(TradingTestConstants.ACCOUNT_ID_1, gbpusd,
-            UNITS);
-        assertEquals(888.72, marginRate, TradingTestConstants.PRECISION);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void marginRateWhenAccountCurrencyBaseTest() {
-        /*account currency EUR and calculate margin for AUDUSD, effectively using AUDEUR rate*/
-        AccountDataProvider<Long> accountDataProvider = mock(AccountDataProvider.class);
-        CurrentPriceInfoProvider currentPriceInfoProvider = mock(CurrentPriceInfoProvider.class);
-        ProviderHelper<?> providerHelper = mock(ProviderHelper.class);
-        AccountInfoService<Long> accInfoService = new AccountInfoService<>(accountDataProvider,
-            currentPriceInfoProvider, null, providerHelper, new InstrumentService(instrumentDataProvider));
-        TradeableInstrument audusd = new TradeableInstrument("AUD_USD","AUD_USD", 0.001, null, null, null, null, null);
-        TradeableInstrument euraud = new TradeableInstrument("EUR_AUD", "EUR_AUD", 0.001, null, null, null, null, null);
-        TradeableInstrument audeur = new TradeableInstrument("AUD_EUR", "AUD_EUR", 0.001, null, null, null, null, null);
-        Account<Long> account = mock(Account.class);
-
-        when(accountDataProvider.getLatestAccountInfo(TradingTestConstants.ACCOUNT_ID_1)).thenReturn(account);
-        when(account.getCurrency()).thenReturn("EUR");
-        when(account.getMarginRate()).thenReturn(new BigDecimal(MARGIN_RATE));
-        when(providerHelper.fromIsoFormat(eq("AUDEUR"))).thenReturn(audeur.getInstrument());
-        when(providerHelper.fromIsoFormat(eq("EURAUD"))).thenReturn(euraud.getInstrument());
-
-        Map<TradeableInstrument, Price> priceInfoMap = Maps.newHashMap();
-        priceInfoMap.put(euraud, new Price(euraud, 1.5636, 1.564, DateTime.now()));
-        when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(audeur)))).thenReturn(
-            Maps.newHashMap());
-        when(currentPriceInfoProvider.getCurrentPricesForInstruments(eq(Lists.newArrayList(euraud)))).thenReturn(
-            priceInfoMap);
-
-        double marginRate = accInfoService.calculateMarginForTrade(TradingTestConstants.ACCOUNT_ID_1, audusd,
-            UNITS);
-        assertEquals(383.6807, marginRate, TradingTestConstants.PRECISION);
-        marginRate = accInfoService.calculateMarginForTrade(TradingTestConstants.ACCOUNT_ID_1, euraud,
-            UNITS);
-        assertEquals(600.0, marginRate, TradingTestConstants.PRECISION);
-    }
 
     @SuppressWarnings("unchecked")
     private List<Account<Long>> createAccounts() {

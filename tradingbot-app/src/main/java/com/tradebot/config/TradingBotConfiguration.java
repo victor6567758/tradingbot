@@ -6,11 +6,13 @@ import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
 import com.tradebot.bitmex.restapi.marketdata.historic.BitmexHistoricMarketDataProvider;
 import com.tradebot.bitmex.restapi.order.BitmexOrderManagementProvider;
+import com.tradebot.bitmex.restapi.position.BitmexPositionManagementProvider;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.order.OrderManagementProvider;
+import com.tradebot.core.position.PositionManagementProvider;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,6 +63,11 @@ public class TradingBotConfiguration {
     @Bean
     public OrderManagementProvider<String, Long> orderManagementProvider() {
         return new BitmexOrderManagementProvider(instrumentService);
+    }
+
+    @Bean
+    public PositionManagementProvider<Long> positionManagementProvider() {
+        return new BitmexPositionManagementProvider(instrumentService);
     }
 
 }

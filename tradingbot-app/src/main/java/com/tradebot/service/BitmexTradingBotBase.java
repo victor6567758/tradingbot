@@ -14,6 +14,7 @@ import com.tradebot.bitmex.restapi.streaming.events.BitmexEventsStreamingService
 import com.tradebot.bitmex.restapi.streaming.marketdata.BitmexMarketDataStreamingService;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.AccountDataProvider;
+import com.tradebot.core.account.AccountInfoService;
 import com.tradebot.core.events.EventCallbackImpl;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallbackImpl;
@@ -59,6 +60,8 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
 
     protected Map<TradeableInstrument, List<CandleStickGranularity>> instruments;
 
+    protected final AccountInfoService<Long> accountInfoService;
+
     protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
     protected final InstrumentService instrumentService;
@@ -68,6 +71,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
     protected final HistoricMarketDataProvider historicMarketDataProvider;
 
     protected final AccountDataProvider<Long> accountDataProvider;
+
 
     //protected final BlockingQueue<TradingDecision> orderQueue = new LinkedBlockingQueue<>();
 
@@ -81,6 +85,12 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
         this.instrumentService = instrumentService;
         this.accountDataProvider = accountDataProvider;
         this.historicMarketDataProvider = historicMarketDataProvider;
+
+        accountInfoService = new AccountInfoService<>(
+            accountDataProvider,
+            bitmexAccountConfiguration.getBitmex().getTradingConfiguration(),
+            this::onOperationResult
+        );
     }
 
     public void initialize() {
@@ -196,7 +206,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
     public abstract void onTradeSolution(Price price,
         Cache<DateTime, Price> instrumentRecentPricesCache);
 
-    public abstract void onOrderResult(OperationResultContext<String> operationResultContext);
+    public abstract void onOperationResult(OperationResultContext<?> operationResultContext);
 
     private void initInternalCaches() {
         for (TradeableInstrument instrument : instruments.keySet()) {

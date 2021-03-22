@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tradebot.core.model.BaseTradingConfig;
+import com.tradebot.core.model.OrderExecutionServiceCallback;
 import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.model.TradingDecision.SrcDecison;
 import com.tradebot.core.model.TradingSignal;
@@ -90,7 +91,7 @@ public class OrderExecutionServiceImplTest<N> {
     @Test
     public void testPlaceOrders() throws ExecutionException, InterruptedException {
 
-        OrderExecutionServiceCallback<Long> orderExecutionServiceCallback = new OrderExecutionServiceCallback<>() {
+        OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
 
             @Override
             public void fired() {
@@ -107,7 +108,7 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OperationResultContext<Long> orderResultContext) {
+            public void onOrderResult(OperationResultContext<?> orderResultContext) {
 
             }
         };
@@ -136,7 +137,7 @@ public class OrderExecutionServiceImplTest<N> {
     @Test
     public void testOrderSubmissionIsInterrupted() throws ExecutionException, InterruptedException {
 
-        OrderExecutionServiceCallback<Long> orderExecutionServiceCallback = new OrderExecutionServiceCallback<>() {
+        OrderExecutionServiceCallback orderExecutionServiceCallback = new OrderExecutionServiceCallback() {
 
             private final AtomicInteger counter = new AtomicInteger(ALLOWED_SUBMISSIONS);
 
@@ -155,7 +156,7 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OperationResultContext<Long> orderResultContext) {
+            public void onOrderResult(OperationResultContext orderResultContext) {
 
             }
         };

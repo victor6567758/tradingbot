@@ -17,13 +17,16 @@ import com.tradebot.bitmex.restapi.generated.model.Margin;
 import com.tradebot.bitmex.restapi.generated.model.Position;
 import com.tradebot.bitmex.restapi.generated.model.Wallet;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.core.account.Account;
+import com.tradebot.core.model.OperationResultContext;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.apache.http.HttpStatus;
 import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,8 +52,8 @@ public class BitmexAccountDataProviderServiceTest {
         margin = json.deserialize(Resources.toString(Resources.getResource("marginReply.json"), StandardCharsets.UTF_8),
             new TypeToken<Margin>() {}.getType());
 
-        when(userApi.userGetWallet(any(String.class))).thenReturn(wallet);
-        when(userApi.userGetMargin(any(String.class))).thenReturn(margin);
+        when(userApi.userGetWalletWithHttpInfo(any(String.class))).thenReturn(new ApiResponse(HttpStatus.SC_OK, Collections.emptyMap(), wallet));
+        when(userApi.userGetMarginWithHttpInfo(any(String.class))).thenReturn(new ApiResponse(HttpStatus.SC_OK, Collections.emptyMap(), margin));
         when(positionApi.positionGet(isNull(), isNull(), isNull())).thenReturn(Collections.emptyList());
 
         doReturn(userApi).when(bitmexAccountDataProviderServiceSpy).getUserApi();
@@ -60,18 +63,18 @@ public class BitmexAccountDataProviderServiceTest {
 
     @Test
     public void testGetLatestAccountInfo() {
-        Account<Long> account = bitmexAccountDataProviderServiceSpy.getLatestAccountInfo(wallet.getAccount().longValue());
+        OperationResultContext<Account<Long>> account = bitmexAccountDataProviderServiceSpy.getLatestAccountInfo(wallet.getAccount().longValue());
 
-        assertThat(account.getAccountId()).isEqualTo(wallet.getAccount().longValue());
-        assertThat(account.getCurrency()).isEqualTo(wallet.getCurrency());
+        assertThat(account.getData().getAccountId()).isEqualTo(wallet.getAccount().longValue());
+        assertThat(account.getData().getCurrency()).isEqualTo(wallet.getCurrency());
     }
 
     @Test
     public void testGetLatestAccountsInfo() {
-        Collection<Account<Long>> accounts = bitmexAccountDataProviderServiceSpy.getLatestAccountsInfo();
-        assertThat(accounts).hasSize(1);
-        assertThat(accounts.iterator().next().getAccountId()).isEqualTo(wallet.getAccount().longValue());
-        assertThat(accounts.iterator().next().getCurrency()).isEqualTo(wallet.getCurrency());
+        OperationResultContext<Collection<Account<Long>>> accounts = bitmexAccountDataProviderServiceSpy.getLatestAccountsInfo();
+        assertThat(accounts.getData()).hasSize(1);
+        assertThat(accounts.getData().iterator().next().getAccountId()).isEqualTo(wallet.getAccount().longValue());
+        assertThat(accounts.getData().iterator().next().getCurrency()).isEqualTo(wallet.getCurrency());
     }
 
 

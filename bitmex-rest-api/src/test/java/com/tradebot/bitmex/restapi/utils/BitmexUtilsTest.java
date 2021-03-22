@@ -2,6 +2,7 @@ package com.tradebot.bitmex.restapi.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.withinPercentage;
+import static org.junit.Assert.assertEquals;
 
 import com.tradebot.core.instrument.TradeableInstrument;
 import java.math.BigDecimal;
@@ -29,5 +30,21 @@ public class BitmexUtilsTest {
     public void testRoundPriceHiBound() {
         double result = BitmexUtils.roundPrice(INSTRUMENT, 48300.1);
         assertThat(result).isCloseTo(48300, withinPercentage(0.001));
+    }
+
+    @Test
+    public void fromIsoFormatTest() {
+        String currencyPair = BitmexUtils.fromIsoFormat("XAUUSD");
+        assertEquals("XAU_USD", currencyPair);
+    }
+
+    @Test
+    public void fromPairSeparatorFormatTest() {
+        assertEquals("GBP_NZD", BitmexUtils.fromPairSeparatorFormat("GBP/NZD"));
+    }
+
+    @Test
+    public void toIsoFormatTest() {
+        assertEquals("USDJPY", BitmexUtils.toIsoFormat("USD_JPY"));
     }
 }

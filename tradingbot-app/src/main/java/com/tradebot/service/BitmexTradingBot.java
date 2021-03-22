@@ -103,13 +103,13 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
     public void initialize() {
         super.initialize();
 
-        Account<Long> account = accountDataProvider
-            .getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
-                .getTradingConfiguration().getAccountId());
+        Account<Long> account = accountInfoService.getAccountInfo(bitmexAccountConfiguration.getBitmex()
+            .getTradingConfiguration().getAccountId());
         bitmexOrderManager.initialize(account.getAccountId(), bitmexAccountConfiguration);
 
         initializeDetails();
         initializeModelMapper();
+
     }
 
     @PreDestroy
@@ -252,8 +252,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
             return;
         }
 
-        Account<Long> account = accountDataProvider
-            .getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
+        Account<Long> account = accountInfoService.getAccountInfo(bitmexAccountConfiguration.getBitmex()
                 .getTradingConfiguration().getAccountId());
 
         tradingContextMapLock.writeLock().lock();
@@ -327,10 +326,15 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
     }
 
     @Override
-    public void onOrderResult(OperationResultContext<String> operationResultContext) {
+    public void onOperationResult(OperationResultContext<?> operationResultContext) {
 
         tradingContextMapLock.writeLock().lock();
         try {
+
+            if (tradingContextMap == null) {
+                return;
+            }
+
             for (Entry<TradeableInstrument, TradingContext> entry : tradingContextMap.entrySet()) {
                 TradingContext tradingContext = entry.getValue();
 
@@ -413,6 +417,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
     }
 
     private void initializeDetails() {
+        tradingContextMapLock.writeLock().lock();
         try {
             tradingContextMap = algParameters.entrySet()
                 .stream()
@@ -438,12 +443,14 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
         } catch (RuntimeException runtimeException) {
             log.error("Check the format of input parameters, it is not parsable", runtimeException);
             tradingContextMap = Collections.emptyMap();
+        } finally {
+            tradingContextMapLock.writeLock().unlock();
         }
     }
 
     private String createReportExchangePair(String reportCurrency) {
-        Account<Long> account = accountDataProvider
-            .getLatestAccountInfo(bitmexAccountConfiguration.getBitmex()
+        Account<Long> account = accountInfoService
+            .getAccountInfo(bitmexAccountConfiguration.getBitmex()
                 .getTradingConfiguration().getAccountId());
 
         return account.getCurrency() + reportCurrency;

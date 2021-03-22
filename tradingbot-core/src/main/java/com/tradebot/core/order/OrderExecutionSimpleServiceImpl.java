@@ -1,5 +1,6 @@
 package com.tradebot.core.order;
 
+import com.tradebot.core.model.OrderExecutionServiceCallback;
 import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.utils.CommonConsts;
 import java.util.Collections;
@@ -13,7 +14,7 @@ public class OrderExecutionSimpleServiceImpl<N, K, C> extends OrderExecutionServ
     public OrderExecutionSimpleServiceImpl(
         OrderManagementProvider<N, K> orderManagementProvider,
         Supplier<K> accountIdSupplier,
-        OrderExecutionServiceCallback<N> orderExecutionServiceCallback) {
+        OrderExecutionServiceCallback orderExecutionServiceCallback) {
         super(orderExecutionServiceCallback, orderManagementProvider, accountIdSupplier);
     }
 

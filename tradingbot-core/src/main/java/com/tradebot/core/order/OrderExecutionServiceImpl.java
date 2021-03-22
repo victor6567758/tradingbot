@@ -1,6 +1,7 @@
 package com.tradebot.core.order;
 
 import com.tradebot.core.model.BaseTradingConfig;
+import com.tradebot.core.model.OrderExecutionServiceCallback;
 import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.account.AccountInfoService;
@@ -24,7 +25,7 @@ public class OrderExecutionServiceImpl<N, K, C> extends OrderExecutionServiceBas
         BaseTradingConfig baseTradingConfig,
         PreOrderValidationService<N, K> preOrderValidationService,
         CurrentPriceInfoProvider currentPriceInfoProvider,
-        OrderExecutionServiceCallback<N> orderExecutionServiceCallback) {
+        OrderExecutionServiceCallback orderExecutionServiceCallback) {
 
         super(orderExecutionServiceCallback, orderManagementProvider, () -> accountInfoService.findAccountToTrade().orElseThrow());
 
