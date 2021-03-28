@@ -110,26 +110,27 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void onCandleCallback(CandleStick candleStick, CacheCandlestick cacheCandlestick, TradingContext tradingContext) {
-        if (log.isDebugEnabled()) {
-            log.debug("Candle callback {}", candleStick.toString());
-        }
+        //if (log.isDebugEnabled()) {
+        //    log.debug("Candle callback {}", candleStick.toString());
+        //}
     }
 
     @Override
     public void onOrderCallback(TradingContext tradingContext, BitmexOrderEventPayload event) {
-        log.info("Order callback {}", event.getPayLoad().toString());
+        //log.info("Order callback {}", event.getPayLoad().toString());
     }
 
     @Override
     @SneakyThrows
     public void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event) {
         BitmexExecution bitmexExecution = event.getPayLoad();
-        log.info("Order execution callback {}", bitmexExecution.toString());
 
         int resolvedLevel = resolveClientLevel(bitmexExecution, tradingContext, event);
         if (resolvedLevel < 0) {
+            log.info("Alien Order execution callback {}", bitmexExecution.toString());
             return;
         }
+        log.info("Order execution callback {}, line: {}", bitmexExecution.toString(), resolvedLevel);
 
         Map<Integer, Long> imbalanceMap = tradingContext.getRecalculatedTradingContext().getImbalanceMap();
         TradingDecision<TradingDecisionContext> openTradingDecision = tradingContext
@@ -152,18 +153,17 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             if (bitmexExecution.getOrdStatus() == OrderStatus.FILLED || bitmexExecution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED) {
 
                 if (bitmexExecution.getSide() == TradingSignal.LONG) {
-
-                    log.info("Long filled {}", resolvedLevel);
+                    log.info("Long filled {}, volume {}, price {}", resolvedLevel, bitmexExecution.getLastQty(), bitmexExecution.getLastPx());
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == bitmexExecution.getOrderQty())) {
                         log.info("Long volume reached the level to open short order {}", resolvedLevel);
                         removeClientOrderReference(bitmexExecution.getClOrdID());
 
-                        commandToOpenCloseOrder(bitmexExecution, tradingContext, openTradingDecision, resolvedLevel);
+                        commandToOpenCloseOrder(executionList, tradingContext, openTradingDecision, resolvedLevel);
                     }
 
                 } else {
-                    log.info("Short filled {}", resolvedLevel);
+                    log.info("Short filled {}, volume {}, price {}", resolvedLevel, bitmexExecution.getLastQty(), bitmexExecution.getLastPx());
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == 0)) {
                         log.info("Short volume reached the level to stop the trade {}", resolvedLevel);
@@ -216,19 +216,28 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     }
 
     private void removeClientOrderReference(String clientOrderId) {
-        if (clientOrderIdLevelMap.remove(clientOrderId) == null) {
-            log.error("Could not find previous client order id {}", clientOrderId);
-        }
+        //if (clientOrderIdLevelMap.remove(clientOrderId) == null) {
+        //    log.error("Could not find previous client order id {}", clientOrderId);
+        //}
     }
 
     private void commandToOpenCloseOrder(
-        BitmexExecution bitmexExecution,
+        List<BitmexExecution> executionList,
         TradingContext tradingContext,
         TradingDecision<TradingDecisionContext> openTradingDecision,
         int clientOrderId) {
 
-        double profitPrice = BitmexUtils.roundPrice(tradingContext.getImmutableTradingContext().getTradeableInstrument(),
-            bitmexExecution.getLastPx() + tradingContext.getRecalculatedTradingContext().getProfitPlus());
+        double minExcecutedPrice = executionList.stream().mapToDouble(BitmexExecution::getLastPx).min().orElseThrow();
+        double calculatedPrice = minExcecutedPrice + tradingContext.getRecalculatedTradingContext().getProfitPlus();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Calculated min executed price {}, based on execution chain of size {}, calculated price {}",
+                minExcecutedPrice, executionList.size(), calculatedPrice);
+        }
+
+        double profitPrice = BitmexUtils.roundPrice(
+            tradingContext.getImmutableTradingContext().getTradeableInstrument(),
+            calculatedPrice);
 
         Order<String> closeOrder = Order.buildStopLimitIfTouchedOrder(
             tradingContext.getImmutableTradingContext().getTradeableInstrument(),
@@ -249,7 +258,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         int clientOrderId,
         LongPredicate volumePredicate) {
 
-        long executedVolumeSigned = bitmexExecution.getSide() == TradingSignal.LONG ? bitmexExecution.getOrderQty() : -bitmexExecution.getOrderQty();
+        long executedVolumeSigned = bitmexExecution.getSide() == TradingSignal.LONG ? bitmexExecution.getLastQty() :
+            -bitmexExecution.getLastQty();
         long totalVolume = imbalanceMap.get(clientOrderId) + executedVolumeSigned;
         imbalanceMap.put(clientOrderId, totalVolume);
         return volumePredicate.test(totalVolume);
