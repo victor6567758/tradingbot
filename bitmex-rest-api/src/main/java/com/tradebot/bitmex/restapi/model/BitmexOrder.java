@@ -40,4 +40,6 @@ public class BitmexOrder {
 
     // New | Filled | PartiallyFilled | Canceled | Rejected
     private OrderStatus ordStatus;
+
+    private String text;
 }

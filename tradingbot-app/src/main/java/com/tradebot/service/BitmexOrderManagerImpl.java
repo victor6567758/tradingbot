@@ -266,11 +266,12 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     }
 
     private void submitOrderHelper(TradingContext tradingContext, Order<String> order, TradingDecisionContext tradingDecisionContext) {
-        BitmexOperationQuotas currentOrderLimitation = tradingContext.getRecalculatedTradingContext().getBitmexOrderQuotas();
-        if (currentOrderLimitation != null &&
-            (currentOrderLimitation.getXRatelimitRemaining() <= 0 || currentOrderLimitation.getXRatelimitRemaining1s() <= 0)) {
-            log.warn("Bitmex order time restriction happened, reset time {}",
-                Instant.ofEpochMilli(currentOrderLimitation.getXRatelimitReset()).toString());
+        BitmexOperationQuotas<?> currentOrderLimitation = tradingContext.getRecalculatedTradingContext().getBitmexOrderQuotas();
+        if (currentOrderLimitation != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Bitmex order time restriction, reset time {}, {}",
+                    Instant.ofEpochMilli(currentOrderLimitation.getXRatelimitReset()).toString(), currentOrderLimitation.toString());
+            }
         }
 
         order.setClientOrderId(UUID.randomUUID().toString());
