@@ -6,8 +6,9 @@ import lombok.Getter;
 import lombok.ToString;
 
 @Getter
-@ToString
+@ToString(onlyExplicitlyIncluded = true)
 public class TradeableInstrument {
+    @ToString.Include
     private final String instrument;
     private final String description;
     private final String instrumentId;

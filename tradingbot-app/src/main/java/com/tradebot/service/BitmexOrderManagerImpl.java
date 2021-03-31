@@ -174,9 +174,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                         if (resolvedLevel == 0) {
                             log.info("Restart trading fully as zero level");
 
-                            // TODO  - need to make sure this done within 1 min, otherwise it's bad design
-                            bitmexTradingBot.cancelAllPendingOrders();
-                            bitmexTradingBot.resetTradingContext();
+                            stopAllTrades(false);
+
                         } else {
                             log.info("Restart trading at level {} only", resolvedLevel);
                             submitDecisionHelper(tradingContext, openTradingDecision);
@@ -227,12 +226,19 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         TradingDecision<TradingDecisionContext> openTradingDecision,
         int clientOrderId) {
 
-        double minExcecutedPrice = executionList.stream().mapToDouble(BitmexExecution::getLastPx).min().orElseThrow();
-        double calculatedPrice = minExcecutedPrice + tradingContext.getRecalculatedTradingContext().getProfitPlus();
+        double minExecutedPrice = executionList.stream().filter(execution -> execution.getOrdStatus() == OrderStatus.FILLED || execution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED)
+            .mapToDouble(BitmexExecution::getLastPx).min().orElseThrow();
+
+        if (minExecutedPrice <= 0.0) {
+            log.error("Invalid execution price, trading stopped!!!");
+            stopAllTrades(true);
+        }
+
+        double calculatedPrice = minExecutedPrice + tradingContext.getRecalculatedTradingContext().getProfitPlus();
 
         if (log.isDebugEnabled()) {
             log.debug("Calculated min executed price {}, based on execution chain of size {}, calculated price {}",
-                minExcecutedPrice, executionList.size(), calculatedPrice);
+                minExecutedPrice, executionList.size(), calculatedPrice);
         }
 
         double profitPrice = BitmexUtils.roundPrice(
@@ -292,6 +298,16 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             tradingContext.getRecalculatedTradingContext().getProfitPlus());
 
         orderExecutionEngine.submit(order);
+    }
+
+    private void stopAllTrades(boolean doNotContinue) {
+        if (doNotContinue) {
+            bitmexTradingBot.setGlobalTradesEnabled(false);
+        }
+
+        // TODO  - need to make sure this done within 1 min, otherwise it's bad design
+        bitmexTradingBot.cancelAllPendingOrders();
+        bitmexTradingBot.resetTradingContext();
     }
 
 }
