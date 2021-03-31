@@ -240,6 +240,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Map<TradeableInstrument, List<CandleStickGranularity>> resolveInstrumentList() {
         return bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradeableInstruments()
             .stream()
@@ -253,6 +254,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
                 ImmutablePair::getRight));
     }
 
+    @SuppressWarnings("unchecked")
     private Map<TradeableInstrument, Map<String, ?>> resolveAlgParameters() {
         return bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getTradeableInstruments()
             .stream()

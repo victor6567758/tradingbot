@@ -16,6 +16,7 @@ import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.order.OrderExecutionServiceBase;
 import com.tradebot.core.order.OrderExecutionSimpleServiceImpl;
+import com.tradebot.core.order.OrderInfoService;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.order.OrderStatus;
 import com.tradebot.core.position.PositionManagementProvider;
@@ -34,6 +35,7 @@ import java.util.function.LongPredicate;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     private final BitmexTradingBot bitmexTradingBot;
 
     private OrderExecutionServiceBase<String, Long, TradingDecisionContext> orderExecutionEngine;
+    private OrderInfoService<String, Long> orderInfoService;
+
     private PositionService<Long> positionService;
     private BitmexAccountConfiguration bitmexAccountConfiguration;
 
@@ -82,6 +86,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                     bitmexTradingBot.onOperationResult(operationResultContext);
                 }
             });
+
+        orderInfoService = new OrderInfoService<>(orderManagementProvider, bitmexTradingBot::onOperationResult);
 
         positionService = new PositionService<>(positionManagementProvider,
             bitmexTradingBot::onOperationResult);
@@ -230,7 +236,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             .mapToDouble(BitmexExecution::getLastPx).min().orElseThrow();
 
         if (minExecutedPrice <= 0.0) {
-            log.error("Invalid execution price, trading stopped!!!");
+            log.error("Invalid execution price, STOP WORK");
             stopAllTrades(true);
         }
 
@@ -307,6 +313,12 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
         // TODO  - need to make sure this done within 1 min, otherwise it's bad design
         bitmexTradingBot.cancelAllPendingOrders();
+        Collection<Order<String>> pending = orderInfoService.allPendingOrders();
+        if (CollectionUtils.isNotEmpty(pending)) {
+            log.error("Cannot cancel pending orders, STOP WORK");
+            bitmexTradingBot.setGlobalTradesEnabled(false);
+        }
+
         bitmexTradingBot.resetTradingContext();
     }
 
