@@ -5,6 +5,7 @@ import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
+import com.tradebot.bitmex.restapi.model.BitmexOrder;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.marketdata.historic.CandleStick;
@@ -27,6 +28,7 @@ import com.tradebot.model.TradingDecisionContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.springframework.stereotype.Service;
@@ -123,7 +126,15 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
     @Override
     public void onOrderCallback(TradingContext tradingContext, BitmexOrderEventPayload event) {
-        //log.info("Order callback {}", event.getPayLoad().toString());
+
+        BitmexOrder bitmexOrder = event.getPayLoad();
+
+        if (StringUtils.isNotEmpty(bitmexOrder.getText())) {
+            if (StringUtils.contains(bitmexOrder.getText().toLowerCase(Locale.ROOT), "spam")) {
+                log.info("Bitmex suspected spam, STOP WORK {}", bitmexOrder.toString());
+                stopAllTrades(true);
+            }
+        }
     }
 
     @Override
@@ -232,7 +243,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         TradingDecision<TradingDecisionContext> openTradingDecision,
         int clientOrderId) {
 
-        double minExecutedPrice = executionList.stream().filter(execution -> execution.getOrdStatus() == OrderStatus.FILLED || execution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED)
+        double minExecutedPrice = executionList.stream()
+            .filter(execution -> execution.getOrdStatus() == OrderStatus.FILLED || execution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED)
             .mapToDouble(BitmexExecution::getLastPx).min().orElseThrow();
 
         if (minExecutedPrice <= 0.0) {
