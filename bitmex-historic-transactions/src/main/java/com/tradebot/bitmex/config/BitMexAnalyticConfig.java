@@ -7,6 +7,7 @@ import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderServic
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +23,8 @@ public class BitMexAnalyticConfig {
     }
 
     @Bean
-    public InstrumentService instrumentService() {
-        return new InstrumentService(new BitmexInstrumentDataProviderService());
+    public InstrumentDataProvider instrumentDataProvider() {
+        return new BitmexInstrumentDataProviderService();
     }
 
     @Bean

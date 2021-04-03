@@ -22,7 +22,7 @@ public class AccountInfoService<K> {
 
     public Collection<Account<K>> getAllAccounts() {
         OperationResultContext<Collection<Account<K>>> result = accountDataProvider.getLatestAccountsInfo();
-        operationResultCallback.onOrderResult(result);
+        operationResultCallback.onOperationResult(result);
         if (result.isResult()) {
             return result.getData();
         }
@@ -31,7 +31,7 @@ public class AccountInfoService<K> {
 
     public Account<K> getAccountInfo(K accountId) {
         OperationResultContext<Account<K>> result = accountDataProvider.getLatestAccountInfo(accountId);
-        operationResultCallback.onOrderResult(result);
+        operationResultCallback.onOperationResult(result);
         if (result.isResult()) {
             return result.getData();
         }

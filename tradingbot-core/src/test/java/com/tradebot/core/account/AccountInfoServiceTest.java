@@ -40,7 +40,7 @@ public class AccountInfoServiceTest {
         instrumentDataProvider = mock(InstrumentDataProvider.class);
         Collection<TradeableInstrument> instruments = createInstruments();
 
-        when(instrumentDataProvider.getInstruments()).thenReturn(instruments);
+        when(instrumentDataProvider.getInstruments()).thenReturn(new OperationResultContext<>(instruments));
     }
 
     @Test

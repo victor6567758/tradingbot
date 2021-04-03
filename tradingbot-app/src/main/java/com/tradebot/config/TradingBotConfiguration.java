@@ -9,6 +9,7 @@ import com.tradebot.bitmex.restapi.order.BitmexOrderManagementProvider;
 import com.tradebot.bitmex.restapi.position.BitmexPositionManagementProvider;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.AccountDataProvider;
+import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.order.OrderManagementProvider;
@@ -45,9 +46,10 @@ public class TradingBotConfiguration {
         return new ModelMapper();
     }
 
+
     @Bean
-    public InstrumentService instrumentService() {
-        return new InstrumentService(new BitmexInstrumentDataProviderService());
+    public InstrumentDataProvider instrumentDataProvider() {
+        return new BitmexInstrumentDataProviderService();
     }
 
     @Bean

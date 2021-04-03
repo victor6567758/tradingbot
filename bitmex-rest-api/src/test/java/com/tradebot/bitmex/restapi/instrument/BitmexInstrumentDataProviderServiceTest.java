@@ -14,8 +14,10 @@ import com.google.gson.reflect.TypeToken;
 import com.tradebot.bitmex.restapi.generated.api.InstrumentApi;
 import com.tradebot.bitmex.restapi.generated.model.Instrument;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.model.OperationResultContext;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +48,7 @@ public class BitmexInstrumentDataProviderServiceTest {
             new TypeToken<List<Instrument>>() {
             }.getType());
 
-        when(instrumentApi.instrumentGet(
+        when(instrumentApi.instrumentGetWithHttpInfo(
             isNull(),
             isNull(),
             isNull(),
@@ -54,9 +57,9 @@ public class BitmexInstrumentDataProviderServiceTest {
             eq(true),
             isNull(),
             isNull())
-        ).thenReturn(instruments);
+        ).thenReturn(new ApiResponse(HttpStatus.SC_OK, Collections.emptyMap(), instruments));
 
-        when(instrumentApi.instrumentGet(
+        when(instrumentApi.instrumentGetWithHttpInfo(
             isNull(),
             isNull(),
             isNull(),
@@ -65,16 +68,16 @@ public class BitmexInstrumentDataProviderServiceTest {
             eq(true),
             isNull(),
             isNull())
-        ).thenReturn(Collections.emptyList());
+        ).thenReturn(new ApiResponse(HttpStatus.SC_OK, Collections.emptyMap(), Collections.emptyList()));
 
         doReturn(instrumentApi).when(bitmexInstrumentDataProviderServiceSpy).getInstrumentApi();
     }
 
     @Test
     public void testGetInstruments() {
-        Collection<TradeableInstrument> tradebleInstruments = bitmexInstrumentDataProviderServiceSpy.getInstruments();
-        assertThat(tradebleInstruments).hasSize(instruments.size());
-        assertThat(tradebleInstruments.stream().map(TradeableInstrument::getInstrument).distinct().collect(Collectors.toList()))
+        OperationResultContext<Collection<TradeableInstrument>> tradebleInstruments = bitmexInstrumentDataProviderServiceSpy.getInstruments();
+        assertThat(tradebleInstruments.getData()).hasSize(instruments.size());
+        assertThat(tradebleInstruments.getData().stream().map(TradeableInstrument::getInstrument).distinct().collect(Collectors.toList()))
             .containsExactlyInAnyOrder(instruments.stream().map(Instrument::getSymbol).toArray(String[]::new));
 
     }

@@ -19,6 +19,7 @@ import com.tradebot.core.events.EventCallbackImpl;
 import com.tradebot.core.heartbeats.HeartBeatCallback;
 import com.tradebot.core.heartbeats.HeartBeatCallbackImpl;
 import com.tradebot.core.helper.CacheCandlestick;
+import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.MarketEventCallback;
@@ -56,6 +57,8 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
     private EventsStreamingService eventStreamingService;
 
 
+    protected InstrumentService instrumentService;
+
     protected Map<TradeableInstrument, Map<String, ?>> algParameters;
 
     protected Map<TradeableInstrument, List<CandleStickGranularity>> instruments;
@@ -64,13 +67,13 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
 
     protected final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
 
-    protected final InstrumentService instrumentService;
-
     //protected final CurrentPriceInfoProvider currentPriceInfoProvider = new BitmexCurrentPriceInfoProvider();
 
     protected final HistoricMarketDataProvider historicMarketDataProvider;
 
     protected final AccountDataProvider<Long> accountDataProvider;
+
+    protected final InstrumentDataProvider instrumentDataProvider;
 
 
     //protected final BlockingQueue<TradingDecision> orderQueue = new LinkedBlockingQueue<>();
@@ -78,11 +81,12 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
 
     public BitmexTradingBotBase(
         EventBus eventBus,
-        InstrumentService instrumentService,
+        InstrumentDataProvider instrumentDataProvider,
         AccountDataProvider<Long> accountDataProvider,
         HistoricMarketDataProvider historicMarketDataProvider) {
+
+        this.instrumentDataProvider = instrumentDataProvider;
         this.eventBus = eventBus;
-        this.instrumentService = instrumentService;
         this.accountDataProvider = accountDataProvider;
         this.historicMarketDataProvider = historicMarketDataProvider;
 
@@ -91,6 +95,7 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
             bitmexAccountConfiguration.getBitmex().getTradingConfiguration(),
             this::onOperationResult
         );
+
     }
 
     public void initialize() {
@@ -99,6 +104,8 @@ public abstract class BitmexTradingBotBase implements MarketDataPayLoadSinkCallb
 
         MarketEventCallback marketEventCallback = new MarketEventHandlerImpl(eventBus);
         HeartBeatCallback<Long> heartBeatCallback = new HeartBeatCallbackImpl<>(eventBus);
+
+        instrumentService = new InstrumentService(instrumentDataProvider, this::onOperationResult);
 
         algParameters = resolveAlgParameters();
         instruments = resolveInstrumentList();

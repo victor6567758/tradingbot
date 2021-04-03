@@ -1,25 +1,41 @@
 package com.tradebot.core.instrument;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.tradebot.core.model.OperationResultCallback;
+import com.tradebot.core.model.OperationResultContext;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+@Slf4j
 public class InstrumentService {
 
+    private static final String INVALID_INSTRUMENT_PROVIDER_RESULT_S = "Invalid instrument provider result: %s";
+
     private final Map<String, TradeableInstrument> instrumentMap;
+    private final OperationResultCallback operationResultCallback;
 
-    public InstrumentService(InstrumentDataProvider instrumentDataProvider) {
-        Preconditions.checkNotNull(instrumentDataProvider);
+    public InstrumentService(
+        InstrumentDataProvider instrumentDataProvider,
+        OperationResultCallback operationResultCallback) {
 
-        instrumentMap = ImmutableMap.<String, TradeableInstrument>builder().putAll(
-            instrumentDataProvider.getInstruments().stream()
-                .collect(Collectors.toMap(TradeableInstrument::getInstrument,
-                    instrument -> instrument))).build();
+        this.operationResultCallback = operationResultCallback;
+
+        OperationResultContext<Collection<TradeableInstrument>> result = instrumentDataProvider.getInstruments();
+        operationResultCallback.onOperationResult(result);
+
+        if (result.isResult()) {
+            instrumentMap = ImmutableMap.<String, TradeableInstrument>builder().putAll(
+                result.getData().stream()
+                    .collect(Collectors.toMap(TradeableInstrument::getInstrument,
+                        instrument -> instrument))).build();
+        } else {
+            throw new IllegalArgumentException(String.format(INVALID_INSTRUMENT_PROVIDER_RESULT_S, result.getMessage()));
+        }
     }
 
     public Collection<TradeableInstrument> getInstruments() {
@@ -38,8 +54,6 @@ public class InstrumentService {
     }
 
     public Double getTickSizeForInstrument(TradeableInstrument instrument) {
-        Preconditions.checkNotNull(instrument);
-
         TradeableInstrument tradeableInstrument = instrumentMap.get(instrument.getInstrument());
         return tradeableInstrument != null ? tradeableInstrument.getTickSize() : 1.0;
     }

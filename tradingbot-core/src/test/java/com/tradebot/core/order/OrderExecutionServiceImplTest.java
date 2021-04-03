@@ -108,7 +108,7 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OperationResultContext<?> orderResultContext) {
+            public void onOperationResult(OperationResultContext<?> orderResultContext) {
 
             }
         };
@@ -156,7 +156,7 @@ public class OrderExecutionServiceImplTest<N> {
             }
 
             @Override
-            public void onOrderResult(OperationResultContext orderResultContext) {
+            public void onOperationResult(OperationResultContext orderResultContext) {
 
             }
         };

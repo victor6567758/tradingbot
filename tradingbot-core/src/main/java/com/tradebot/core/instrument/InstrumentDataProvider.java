@@ -1,10 +1,11 @@
 
 package com.tradebot.core.instrument;
 
+import com.tradebot.core.model.OperationResultContext;
 import java.util.Collection;
 
 
 public interface InstrumentDataProvider {
 
-    Collection<TradeableInstrument> getInstruments();
+    OperationResultContext<Collection<TradeableInstrument>> getInstruments();
 }

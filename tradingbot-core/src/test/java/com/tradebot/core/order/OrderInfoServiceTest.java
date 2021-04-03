@@ -44,7 +44,7 @@ public class OrderInfoServiceTest<N> {
 			}
 
 			@Override
-			public void onOrderResult(OperationResultContext<?> orderResultContext) {
+			public void onOperationResult(OperationResultContext<?> orderResultContext) {
 
 			}
 		};

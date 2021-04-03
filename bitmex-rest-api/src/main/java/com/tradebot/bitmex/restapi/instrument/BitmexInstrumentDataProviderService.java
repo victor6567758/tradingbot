@@ -1,14 +1,16 @@
 package com.tradebot.bitmex.restapi.instrument;
 
-import com.tradebot.bitmex.restapi.BitmexConstants;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.generated.api.InstrumentApi;
 import com.tradebot.bitmex.restapi.generated.model.Instrument;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
+import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
 import com.tradebot.bitmex.restapi.utils.ApiClientAuthorizeable;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.model.OperationResultContext;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,10 +20,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 
 @Slf4j
 public class BitmexInstrumentDataProviderService implements InstrumentDataProvider {
+
+    private static final String INSTRUMENT_ERROR = "Instrument retrieving error {} {}";
 
     private static final BigDecimal CHUNK_SIZE = BigDecimal.valueOf(500);
     private final BitmexAccountConfiguration bitmexAccountConfiguration = BitmexUtils.readBitmexConfiguration();
@@ -35,19 +40,15 @@ public class BitmexInstrumentDataProviderService implements InstrumentDataProvid
 
 
     @Override
-    public Collection<TradeableInstrument> getInstruments() {
+    public OperationResultContext<Collection<TradeableInstrument>> getInstruments() {
 
-        List<Instrument> instruments = getAllInstruments();
-        return instruments.stream().map(BitmexInstrumentDataProviderService::toTradeableInstrument).collect(Collectors.toList());
-
-    }
-
-    private List<Instrument> getAllInstruments() {
         try {
-            List<Instrument> allInstruments = new ArrayList<>();
+            List<TradeableInstrument> allInstruments = new ArrayList<>();
             BigDecimal position = BigDecimal.ZERO;
+
+            ApiResponse<List<Instrument>> lastApiResponse;
             while (true) {
-                List<Instrument> chunk = getInstrumentApi().instrumentGet(
+                lastApiResponse = getInstrumentApi().instrumentGetWithHttpInfo(
                     null,
                     null,
                     null,
@@ -58,19 +59,20 @@ public class BitmexInstrumentDataProviderService implements InstrumentDataProvid
                     null
                 );
 
-                if (CollectionUtils.isEmpty(chunk)) {
+                if (CollectionUtils.isEmpty(lastApiResponse.getData())) {
                     break;
                 }
-                allInstruments.addAll(chunk);
+                allInstruments.addAll(lastApiResponse.getData().stream().map(BitmexInstrumentDataProviderService::toTradeableInstrument)
+                    .collect(Collectors.toList()));
                 position = position.add(CHUNK_SIZE);
             }
 
-            return allInstruments;
-
+            return BitmexUtils.prepareResultReturned(lastApiResponse, new BitmexOperationQuotas<>(allInstruments));
         } catch (ApiException apiException) {
-            throw new IllegalArgumentException(String.format(BitmexConstants.BITMEX_FAILURE,
-                apiException.getResponseBody()), apiException);
+            log.error(INSTRUMENT_ERROR, apiException.getResponseBody(), ExceptionUtils.getMessage(apiException));
+            return new OperationResultContext<>(null, BitmexUtils.errorMessageFromApiException(apiException));
         }
+
     }
 
     private static TradeableInstrument toTradeableInstrument(Instrument instrument) {

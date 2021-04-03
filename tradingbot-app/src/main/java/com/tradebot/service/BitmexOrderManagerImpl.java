@@ -85,7 +85,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
                 }
 
                 @Override
-                public void onOrderResult(OperationResultContext<?> operationResultContext) {
+                public void onOperationResult(OperationResultContext<?> operationResultContext) {
                     bitmexTradingBot.onOperationResult(operationResultContext);
                 }
             });

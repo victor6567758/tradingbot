@@ -1,5 +1,6 @@
 package com.tradebot.service;
 
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.response.CandleResponse;
 import com.tradebot.response.ExecutionResponse;
 import com.tradebot.response.MeshResponse;
@@ -28,5 +29,7 @@ public interface TradingBotApi {
   Collection<CandleResponse> getCandleStickHistory(String symbol);
 
   List<ExecutionResponse> getLastExecutionResponseList(String symbol, int level);
+
+  void onOperationResult(OperationResultContext<?> operationResultContext);
 
 }

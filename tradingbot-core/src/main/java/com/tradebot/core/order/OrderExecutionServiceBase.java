@@ -52,7 +52,7 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
         OperationResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
         order.setOrderId(result.getData());
 
-        orderExecutionServiceCallback.onOrderResult(result);
+        orderExecutionServiceCallback.onOperationResult(result);
         return Optional.of(order);
     }
 
@@ -72,7 +72,7 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
             OperationResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
             order.setOrderId(result.getData());
 
-            orderExecutionServiceCallback.onOrderResult(result);
+            orderExecutionServiceCallback.onOperationResult(result);
         });
         return ordersGenerated;
 

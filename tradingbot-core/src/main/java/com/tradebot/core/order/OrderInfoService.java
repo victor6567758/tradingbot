@@ -18,7 +18,7 @@ public class OrderInfoService<N, K> {
 
     public Collection<Order<N>> allPendingOrders() {
         OperationResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.allPendingOrders();
-        operationResultCallback.onOrderResult(pendingOrderResult);
+        operationResultCallback.onOperationResult(pendingOrderResult);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }
@@ -27,7 +27,7 @@ public class OrderInfoService<N, K> {
 
     public Collection<Order<N>> pendingOrdersForAccount(K accountId) {
         OperationResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.pendingOrdersForAccount(accountId);
-        operationResultCallback.onOrderResult(pendingOrderResult);
+        operationResultCallback.onOperationResult(pendingOrderResult);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }
@@ -36,7 +36,7 @@ public class OrderInfoService<N, K> {
 
     public Collection<Order<N>> pendingOrdersForInstrument(TradeableInstrument instrument) {
         OperationResultContext<Collection<Order<N>>> pendingOrderResult = orderManagementProvider.pendingOrdersForInstrument(instrument);
-        operationResultCallback.onOrderResult(pendingOrderResult);
+        operationResultCallback.onOperationResult(pendingOrderResult);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }
@@ -45,7 +45,7 @@ public class OrderInfoService<N, K> {
 
     public Order<N> pendingOrderForAccount(N orderId, K accountId) {
         OperationResultContext<Order<N>> pendingOrderResult = orderManagementProvider.pendingOrderForAccount(orderId, accountId);
-        operationResultCallback.onOrderResult(pendingOrderResult);
+        operationResultCallback.onOperationResult(pendingOrderResult);
         if (pendingOrderResult.isResult()) {
             return pendingOrderResult.getData();
         }

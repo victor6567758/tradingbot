@@ -17,7 +17,7 @@ public class PositionService<K> {
 
     public Position getPositionForInstrument(K accountId, TradeableInstrument instrument) {
         OperationResultContext<Position> result = positionManagementProvider.getPositionForInstrument(accountId, instrument);
-        operationResultCallback.onOrderResult(result);
+        operationResultCallback.onOperationResult(result);
 
         if (result.isResult()) {
             return result.getData();
@@ -27,7 +27,7 @@ public class PositionService<K> {
 
     public Collection<Position> getPositionsForAccount(K accountId) {
         OperationResultContext<Collection<Position>> result = positionManagementProvider.getPositionsForAccount(accountId);
-        operationResultCallback.onOrderResult(result);
+        operationResultCallback.onOperationResult(result);
 
         if (result.isResult()) {
             return result.getData();
@@ -37,7 +37,7 @@ public class PositionService<K> {
 
     public String closePosition(K accountId, TradeableInstrument instrument, double price) {
         OperationResultContext<String> result = positionManagementProvider.closePosition(accountId, instrument, price);
-        operationResultCallback.onOrderResult(result);
+        operationResultCallback.onOperationResult(result);
 
         if (result.isResult()) {
             return result.getData();

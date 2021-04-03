@@ -4,6 +4,8 @@ import com.tradebot.bitmex.restapi.account.transaction.BitmexTransactionDataProv
 import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
+import com.tradebot.core.model.OperationResultCallback;
+import com.tradebot.core.model.OperationResultContext;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
@@ -58,7 +60,9 @@ public class TestDatasourceConfig {
 
     @Bean
     public InstrumentService instrumentService() {
-        return new InstrumentService(new BitmexInstrumentDataProviderService());
+        return new InstrumentService(new BitmexInstrumentDataProviderService(), operationResultContext -> {
+
+        });
     }
 
     @Bean

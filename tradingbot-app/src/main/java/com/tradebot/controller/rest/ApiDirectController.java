@@ -2,12 +2,14 @@ package com.tradebot.controller.rest;
 
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.utils.converters.TradingSignalConvertible;
+import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.order.Order;
 import com.tradebot.core.utils.CommonConsts;
 import com.tradebot.request.LimitOrderRequest;
 import com.tradebot.request.MarketOrderRequest;
 import com.tradebot.service.BitmexOrderManager;
+import com.tradebot.service.TradingBotApi;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -24,15 +26,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ApiDirectController {
 
-    private final InstrumentService instrumentService;
+    private final InstrumentDataProvider instrumentDataProvider;
 
     private final BitmexOrderManager bitmexOrderManager;
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration;
 
+    private final TradingBotApi tradingBotRestApi;
+
+    private InstrumentService instrumentService;
+
     @PostConstruct
     public void initialize() {
         bitmexOrderManager.initialize(-1L, bitmexAccountConfiguration);
+        instrumentService = new InstrumentService(instrumentDataProvider, tradingBotRestApi::onOperationResult);
     }
 
     @PutMapping("/openLimitTrade")

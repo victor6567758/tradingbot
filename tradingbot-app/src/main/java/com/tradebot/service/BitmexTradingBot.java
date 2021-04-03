@@ -11,7 +11,7 @@ import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.helper.CacheCandlestick;
-import com.tradebot.core.instrument.InstrumentService;
+import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.Price;
 import com.tradebot.core.marketdata.historic.CandleStick;
@@ -85,10 +85,10 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
         ModelMapper modelMapper,
         SimpMessagingTemplate simpMessagingTemplate,
         @Lazy BitmexOrderManager bitmexOrderManager,
-        InstrumentService instrumentService,
+        InstrumentDataProvider instrumentDataProvider,
         AccountDataProvider<Long> accountDataProvider,
         HistoricMarketDataProvider historicMarketDataProvider) {
-        super(eventBus, instrumentService, accountDataProvider, historicMarketDataProvider);
+        super(eventBus, instrumentDataProvider, accountDataProvider, historicMarketDataProvider);
         meshCache = CacheBuilder.newBuilder()
             .expireAfterWrite(
                 bitmexAccountConfiguration.getBitmex().getTradingConfiguration()
@@ -253,7 +253,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
         }
 
         Account<Long> account = accountInfoService.getAccountInfo(bitmexAccountConfiguration.getBitmex()
-                .getTradingConfiguration().getAccountId());
+            .getTradingConfiguration().getAccountId());
 
         tradingContextMapLock.writeLock().lock();
         try {
