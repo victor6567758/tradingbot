@@ -10,16 +10,17 @@ import lombok.ToString;
 @Builder
 public class TradingDecision<C> {
 
-    public enum SrcDecison {
+    public enum SrcDecision {
         SOCIAL_MEDIA,
         SPIKE,
         FADE_THE_MOVE,
         OTHER
     }
 
+    private final int executionDelay;
     private final TradingSignal signal;
     private final TradeableInstrument instrument;
-    private final SrcDecison tradeSource;
+    private final SrcDecision tradeSource;
     private final double limitPrice;
     private final double stopPrice;
     private final long units;

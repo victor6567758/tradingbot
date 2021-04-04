@@ -374,11 +374,13 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
             Math.abs(priceStep) * tradingContext.getImmutableTradingContext().getXPct()
         );
 
+        int currentOrderDelaySec = 0;
         for (int i = 0; i < tradingContext.getImmutableTradingContext().getLinesNum(); i++) {
             double roundedPrice = BitmexUtils.roundPrice(candleStick.getInstrument(), currentPrice);
 
             tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().put(i,
                 TradingDecision.<TradingDecisionContext>builder().instrument(candleStick.getInstrument())
+                    .executionDelay(currentOrderDelaySec)
                     .signal(TradingSignal.LONG)
                     .limitPrice(roundedPrice)
                     .stopPrice(0.0)
@@ -390,9 +392,8 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
             tradingContext.getRecalculatedTradingContext().getExecutionChains().put(i, new ArrayList<>());
             currentPrice += priceStep;
+            currentOrderDelaySec += bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getOrderDelaySec();
         }
-
-
     }
 
     private void calculateParametersPerCandle(

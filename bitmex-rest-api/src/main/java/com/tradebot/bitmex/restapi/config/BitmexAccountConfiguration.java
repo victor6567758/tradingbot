@@ -46,7 +46,8 @@ public class BitmexAccountConfiguration {
     @Data
     public static class TradingConfiguration extends BaseTradingConfig {
 
-        private Long accountId;
+        private int orderDelaySec;
+        private long accountId;
         private String mailTo;
         private int priceExpiryMinutes;
         private int tradingSolutionsDepthMin;

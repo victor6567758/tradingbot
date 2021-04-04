@@ -1,8 +1,8 @@
 package com.tradebot.core.order;
 
+import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.model.OrderExecutionServiceCallback;
 import com.tradebot.core.model.TradingDecision;
-import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.utils.CommonUtils;
 import java.util.Collections;
 import java.util.List;
@@ -26,9 +26,8 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-
-    public Future<List<Order<N>>> submit(TradingDecision<C> decision) {
-        return executorService.submit(() -> processTradingDecision(decision));
+    public Future<List<Order<N>>> submit(List<Order<N>> orders) {
+        return executorService.submit(() -> processOrderList(orders));
     }
 
     public Future<Optional<Order<N>>> submit(Order<N> order) {
@@ -56,26 +55,20 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
         return Optional.of(order);
     }
 
-    private List<Order<N>> processTradingDecision(TradingDecision<C> decision) {
+    private List<Order<N>> processOrderList(List<Order<N>> orders) {
 
         if (!initOrderSubmit()) {
             return Collections.emptyList();
         }
 
-        if (!preValidate(decision)) {
-            log.warn("Validation failed for a decision: {}", decision.toString());
-            return Collections.emptyList();
-        }
-
-        List<Order<N>> ordersGenerated = createOrderListFromDecision(decision);
-        ordersGenerated.forEach(order -> {
+        orders.forEach(order -> {
             OperationResultContext<N> result = orderManagementProvider.placeOrder(order, accountIdSupplier.get());
             order.setOrderId(result.getData());
 
             orderExecutionServiceCallback.onOperationResult(result);
         });
-        return ordersGenerated;
 
+        return orders;
     }
 
     private boolean initOrderSubmit() {

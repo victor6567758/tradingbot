@@ -21,6 +21,10 @@ public class OrderExecutionSimpleServiceImpl<N, K, C> extends OrderExecutionServ
     @Override
     public List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision) {
 
+        if (!preValidate(decision)) {
+            throw new IllegalArgumentException(String.format("Invalid decision %s", decision.toString()));
+        }
+
         Order<N> order;
         if (decision.getLimitPrice() == 0.0) {
 
