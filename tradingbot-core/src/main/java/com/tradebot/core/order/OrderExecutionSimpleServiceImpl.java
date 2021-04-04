@@ -5,6 +5,7 @@ import com.tradebot.core.model.TradingDecision;
 import com.tradebot.core.utils.CommonConsts;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +20,7 @@ public class OrderExecutionSimpleServiceImpl<N, K, C> extends OrderExecutionServ
     }
 
     @Override
-    public List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision) {
+    public List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision, Function<C, N> mapperToClientOrderId) {
 
         if (!preValidate(decision)) {
             throw new IllegalArgumentException(String.format("Invalid decision %s", decision.toString()));
@@ -46,6 +47,7 @@ public class OrderExecutionSimpleServiceImpl<N, K, C> extends OrderExecutionServ
             }
         }
 
+        order.setClientOrderId(mapperToClientOrderId.apply(decision.getContext()));
         log.info("Order {} was generated based on decision {}", order.toString(), decision.toString());
         return Collections.singletonList(order);
     }

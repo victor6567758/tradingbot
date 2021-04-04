@@ -7,9 +7,11 @@ import com.tradebot.core.utils.CommonUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +26,7 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
     private final OrderManagementProvider<N, K> orderManagementProvider;
     private final Supplier<K> accountIdSupplier;
 
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     public Future<List<Order<N>>> submit(List<Order<N>> orders) {
         return executorService.submit(() -> processOrderList(orders));
@@ -34,11 +36,19 @@ public abstract class OrderExecutionServiceBase<N, K, C> {
         return executorService.submit(() -> processOrder(order));
     }
 
+    public Future<List<Order<N>>> submit(List<Order<N>> orders, int delaySec) {
+        return executorService.schedule(() -> processOrderList(orders), delaySec, TimeUnit.SECONDS);
+    }
+
+    public Future<Optional<Order<N>>> submit(Order<N> order, int delaySec) {
+        return executorService.schedule(() -> processOrder(order), delaySec, TimeUnit.SECONDS);
+    }
+
     public void shutdown() {
         CommonUtils.commonExecutorServiceShutdown(executorService, SHUTDOWN_WAIT_TIME);
     }
 
-    public abstract List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision);
+    public abstract List<Order<N>> createOrderListFromDecision(TradingDecision<C> decision, Function<C, N> mapperToClientOrderId);
 
     protected abstract boolean preValidate(TradingDecision<C> decision);
 

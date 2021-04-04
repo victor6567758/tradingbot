@@ -273,6 +273,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             CommonConsts.INVALID_PRICE
         );
 
+        closeOrder.setClientOrderId(UUID.randomUUID().toString());
         submitOrderHelper(tradingContext, closeOrder, openTradingDecision, new TradingDecisionContext(clientOrderId));
     }
 
@@ -291,7 +292,8 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
 
     private void submitDecisionHelper(TradingContext tradingContext, TradingDecision<TradingDecisionContext> decision) {
-        List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision);
+        List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision,
+            tradingDecisionContext -> UUID.randomUUID().toString());
         if (orders.size() != 1) {
             throw new IllegalArgumentException("At this strategy 1 order per a single decision");
         }
@@ -309,7 +311,6 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             }
         }
 
-        order.setClientOrderId(UUID.randomUUID().toString());
         clientOrderIdLevelMap.put(order.getClientOrderId(), tradingDecisionContext);
 
         log.info("About to submit order {}, profit plus {}, order delay time sec {}",
