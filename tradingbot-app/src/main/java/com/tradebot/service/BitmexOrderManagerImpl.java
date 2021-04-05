@@ -274,7 +274,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         );
 
         closeOrder.setClientOrderId(UUID.randomUUID().toString());
-        submitOrderHelper(tradingContext, closeOrder, openTradingDecision, new TradingDecisionContext(clientOrderId));
+        submitOrderHelper(tradingContext, closeOrder, openTradingDecision, new TradingDecisionContext(clientOrderId), 0);
     }
 
     private boolean updateVolumeAndCheck(
@@ -298,11 +298,11 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             throw new IllegalArgumentException("At this strategy 1 order per a single decision");
         }
 
-        submitOrderHelper(tradingContext, orders.get(0), decision, decision.getContext());
+        submitOrderHelper(tradingContext, orders.get(0), decision, decision.getContext(), decision.getExecutionDelay());
     }
 
     private void submitOrderHelper(TradingContext tradingContext, Order<String> order, TradingDecision<TradingDecisionContext> decision,
-        TradingDecisionContext tradingDecisionContext) {
+        TradingDecisionContext tradingDecisionContext, int delaySec) {
         BitmexOperationQuotas<?> currentOrderLimitation = tradingContext.getRecalculatedTradingContext().getBitmexOrderQuotas();
         if (currentOrderLimitation != null) {
             if (log.isDebugEnabled()) {
@@ -316,9 +316,9 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         log.info("About to submit order {}, profit plus {}, order delay time sec {}",
             order.toString(),
             tradingContext.getRecalculatedTradingContext().getProfitPlus(),
-            decision.getExecutionDelay());
+            delaySec);
 
-        orderExecutionEngine.submit(order);
+        orderExecutionEngine.submit(order, delaySec);
     }
 
     private void stopAllTrades(boolean doNotContinue) {

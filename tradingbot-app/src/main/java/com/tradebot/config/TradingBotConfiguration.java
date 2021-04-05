@@ -32,7 +32,7 @@ public class TradingBotConfiguration {
     }
 
     @Bean
-    public BitmexAccountConfiguration bitmexAccountConfiguration() {
+    public BitmexAccountConfiguration bitmexAccountConfiguration()  {
         return BitmexUtils.readBitmexConfiguration();
     }
 
