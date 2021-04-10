@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class BitmexOrderManagementProvider implements OrderManagementProvider<String, Long> {
@@ -37,6 +38,7 @@ public class BitmexOrderManagementProvider implements OrderManagementProvider<St
     private final InstrumentService instrumentService;
 
     public BitmexOrderManagementProvider(InstrumentService instrumentService) {
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.instrumentService = instrumentService;
     }
 

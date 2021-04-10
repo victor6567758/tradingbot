@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.util.Assert;
 
 
 @Slf4j
@@ -34,9 +35,9 @@ public class BitmexPositionManagementProvider implements PositionManagementProvi
     private final InstrumentService instrumentService;
 
     public BitmexPositionManagementProvider(InstrumentService instrumentService) {
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.instrumentService = instrumentService;
     }
-
 
     @Getter(AccessLevel.PACKAGE)
     private final PositionApi positionApi = new PositionApi(

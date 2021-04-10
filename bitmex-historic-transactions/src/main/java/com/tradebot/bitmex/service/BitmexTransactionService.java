@@ -12,8 +12,6 @@ import com.tradebot.core.model.OperationResultContext;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -32,8 +30,7 @@ public class BitmexTransactionService {
 
     private final BimexAccounRepository bitmexAccountRepository;
 
-    @Getter(AccessLevel.PACKAGE)
-    private final TransactionDataProvider<String, Long> bitmexTransactiondataProvider;
+    private final TransactionDataProvider<String, Long> transactionDataProvider;
 
     public void saveNewTransactions() {
         OperationResultContext<Collection<Account<Long>>> allAccountsWithContext = accountDataProvider.getLatestAccountsInfo();
@@ -51,7 +48,7 @@ public class BitmexTransactionService {
                 .orElse(null);
 
             List<Transaction<String, Long>> newTransactions =
-                getBitmexTransactiondataProvider().getTransactionsGreaterThanDateTime(
+                transactionDataProvider.getTransactionsGreaterThanDateTime(
                     maxTransactionTime != null ? new DateTime(maxTransactionTime) : null, account.getAccountId());
             log.info("Found {} new transactions for account {}", newTransactions.size(), account.getAccountId());
 

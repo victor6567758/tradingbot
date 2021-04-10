@@ -7,30 +7,14 @@ import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderServic
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
-import com.tradebot.core.instrument.InstrumentDataProvider;
 import com.tradebot.core.instrument.InstrumentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 @Configuration
+@Slf4j
 public class BitMexAnalyticConfig {
-
-    private final InstrumentService instrumentService;
-
-    public BitMexAnalyticConfig(@Lazy InstrumentService instrumentService) {
-        this.instrumentService = instrumentService;
-    }
-
-    @Bean
-    public InstrumentDataProvider instrumentDataProvider() {
-        return new BitmexInstrumentDataProviderService();
-    }
-
-    @Bean
-    public TransactionDataProvider<String, Long> transactionDataProvider() {
-        return new BitmexTransactionDataProviderService(instrumentService);
-    }
 
     @Bean
     public BitmexAccountConfiguration bitmexAccountConfiguration() {
@@ -40,5 +24,14 @@ public class BitMexAnalyticConfig {
     @Bean
     public AccountDataProvider<Long> accountDataProvider() {
         return new BitmexAccountDataProviderService();
+    }
+
+    @Bean
+    public TransactionDataProvider<String, Long> transactionDataProvider() {
+        return new BitmexTransactionDataProviderService(new InstrumentService(new BitmexInstrumentDataProviderService(), operationResultContext -> {
+            if (log.isDebugEnabled()) {
+                log.debug(operationResultContext.toString());
+            }
+        }));
     }
 }

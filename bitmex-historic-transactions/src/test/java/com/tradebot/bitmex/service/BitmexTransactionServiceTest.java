@@ -60,7 +60,8 @@ public class BitmexTransactionServiceTest {
 
     private final JSON json = new JSON();
 
-    private TransactionDataProvider<String, Long> transactionDataProviderMock;
+    @MockBean
+    private TransactionDataProvider<String, Long> transactionDataProvider;
 
     @Autowired
     private BimexAccounRepository bimexAccounRepository;
@@ -85,16 +86,13 @@ public class BitmexTransactionServiceTest {
 
         doReturn(new OperationResultContext<>(createAccount1())).when(accountDataProvider).getLatestAccountsInfo();
 
-        transactionDataProviderMock = mock(BitmexTransactionDataProviderService.class);
         List<com.tradebot.core.account.transaction.Transaction<String, Long>> newTransactions =
             transactions.stream()
                 .map(this::mapToTransaction)
                 .collect(Collectors.toList());
 
-        doReturn(newTransactions).when(transactionDataProviderMock)
+        doReturn(newTransactions).when(transactionDataProvider)
             .getTransactionsGreaterThanDateTime(isNull(), any(Long.class));
-
-        doReturn(transactionDataProviderMock).when(bitmexTransactionService).getBitmexTransactiondataProvider();
 
     }
 

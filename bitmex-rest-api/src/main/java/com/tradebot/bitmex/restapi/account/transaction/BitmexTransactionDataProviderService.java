@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class BitmexTransactionDataProviderService implements TransactionDataProvider<String, Long> {
@@ -27,6 +28,7 @@ public class BitmexTransactionDataProviderService implements TransactionDataProv
     private final InstrumentService instrumentService;
 
     public BitmexTransactionDataProviderService(InstrumentService instrumentService) {
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.instrumentService = instrumentService;
     }
 

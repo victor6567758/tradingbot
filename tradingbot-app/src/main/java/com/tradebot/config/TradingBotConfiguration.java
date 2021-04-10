@@ -14,6 +14,8 @@ import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.position.PositionManagementProvider;
+import com.tradebot.service.TradingBotApi;
+import javax.annotation.PostConstruct;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,17 +24,27 @@ import org.springframework.context.annotation.Lazy;
 @Configuration
 public class TradingBotConfiguration {
 
-    private final InstrumentService instrumentService;
-    private final OrderManagementProvider<String, Long> orderManagementProvider;
+    private final InstrumentDataProvider instrumentDataProvider;
 
-    public TradingBotConfiguration(@Lazy InstrumentService instrumentService,
-        @Lazy OrderManagementProvider<String, Long> orderManagementProvider) {
-        this.instrumentService = instrumentService;
-        this.orderManagementProvider = orderManagementProvider;
+    private final TradingBotApi tradingBotApi;
+
+    private InstrumentService instrumentService;
+
+    public TradingBotConfiguration(
+        @Lazy TradingBotApi tradingBotApi,
+        @Lazy InstrumentDataProvider instrumentDataProvider) {
+
+        this.instrumentDataProvider = instrumentDataProvider;
+        this.tradingBotApi = tradingBotApi;
+    }
+
+    @PostConstruct
+    public void init() {
+        instrumentService = new InstrumentService(instrumentDataProvider, tradingBotApi::onOperationResult);
     }
 
     @Bean
-    public BitmexAccountConfiguration bitmexAccountConfiguration()  {
+    public BitmexAccountConfiguration bitmexAccountConfiguration() {
         return BitmexUtils.readBitmexConfiguration();
     }
 
@@ -45,7 +57,6 @@ public class TradingBotConfiguration {
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
-
 
     @Bean
     public InstrumentDataProvider instrumentDataProvider() {

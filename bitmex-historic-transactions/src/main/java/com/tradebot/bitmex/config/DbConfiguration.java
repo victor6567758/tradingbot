@@ -5,9 +5,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -19,10 +19,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "com.tradebot.bitmex.repository")
-@RequiredArgsConstructor
 public class DbConfiguration {
 
     private final BitmexAccountConfiguration bitmexAccountConfiguration;
+
+    public DbConfiguration(@Lazy BitmexAccountConfiguration bitmexAccountConfiguration) {
+        this.bitmexAccountConfiguration = bitmexAccountConfiguration;
+    }
 
     @Bean
     public DataSource dataSource() {
