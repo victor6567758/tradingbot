@@ -3,6 +3,7 @@ package com.tradebot.bitmex.config;
 import com.tradebot.bitmex.restapi.account.transaction.BitmexTransactionDataProviderService;
 import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderService;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.account.transaction.TransactionInfoService;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.model.OperationResultCallback;
 import com.tradebot.core.model.OperationResultContext;
@@ -26,8 +27,13 @@ public class TestDatasourceConfig {
 
     private final InstrumentService instrumentService;
 
-    public TestDatasourceConfig(@Lazy InstrumentService instrumentService) {
+    private final TransactionDataProvider<String, Long> transactionDataProvider;
+
+    public TestDatasourceConfig(
+        @Lazy InstrumentService instrumentService,
+        @Lazy TransactionDataProvider<String, Long> transactionDataProvider) {
         this.instrumentService = instrumentService;
+        this.transactionDataProvider = transactionDataProvider;
     }
 
     @Bean
@@ -68,5 +74,12 @@ public class TestDatasourceConfig {
     @Bean
     public TransactionDataProvider<String, Long> transactionDataProvider() {
         return new BitmexTransactionDataProviderService(instrumentService);
+    }
+
+    @Bean
+    public TransactionInfoService<String, Long> transactionInfoService() {
+        return new TransactionInfoService<>(transactionDataProvider, operationResultContext -> {
+
+        });
     }
 }

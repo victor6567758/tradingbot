@@ -1,5 +1,6 @@
 package com.tradebot.core.marketdata;
 
+import com.tradebot.core.utils.Assert;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -25,6 +26,7 @@ public class PipJumpCutOffCalculatorService<T> implements PipJumpCutOffCalculato
     public PipJumpCutOffCalculatorService(TradeableInstrument refInstrument,
             CurrentPriceInfoProvider currentPriceInfoProvider, Double refInstrumentPip,
             InstrumentService instrumentService) {
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.refInstrument = refInstrument;
         this.currentPriceInfoProvider = currentPriceInfoProvider;
         this.refInstrumentPip = refInstrumentPip;

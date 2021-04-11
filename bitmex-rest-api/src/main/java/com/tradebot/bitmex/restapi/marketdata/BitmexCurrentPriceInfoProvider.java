@@ -10,6 +10,7 @@ import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
 import com.tradebot.core.marketdata.CurrentPriceInfoProvider;
 import com.tradebot.core.marketdata.Price;
+import com.tradebot.core.utils.Assert;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +30,7 @@ public class BitmexCurrentPriceInfoProvider implements CurrentPriceInfoProvider 
     private final InstrumentService instrumentService;
 
     public BitmexCurrentPriceInfoProvider(InstrumentService instrumentService) {
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.instrumentService = instrumentService;
     }
 

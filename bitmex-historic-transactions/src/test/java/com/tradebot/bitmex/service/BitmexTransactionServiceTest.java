@@ -20,6 +20,7 @@ import com.tradebot.bitmex.restapi.events.BitmexTransactionTypeEvent;
 import com.tradebot.bitmex.restapi.generated.model.Transaction;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
+import com.tradebot.core.account.transaction.TransactionInfoService;
 import com.tradebot.core.model.OperationResultContext;
 import com.tradebot.core.model.TradingSignal;
 import com.tradebot.core.account.Account;
@@ -61,7 +62,7 @@ public class BitmexTransactionServiceTest {
     private final JSON json = new JSON();
 
     @MockBean
-    private TransactionDataProvider<String, Long> transactionDataProvider;
+    private TransactionInfoService<String, Long> transactionInfoService;
 
     @Autowired
     private BimexAccounRepository bimexAccounRepository;
@@ -91,7 +92,7 @@ public class BitmexTransactionServiceTest {
                 .map(this::mapToTransaction)
                 .collect(Collectors.toList());
 
-        doReturn(newTransactions).when(transactionDataProvider)
+        doReturn(newTransactions).when(transactionInfoService)
             .getTransactionsGreaterThanDateTime(isNull(), any(Long.class));
 
     }

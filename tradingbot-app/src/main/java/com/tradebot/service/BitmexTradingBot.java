@@ -344,11 +344,11 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
                     sendBitmexLimitResponse(bitmexOrderQuotas);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Order result (order quotas) callback {}", bitmexOrderQuotas.toString());
+                        log.debug("Operation result (order quotas) callback {}", bitmexOrderQuotas.toString());
                     }
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("Order result callback {}", operationResultContext.toString());
+                        log.debug("Operation result callback {}", operationResultContext.toString());
                     }
                 }
 

@@ -7,7 +7,7 @@ import com.tradebot.bitmex.repository.BitmexTransactionRepository;
 import com.tradebot.core.account.Account;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.Transaction;
-import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.account.transaction.TransactionInfoService;
 import com.tradebot.core.model.OperationResultContext;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -30,7 +30,7 @@ public class BitmexTransactionService {
 
     private final BimexAccounRepository bitmexAccountRepository;
 
-    private final TransactionDataProvider<String, Long> transactionDataProvider;
+    private final TransactionInfoService<String, Long> transactionInfoService;
 
     public void saveNewTransactions() {
         OperationResultContext<Collection<Account<Long>>> allAccountsWithContext = accountDataProvider.getLatestAccountsInfo();
@@ -48,7 +48,7 @@ public class BitmexTransactionService {
                 .orElse(null);
 
             List<Transaction<String, Long>> newTransactions =
-                transactionDataProvider.getTransactionsGreaterThanDateTime(
+                transactionInfoService.getTransactionsGreaterThanDateTime(
                     maxTransactionTime != null ? new DateTime(maxTransactionTime) : null, account.getAccountId());
             log.info("Found {} new transactions for account {}", newTransactions.size(), account.getAccountId());
 

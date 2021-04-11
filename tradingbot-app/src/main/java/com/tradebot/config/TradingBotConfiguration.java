@@ -14,33 +14,20 @@ import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.marketdata.historic.HistoricMarketDataProvider;
 import com.tradebot.core.order.OrderManagementProvider;
 import com.tradebot.core.position.PositionManagementProvider;
-import com.tradebot.service.TradingBotApi;
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration
+@Slf4j
 public class TradingBotConfiguration {
 
     private final InstrumentDataProvider instrumentDataProvider;
 
-    private final TradingBotApi tradingBotApi;
-
-    private InstrumentService instrumentService;
-
-    public TradingBotConfiguration(
-        @Lazy TradingBotApi tradingBotApi,
-        @Lazy InstrumentDataProvider instrumentDataProvider) {
-
+    public TradingBotConfiguration(@Lazy InstrumentDataProvider instrumentDataProvider) {
         this.instrumentDataProvider = instrumentDataProvider;
-        this.tradingBotApi = tradingBotApi;
-    }
-
-    @PostConstruct
-    public void init() {
-        instrumentService = new InstrumentService(instrumentDataProvider, tradingBotApi::onOperationResult);
     }
 
     @Bean
@@ -75,12 +62,20 @@ public class TradingBotConfiguration {
 
     @Bean
     public OrderManagementProvider<String, Long> orderManagementProvider() {
-        return new BitmexOrderManagementProvider(instrumentService);
+        return new BitmexOrderManagementProvider(new InstrumentService(instrumentDataProvider, operationResultContext -> {
+            if (log.isDebugEnabled()) {
+                log.debug("Instrument operation result (order quotas) callback {}", operationResultContext.toString());
+            }
+        }));
     }
 
     @Bean
     public PositionManagementProvider<Long> positionManagementProvider() {
-        return new BitmexPositionManagementProvider(instrumentService);
+        return new BitmexPositionManagementProvider(new InstrumentService(instrumentDataProvider, operationResultContext -> {
+            if (log.isDebugEnabled()) {
+                log.debug("Instrument operation result (order quotas) callback {}", operationResultContext.toString());
+            }
+        }));
     }
 
 }

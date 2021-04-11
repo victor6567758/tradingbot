@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class BitmexTradeManagementProvider implements TradeManagementProvider<String, Long> {
@@ -27,6 +28,7 @@ public class BitmexTradeManagementProvider implements TradeManagementProvider<St
     private final InstrumentService instrumentService;
 
     public BitmexTradeManagementProvider(InstrumentService instrumentService) {
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.instrumentService = instrumentService;
     }
 

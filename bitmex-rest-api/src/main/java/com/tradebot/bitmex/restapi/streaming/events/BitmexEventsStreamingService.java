@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class BitmexEventsStreamingService extends BaseBitmexStreamingService implements EventsStreamingService {
@@ -60,6 +61,8 @@ public class BitmexEventsStreamingService extends BaseBitmexStreamingService imp
         InstrumentService instrumentService) {
 
         super(heartBeatCallback);
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
+
         this.marketEventCallback = marketEventCallback;
         this.eventCallback = eventCallback;
         this.executionEventCallback = executionEventCallback;

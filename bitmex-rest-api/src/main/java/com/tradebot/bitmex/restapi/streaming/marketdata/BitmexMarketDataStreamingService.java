@@ -16,6 +16,7 @@ import com.tradebot.core.streaming.marketdata.MarketDataStreamingService;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService implements MarketDataStreamingService {
@@ -38,6 +39,7 @@ public class BitmexMarketDataStreamingService extends BaseBitmexStreamingService
         InstrumentService instrumentService) {
         super(heartBeatCallback);
 
+        Assert.notNull(instrumentService, "InstrumentService cannot be null");
         this.marketEventCallback = marketEventCallback;
         this.instrumentEventCallback = instrumentEventCallback;
         this.instruments = instruments;

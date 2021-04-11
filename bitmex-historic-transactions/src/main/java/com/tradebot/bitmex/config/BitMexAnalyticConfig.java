@@ -7,14 +7,27 @@ import com.tradebot.bitmex.restapi.instrument.BitmexInstrumentDataProviderServic
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.account.AccountDataProvider;
 import com.tradebot.core.account.transaction.TransactionDataProvider;
+import com.tradebot.core.account.transaction.TransactionInfoService;
 import com.tradebot.core.instrument.InstrumentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 @Slf4j
 public class BitMexAnalyticConfig {
+
+    private final TransactionDataProvider<String, Long> transactionDataProvider;
+
+    private final AccountDataProvider<Long> accountDataProvider;
+
+    public BitMexAnalyticConfig(
+        @Lazy TransactionDataProvider<String, Long> transactionDataProvider,
+        @Lazy AccountDataProvider<Long> accountDataProvider) {
+        this.transactionDataProvider = transactionDataProvider;
+        this.accountDataProvider = accountDataProvider;
+    }
 
     @Bean
     public BitmexAccountConfiguration bitmexAccountConfiguration() {
@@ -33,5 +46,14 @@ public class BitMexAnalyticConfig {
                 log.debug(operationResultContext.toString());
             }
         }));
+    }
+
+    @Bean
+    public TransactionInfoService<String, Long> transactionInfoService() {
+        return new TransactionInfoService<>(transactionDataProvider, operationResultContext -> {
+            if (log.isDebugEnabled()) {
+                log.debug(operationResultContext.toString());
+            }
+        });
     }
 }

@@ -13,14 +13,18 @@ import com.google.gson.reflect.TypeToken;
 import com.tradebot.bitmex.restapi.generated.api.UserApi;
 import com.tradebot.bitmex.restapi.generated.model.Transaction;
 import com.tradebot.bitmex.restapi.generated.restclient.ApiException;
+import com.tradebot.bitmex.restapi.generated.restclient.ApiResponse;
 import com.tradebot.bitmex.restapi.generated.restclient.JSON;
 import com.tradebot.core.instrument.InstrumentService;
 import com.tradebot.core.instrument.TradeableInstrument;
+import com.tradebot.core.model.OperationResultContext;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import org.apache.http.HttpStatus;
 import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -49,7 +53,8 @@ public class BitmexTransactionDataProviderServiceTest {
             new TypeToken<List<Transaction>>() {
             }.getType());
 
-        when(userApi.userGetWalletHistory(anyString(), anyDouble(), anyDouble())).thenReturn(transactions);
+        when(userApi.userGetWalletHistoryWithHttpInfo(anyString(), anyDouble(), anyDouble())).thenReturn(
+            new ApiResponse(HttpStatus.SC_OK, Collections.emptyMap(),transactions));
         doReturn(userApi).when(bitmexTransactionDataProviderServiceSpy).getUserApi();
 
     }
@@ -59,12 +64,12 @@ public class BitmexTransactionDataProviderServiceTest {
         assertThat(transactions.iterator().hasNext()).isTrue();
         Transaction transaction = transactions.iterator().next();
 
-        com.tradebot.core.account.transaction.Transaction<String, Long> transactionFound = bitmexTransactionDataProviderServiceSpy
+        OperationResultContext<com.tradebot.core.account.transaction.Transaction<String, Long>> transactionFound = bitmexTransactionDataProviderServiceSpy
             .getTransaction(transaction.getTransactID(), transaction.getAccount().longValue());
 
-        assertThat(transactionFound.getAccountId()).isEqualTo(transaction.getAccount().longValue());
-        assertThat(transactionFound.getPrice()).isCloseTo(transaction.getAmount().doubleValue(), Offset.offset(0.000001));
-        assertThat(transactionFound.getTransactionId()).isEqualTo(transaction.getTransactID());
+        assertThat(transactionFound.getData().getAccountId()).isEqualTo(transaction.getAccount().longValue());
+        assertThat(transactionFound.getData().getPrice()).isCloseTo(transaction.getAmount().doubleValue(), Offset.offset(0.000001));
+        assertThat(transactionFound.getData().getTransactionId()).isEqualTo(transaction.getTransactID());
     }
 
     @Test
@@ -72,10 +77,10 @@ public class BitmexTransactionDataProviderServiceTest {
         assertThat(transactions.iterator().hasNext()).isTrue();
         Transaction transaction = transactions.iterator().next();
 
-        Collection<com.tradebot.core.account.transaction.Transaction<String, Long>> transactionsFound =
+        OperationResultContext<List<com.tradebot.core.account.transaction.Transaction<String, Long>>> transactionsFound =
             bitmexTransactionDataProviderServiceSpy.getTransactionsGreaterThanId(
                 "", transaction.getAccount().longValue());
-        assertThat(transactionsFound).hasSize(2);
+        assertThat(transactionsFound.getData()).hasSize(2);
 
     }
 
