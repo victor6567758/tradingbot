@@ -5,6 +5,7 @@ import com.tradebot.core.model.BaseTradingConfig;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 public class BitmexAccountConfiguration {
@@ -21,7 +22,9 @@ public class BitmexAccountConfiguration {
     @Data
     public static class Api {
 
+        @ToString.Exclude
         private String key;
+        @ToString.Exclude
         private String secret;
         private String email;
         private String mainCurrency;
@@ -39,6 +42,8 @@ public class BitmexAccountConfiguration {
         private String driverClassName;
         private String url;
         private String user;
+
+        @ToString.Exclude
         private String pass;
 
     }
@@ -46,6 +51,7 @@ public class BitmexAccountConfiguration {
     @Data
     public static class TradingConfiguration extends BaseTradingConfig {
 
+        private int waitCancelAllOrdersSec;
         private int orderDelaySec;
         private long accountId;
         private String mailTo;
@@ -53,7 +59,6 @@ public class BitmexAccountConfiguration {
         private int tradingSolutionsDepthMin;
         private int waitForOrderOperationReplySecs;
         private List<Map<String, ?>> tradeableInstruments;
-        private Map<String, String> algParameters;
     }
 
     private Bitmex bitmex;

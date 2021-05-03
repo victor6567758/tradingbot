@@ -1,5 +1,6 @@
 package com.tradebot.service;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
@@ -32,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongPredicate;
 import lombok.RequiredArgsConstructor;
@@ -110,7 +112,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         log.info("Profit plus {}", tradingContext.getRecalculatedTradingContext().getProfitPlus());
         tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
             log.info("Trading decision {}, {}", decision.getContext().getLevel(), decision.toString());
-            submitDecisionHelper(tradingContext, decision);
+            submitDecisionHelper(tradingContext, decision, true);
         });
         log.info(">>>>>>>>>>>>>>>");
 
@@ -195,7 +197,9 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
                         } else {
                             log.info("Restart trading at level {} only", resolvedLevel);
-                            submitDecisionHelper(tradingContext, openTradingDecision);
+
+                            // TODO - if delay should be 0 ?
+                            submitDecisionHelper(tradingContext, openTradingDecision, false);
                         }
                     }
                 }
@@ -291,14 +295,15 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     }
 
 
-    private void submitDecisionHelper(TradingContext tradingContext, TradingDecision<TradingDecisionContext> decision) {
+    private void submitDecisionHelper(TradingContext tradingContext, TradingDecision<TradingDecisionContext> decision, boolean firstTime) {
         List<Order<String>> orders = orderExecutionEngine.createOrderListFromDecision(decision,
             tradingDecisionContext -> UUID.randomUUID().toString());
         if (orders.size() != 1) {
             throw new IllegalArgumentException("At this strategy 1 order per a single decision");
         }
 
-        submitOrderHelper(tradingContext, orders.get(0), decision, decision.getContext(), decision.getExecutionDelay());
+        submitOrderHelper(tradingContext, orders.get(0), decision, decision.getContext(),
+            firstTime ? decision.getExecutionDelay() : 0);
     }
 
     private void submitOrderHelper(TradingContext tradingContext, Order<String> order, TradingDecision<TradingDecisionContext> decision,
@@ -307,14 +312,14 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         if (currentOrderLimitation != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Bitmex order time restriction, reset time {}, {}",
-                    Instant.ofEpochMilli(currentOrderLimitation.getXRatelimitReset()).toString(), currentOrderLimitation.toString());
+                    Instant.ofEpochMilli(currentOrderLimitation.getXRatelimitReset()), currentOrderLimitation);
             }
         }
 
         clientOrderIdLevelMap.put(order.getClientOrderId(), tradingDecisionContext);
 
         log.info("About to submit order {}, profit plus {}, order delay time sec {}",
-            order.toString(),
+            order,
             tradingContext.getRecalculatedTradingContext().getProfitPlus(),
             delaySec);
 
@@ -326,9 +331,21 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             bitmexTradingBot.setGlobalTradesEnabled(false);
         }
 
-        // TODO  - need to make sure this done within 1 min, otherwise it's bad design
+        log.info("Waiting for all orders cancellation for {} sec",
+            bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getWaitCancelAllOrdersSec());
+
         bitmexTradingBot.cancelAllPendingOrders();
-        Collection<Order<String>> pending = orderInfoService.allPendingOrders();
+
+        Collection<Order<String>> pending = null;
+        long endTime = Instant.now().getMillis() + bitmexAccountConfiguration.getBitmex().getTradingConfiguration().getWaitCancelAllOrdersSec() * 1000L;
+        while (Instant.now().getMillis() <= endTime) {
+            pending = orderInfoService.allPendingOrders();
+            if (CollectionUtils.isEmpty(pending)) {
+                break;
+            }
+            Uninterruptibles.sleepUninterruptibly(1000L, TimeUnit.MICROSECONDS);
+        }
+
         if (CollectionUtils.isNotEmpty(pending)) {
             log.error("Cannot cancel pending orders, STOP WORK");
             bitmexTradingBot.setGlobalTradesEnabled(false);

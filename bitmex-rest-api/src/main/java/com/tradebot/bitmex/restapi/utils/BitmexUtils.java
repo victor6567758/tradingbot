@@ -41,16 +41,23 @@ public class BitmexUtils {
         String configYml = System.getProperty(ENV_CONFIG_YML_PATH);
         if (StringUtils.isNotBlank(configYml)) {
             try (InputStream inputStream = FileUtils.openInputStream(FileUtils.getFile(configYml))) {
-                log.debug("Read configuration from {}", configYml);
-                return yaml.load(inputStream);
+                BitmexAccountConfiguration bitmexAccountConfiguration = yaml.load(inputStream);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Read configuration from {}, content: {}", configYml, bitmexAccountConfiguration.toString());
+                }
+                return bitmexAccountConfiguration;
             } catch (IOException e) {
                 log.warn("External configuration file is not readable {}", configYml);
             }
         }
 
         try (InputStream inputStream = BitmexAccountConfiguration.class.getClassLoader().getResourceAsStream(BITMEX_DEFAULT_ACCOUNT_YML)) {
-            log.debug("Read configuration from {}", BITMEX_DEFAULT_ACCOUNT_YML);
-            return yaml.load(inputStream);
+            BitmexAccountConfiguration bitmexAccountConfiguration = yaml.load(inputStream);
+            if (log.isDebugEnabled()) {
+                log.debug("Read configuration from {}, content: {}", BITMEX_DEFAULT_ACCOUNT_YML, bitmexAccountConfiguration.toString());
+            }
+            return bitmexAccountConfiguration;
         } catch (IOException e) {
             log.warn("Classpath configuration file is not readable {}", BITMEX_DEFAULT_ACCOUNT_YML);
         }

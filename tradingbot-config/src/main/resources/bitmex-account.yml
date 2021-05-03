@@ -19,6 +19,7 @@ bitmex:
     pass: changeme
 
   tradingConfiguration:
+    waitCancelAllOrdersSec: 30
     orderDelaySec: 30
     accountId: 1111111
     minReserveRatio: 1
