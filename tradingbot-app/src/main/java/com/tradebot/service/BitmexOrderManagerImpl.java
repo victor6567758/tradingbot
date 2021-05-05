@@ -6,7 +6,6 @@ import com.tradebot.bitmex.restapi.events.payload.BitmexExecutionEventPayload;
 import com.tradebot.bitmex.restapi.events.payload.BitmexOrderEventPayload;
 import com.tradebot.bitmex.restapi.model.BitmexExecution;
 import com.tradebot.bitmex.restapi.model.BitmexOperationQuotas;
-import com.tradebot.bitmex.restapi.model.BitmexOrder;
 import com.tradebot.bitmex.restapi.utils.BitmexUtils;
 import com.tradebot.core.helper.CacheCandlestick;
 import com.tradebot.core.marketdata.historic.CandleStick;
@@ -111,7 +110,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
         log.info(">>>> START EVOLUTION >>>>");
         log.info("Profit plus {}", tradingContext.getRecalculatedTradingContext().getProfitPlus());
         tradingContext.getRecalculatedTradingContext().getOpenTradingDecisions().values().forEach(decision -> {
-            log.info("Trading decision {}, {}", decision.getContext().getLevel(), decision.toString());
+            log.info("Trading decision {}, {}", decision.getContext().getLevel(), decision);
             submitDecisionHelper(tradingContext, decision, true);
         });
         log.info(">>>>>>>>>>>>>>>");
@@ -129,11 +128,11 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     @Override
     public void onOrderCallback(TradingContext tradingContext, BitmexOrderEventPayload event) {
 
-        BitmexOrder bitmexOrder = event.getPayLoad();
+        var bitmexOrder = event.getPayLoad();
 
         if (StringUtils.isNotEmpty(bitmexOrder.getText())) {
             if (StringUtils.contains(bitmexOrder.getText().toLowerCase(Locale.ROOT), "spam")) {
-                log.info("Bitmex suspected spam, STOP WORK {}", bitmexOrder.toString());
+                log.info("Bitmex suspected spam, STOP WORK {}", bitmexOrder);
                 stopAllTrades(true);
             }
         }
@@ -142,14 +141,14 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
     @Override
     @SneakyThrows
     public void onOrderExecutionCallback(TradingContext tradingContext, BitmexExecutionEventPayload event) {
-        BitmexExecution bitmexExecution = event.getPayLoad();
+        var bitmexExecution = event.getPayLoad();
 
         int resolvedLevel = resolveClientLevel(bitmexExecution, tradingContext, event);
         if (resolvedLevel < 0) {
             log.info("Alien Order execution callback {}", bitmexExecution.toString());
             return;
         }
-        log.info("Order execution callback {}, line: {}", bitmexExecution.toString(), resolvedLevel);
+        log.info("Order execution callback {}, [line: {}]", bitmexExecution.toString(), resolvedLevel);
 
         Map<Integer, Long> imbalanceMap = tradingContext.getRecalculatedTradingContext().getImbalanceMap();
         TradingDecision<TradingDecisionContext> openTradingDecision = tradingContext
@@ -162,43 +161,43 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
 
         if (bitmexExecution.getExecType() == ExecutionType.NEW) {
             if (bitmexExecution.getSide() == TradingSignal.LONG) {
-                log.info("Long accepted for order {}", resolvedLevel);
+                log.info("Long accepted for order [line: {}]", resolvedLevel);
                 imbalanceMap.put(resolvedLevel, 0L);
             } else {
-                log.info("Short accepted for order {}", resolvedLevel);
+                log.info("Short accepted for order [line: {}]", resolvedLevel);
             }
 
         } else if (bitmexExecution.getExecType() == ExecutionType.TRADE) {
             if (bitmexExecution.getOrdStatus() == OrderStatus.FILLED || bitmexExecution.getOrdStatus() == OrderStatus.PARTIALLY_FILLED) {
 
                 if (bitmexExecution.getSide() == TradingSignal.LONG) {
-                    log.info("Long filled {}, volume {}, price {}", resolvedLevel, bitmexExecution.getLastQty(), bitmexExecution.getLastPx());
+                    log.info("Long [line: {}], volume {}, price {}",
+                        resolvedLevel, bitmexExecution.getLastQty(), bitmexExecution.getLastPx());
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == bitmexExecution.getOrderQty())) {
-                        log.info("Long volume reached the level to open short order {}", resolvedLevel);
+                        log.info("Long volume reached the level to open short order [line: {}]", resolvedLevel);
                         removeClientOrderReference(bitmexExecution.getClOrdID());
 
                         commandToOpenCloseOrder(executionList, tradingContext, openTradingDecision, resolvedLevel);
                     }
 
                 } else {
-                    log.info("Short filled {}, volume {}, price {}", resolvedLevel, bitmexExecution.getLastQty(), bitmexExecution.getLastPx());
+                    log.info("Short filled [line: {}], volume {}, price {}",
+                        resolvedLevel, bitmexExecution.getLastQty(), bitmexExecution.getLastPx());
 
                     if (updateVolumeAndCheck(imbalanceMap, bitmexExecution, resolvedLevel, qty -> qty == 0)) {
-                        log.info("Short volume reached the level to stop the trade {}", resolvedLevel);
+                        log.info("Short volume reached the level to stop the trade [line: {}]", resolvedLevel);
                         removeClientOrderReference(bitmexExecution.getClOrdID());
 
                         // level 0 - need to restart trading
                         // other levels need to repeat level scenario
                         if (resolvedLevel == 0) {
-                            log.info("Restart trading fully as zero level");
+                            log.info("Restart trading fully as zero level, [line: {}]", resolvedLevel);
 
                             stopAllTrades(false);
 
                         } else {
-                            log.info("Restart trading at level {} only", resolvedLevel);
-
-                            // TODO - if delay should be 0 ?
+                            log.info("Restart trading at level [line: {}] only", resolvedLevel);
                             submitDecisionHelper(tradingContext, openTradingDecision, false);
                         }
                     }
@@ -226,7 +225,7 @@ public class BitmexOrderManagerImpl implements BitmexOrderManager {
             return -1;
         }
 
-        TradingDecisionContext tradingDecisionContext = clientOrderIdLevelMap.get(bitmexExecution.getClOrdID());
+        var tradingDecisionContext = clientOrderIdLevelMap.get(bitmexExecution.getClOrdID());
         if (tradingDecisionContext == null) {
             log.warn("Alien order cannot be processed {}", bitmexExecution.getOrderID());
             return -1;

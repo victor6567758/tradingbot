@@ -1,5 +1,6 @@
 package com.tradebot.controller.mvc;
 
+import com.tradebot.bitmex.restapi.config.BitmexAccountConfiguration;
 import com.tradebot.response.ExecutionResponse;
 import com.tradebot.service.TradingBotApi;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Controller
 @RequiredArgsConstructor
@@ -21,6 +23,8 @@ public class HomeMvcController {
     private final Environment environment;
 
     private final BuildProperties buildProperties;
+
+    private final BitmexAccountConfiguration bitmexAccountConfiguration;
 
     @Value("${spring.application.name}")
     private String appName;
@@ -46,6 +50,16 @@ public class HomeMvcController {
 
         model.addAttribute("levelExecutions", levelExecutions);
         return "levelinfo";
+    }
+
+    @GetMapping("/logviewer")
+    public String logViewer(Model model) {
+
+        model.addAttribute("elasticUrl", UriComponentsBuilder.fromUriString(bitmexAccountConfiguration.getBitmex().getElastic().getUrl())
+            .pathSegment(bitmexAccountConfiguration.getBitmex().getElastic().getIndex())
+            .build().toUriString());
+
+        return "logviewer";
     }
 
     private String createBuildInfo() {

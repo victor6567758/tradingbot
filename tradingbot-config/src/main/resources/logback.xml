@@ -6,15 +6,24 @@
 
   <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
     <layout class="ch.qos.logback.classic.PatternLayout">
-      <Pattern>%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+      <Pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</Pattern>
     </layout>
+  </appender>
+
+  <appender name="Stash" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${PROD_LOG_PATH}/stash-happy-trader-2.0.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${PROD_LOG_PATH}/stash-happy-trader-2.0.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>7</maxHistory>
+    </rollingPolicy>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
   </appender>
 
   <appender name="File" class="ch.qos.logback.core.FileAppender">
     <file>${PROD_LOG_PATH}/happy-trader-2.0-${bySecond}.log</file>
     <append>true</append>
     <encoder>
-      <Pattern>%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+      <Pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</Pattern>
     </encoder>
   </appender>
 
@@ -33,11 +42,13 @@
   <logger name="com.tradebot" level="${PROD_LOG_LEVEL}" additivity="false">
     <appender-ref ref="Console"/>
     <appender-ref ref="File" />
+    <appender-ref ref="Stash" />
   </logger>
 
   <root level="INFO">
     <appender-ref ref="File" />
     <appender-ref ref="Console" />
+    <appender-ref ref="Stash" />
   </root>
 
 </configuration>

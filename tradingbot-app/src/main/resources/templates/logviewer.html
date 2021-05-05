@@ -1,0 +1,30 @@
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, internal-scale=1.0">
+  <title>Level Info</title>
+  <link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+  <link th:href="@{/home.css}" rel="stylesheet">
+</head>
+
+<body>
+
+
+  <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
+  <script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+  <script type="text/javascript" th:src="@{/logviewer.js}"></script>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    function getElasticUrl() {
+      /*[+
+      var url = [[${elasticUrl}]];
+       +]*/
+      return url;
+    }
+    /*]]>*/
+  </script>
+</body>
+
+</html>

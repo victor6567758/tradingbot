@@ -12,6 +12,10 @@ bitmex:
     webSocketUrl: wss://testnet.bitmex.com/realtime
     limitOrdersPerMinute: 60
 
+  elastic:
+    index: bitmex
+    url: http://localhost:9200
+
   db:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres?useSSL=false

@@ -65,8 +65,16 @@
     <jquery.webjar.version>3.5.1</jquery.webjar.version>
     <jquery-ui.webjar.version>1.12.1</jquery-ui.webjar.version>
     <webjar.locator.version>0.40</webjar.locator.version>
+    <logstash.encoder.version>6.6</logstash.encoder.version>
 
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+    </dependency>
+  </dependencies>
 
   <dependencyManagement>
     <dependencies>
@@ -310,6 +318,12 @@
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-core</artifactId>
         <version>${logback.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.logstash.logback</groupId>
+        <artifactId>logstash-logback-encoder</artifactId>
+        <version>${logstash.encoder.version}</version>
       </dependency>
 
       <dependency>

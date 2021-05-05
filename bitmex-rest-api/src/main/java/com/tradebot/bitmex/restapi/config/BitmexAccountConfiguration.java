@@ -16,6 +16,7 @@ public class BitmexAccountConfiguration {
         private String tag;
         private Api api;
         private Db db;
+        private Elastic elastic;
         private TradingConfiguration tradingConfiguration;
     }
 
@@ -34,6 +35,12 @@ public class BitmexAccountConfiguration {
         private int tradesDepth;
         private String webSocketUrl;
         private int limitOrdersPerMinute;
+    }
+
+    @Data
+    public static class Elastic {
+        String index;
+        String url;
     }
 
     @Data
