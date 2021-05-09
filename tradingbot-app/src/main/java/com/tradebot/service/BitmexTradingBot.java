@@ -151,7 +151,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
     public List<ExecutionResponse> getLastExecutionResponseList(String symbol, int level) {
         tradingContextMapLock.readLock().lock();
         try {
-            TradingContext tradingContext = tradingContextMap
+            var tradingContext = tradingContextMap
                 .get(instrumentService.resolveTradeableInstrument(symbol));
 
             if (tradingContext == null) {
@@ -226,7 +226,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
     @Override
     public Collection<CandleResponse> getCandleStickHistory(String symbol) {
-        TradeableInstrument instrument =
+        var instrument =
             instrumentService.resolveTradeableInstrument(symbol);
 
         return historicMarketDataProvider.getCandleSticks(instrument, CandleStickGranularity.M1,
@@ -257,7 +257,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
         tradingContextMapLock.writeLock().lock();
         try {
-            TradingContext tradingContext = tradingContextMap.get(candleStick.getInstrument());
+            var tradingContext = tradingContextMap.get(candleStick.getInstrument());
             if (tradingContext == null) {
                 throw new IllegalArgumentException(
                     String.format("Cannot find symbol %s", candleStick.getInstrument()));
@@ -295,12 +295,12 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
     @Override
     public void visit(BitmexExecutionEventPayload event) {
-        TradeableInstrument instrument =
+        var instrument =
             instrumentService.resolveTradeableInstrument(event.getPayLoad().getSymbol());
 
         tradingContextMapLock.writeLock().lock();
         try {
-            TradingContext tradingContext = tradingContextMap.get(instrument);
+            var tradingContext = tradingContextMap.get(instrument);
             bitmexOrderManager.onOrderExecutionCallback(tradingContext, event);
 
 
@@ -312,7 +312,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
 
     @Override
     public void visit(BitmexOrderEventPayload event) {
-        TradeableInstrument instrument =
+        var instrument =
             instrumentService.resolveTradeableInstrument(event.getPayLoad().getSymbol());
 
         tradingContextMapLock.writeLock().lock();
@@ -336,7 +336,7 @@ public class BitmexTradingBot extends BitmexTradingBotBase implements TradingBot
             }
 
             for (Entry<TradeableInstrument, TradingContext> entry : tradingContextMap.entrySet()) {
-                TradingContext tradingContext = entry.getValue();
+                var tradingContext = entry.getValue();
 
                 if (operationResultContext instanceof BitmexOperationQuotas) {
                     BitmexOperationQuotas<?> bitmexOrderQuotas = (BitmexOperationQuotas<?>) operationResultContext;

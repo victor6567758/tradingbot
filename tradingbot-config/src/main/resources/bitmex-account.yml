@@ -47,7 +47,7 @@ bitmex:
           currentPriceAdjustDivider: 1000.0
           xPct: 1.0008
           linesNum: 8
-          orderPosUnits: 1
+          orderPosUnits: 25
           reportCurrency: USD
 #      - instrument: XBTJPY
 #        cacheHistory:
